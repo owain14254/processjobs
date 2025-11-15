@@ -16,7 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Job, CompletedJob } from "@/hooks/useJobStorage";
-import { format, isWithinInterval, subHours } from "date-fns";
+import { format, subHours } from "date-fns";
 import { cn } from "@/lib/utils";
 
 interface HandoverTabProps {
@@ -24,8 +24,7 @@ interface HandoverTabProps {
   completedJobs: CompletedJob[];
 }
 
-type HandoverMode = "small" | "large";
-type ShiftType = "day" | "night";
+type HandoverMode = "shift" | "set";
 
 const DEPARTMENTS = [
   "All",
@@ -43,26 +42,9 @@ const getStatusColor = (jobComplete: boolean, sapComplete: boolean) => {
   return "bg-status-amber";
 };
 
-const getShiftTimeRange = (shiftType: ShiftType): { start: Date; end: Date } => {
-  const now = new Date();
-  const currentHour = now.getHours();
-  
-  if (shiftType === "day") {
-    // Day shift: 7am - 7pm (last 12 hours ending now)
-    const end = new Date();
-    const start = subHours(end, 12);
-    return { start, end };
-  } else {
-    // Night shift: 7pm - 7am (last 12 hours ending now)
-    const end = new Date();
-    const start = subHours(end, 12);
-    return { start, end };
-  }
-};
 
 export const HandoverTab = ({ activeJobs, completedJobs }: HandoverTabProps) => {
-  const [mode, setMode] = useState<HandoverMode>("small");
-  const [shiftType, setShiftType] = useState<ShiftType>("day");
+  const [mode, setMode] = useState<HandoverMode>("shift");
   const [departmentFilter, setDepartmentFilter] = useState("All");
 
   const allJobs = useMemo(() => {
@@ -78,13 +60,12 @@ export const HandoverTab = ({ activeJobs, completedJobs }: HandoverTabProps) => 
     let filtered = [...allJobs];
 
     // Time filtering
-    if (mode === "small") {
-      const { start, end } = getShiftTimeRange(shiftType);
-      filtered = filtered.filter((job) =>
-        isWithinInterval(job.date, { start, end })
-      );
+    if (mode === "shift") {
+      // Last 12 hours
+      const cutoff = subHours(new Date(), 12);
+      filtered = filtered.filter((job) => job.date >= cutoff);
     } else {
-      // Large handover: last 96 hours
+      // Set: last 96 hours
       const cutoff = subHours(new Date(), 96);
       filtered = filtered.filter((job) => job.date >= cutoff);
     }
@@ -96,7 +77,7 @@ export const HandoverTab = ({ activeJobs, completedJobs }: HandoverTabProps) => 
 
     // Sort by date descending (most recent first)
     return filtered.sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [allJobs, mode, shiftType, departmentFilter]);
+  }, [allJobs, mode, departmentFilter]);
 
   return (
     <div className="space-y-6">
@@ -104,34 +85,18 @@ export const HandoverTab = ({ activeJobs, completedJobs }: HandoverTabProps) => 
       <div className="flex items-center gap-4">
         <div className="flex gap-2">
           <Button
-            variant={mode === "small" ? "default" : "outline"}
-            onClick={() => setMode("small")}
+            variant={mode === "shift" ? "default" : "outline"}
+            onClick={() => setMode("shift")}
           >
-            Small Handover (12 hours)
+            Shift (12 hours)
           </Button>
           <Button
-            variant={mode === "large" ? "default" : "outline"}
-            onClick={() => setMode("large")}
+            variant={mode === "set" ? "default" : "outline"}
+            onClick={() => setMode("set")}
           >
-            Large Handover (96 hours)
+            Set (96 hours)
           </Button>
         </div>
-
-        {/* Shift Selection (Small Handover Only) */}
-        {mode === "small" && (
-          <div className="flex items-center gap-2 ml-auto">
-            <span className="text-sm font-medium">Shift:</span>
-            <Select value={shiftType} onValueChange={(v) => setShiftType(v as ShiftType)}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="day">Day Shift (7am - 7pm)</SelectItem>
-                <SelectItem value="night">Night Shift (7pm - 7am)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        )}
 
         {/* Department Filter */}
         <div className="flex items-center gap-2 ml-auto">
@@ -154,10 +119,9 @@ export const HandoverTab = ({ activeJobs, completedJobs }: HandoverTabProps) => 
       {/* Info Banner */}
       <div className="bg-muted p-4 rounded-lg">
         <p className="text-sm">
-          {mode === "small" ? (
+          {mode === "shift" ? (
             <>
-              Showing jobs from the last <strong>12 hours</strong> for{" "}
-              <strong>{shiftType === "day" ? "Day" : "Night"} Shift</strong>
+              Showing jobs from the last <strong>12 hours</strong>
               {departmentFilter !== "All" && (
                 <>
                   {" "}
@@ -184,7 +148,6 @@ export const HandoverTab = ({ activeJobs, completedJobs }: HandoverTabProps) => 
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Status</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Department</TableHead>
               <TableHead>Description</TableHead>
@@ -195,21 +158,16 @@ export const HandoverTab = ({ activeJobs, completedJobs }: HandoverTabProps) => 
           <TableBody>
             {filteredJobs.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                   No jobs found for the selected period
                 </TableCell>
               </TableRow>
             ) : (
               filteredJobs.map((job) => (
-                <TableRow key={job.id}>
-                  <TableCell>
-                    <div
-                      className={cn(
-                        "w-6 h-6 rounded",
-                        getStatusColor(job.jobComplete, job.sapComplete)
-                      )}
-                    />
-                  </TableCell>
+                <TableRow 
+                  key={job.id}
+                  className={cn(getStatusColor(job.jobComplete, job.sapComplete))}
+                >
                   <TableCell className="whitespace-nowrap">
                     {format(job.date, "PPP p")}
                   </TableCell>

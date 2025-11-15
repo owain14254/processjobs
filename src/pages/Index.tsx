@@ -6,6 +6,7 @@ import { AddJobForm } from "@/components/AddJobForm";
 import { JobRow } from "@/components/JobRow";
 import { CompletedJobsLog } from "@/components/CompletedJobsLog";
 import { HandoverTab } from "@/components/HandoverTab";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Archive, Download, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import mullerLogo from "@/assets/muller-logo.png";
@@ -81,6 +82,7 @@ const Index = () => {
             </div>
           </div>
           <div className="flex gap-2">
+            <ThemeToggle />
             <Button onClick={handleExport} variant="outline">
               <Download className="mr-2 h-4 w-4" />
               Export Backup
@@ -119,12 +121,12 @@ const Index = () => {
               </div>
             ) : (
               <div className="space-y-2">
-                <div className="grid grid-cols-[200px_180px_1fr_120px_120px_60px] gap-4 px-4 py-2 text-sm font-medium text-muted-foreground">
+                <div className="grid grid-cols-[180px_140px_1fr_100px_100px_50px] gap-3 px-3 py-2 text-xs font-medium text-muted-foreground">
                   <div>Date</div>
                   <div>Department</div>
                   <div>Description</div>
-                  <div className="text-center">Job Complete</div>
-                  <div className="text-center">SAP Complete</div>
+                  <div className="text-center">Complete</div>
+                  <div className="text-center">SAP</div>
                   <div></div>
                 </div>
                 {activeJobs.map((job) => (

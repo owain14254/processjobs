@@ -44,7 +44,7 @@ export const JobRow = ({ job, onUpdate, onDelete }: JobRowProps) => {
   return (
     <div
       className={cn(
-        "grid grid-cols-[200px_180px_1fr_120px_120px_60px] gap-4 items-center p-4 rounded-lg transition-colors",
+        "grid grid-cols-[180px_140px_1fr_100px_100px_50px] gap-3 items-center p-3 rounded-lg transition-colors",
         getStatusColor(job.jobComplete, job.sapComplete)
       )}
     >
@@ -88,27 +88,27 @@ export const JobRow = ({ job, onUpdate, onDelete }: JobRowProps) => {
         value={job.description}
         onChange={(e) => onUpdate(job.id, { description: e.target.value })}
         placeholder="Job description..."
-        className="bg-background text-base"
+        className="bg-background text-sm"
       />
 
-      <div className="flex items-center gap-2 justify-center">
+      <div className="flex items-center gap-1.5 justify-center">
         <Checkbox
           checked={job.jobComplete}
           onCheckedChange={(checked) =>
             onUpdate(job.id, { jobComplete: checked as boolean })
           }
         />
-        <span className="text-sm font-medium">Job Complete</span>
+        <span className="text-xs font-medium">Complete</span>
       </div>
 
-      <div className="flex items-center gap-2 justify-center">
+      <div className="flex items-center gap-1.5 justify-center">
         <Checkbox
           checked={job.sapComplete}
           onCheckedChange={(checked) =>
             onUpdate(job.id, { sapComplete: checked as boolean })
           }
         />
-        <span className="text-sm font-medium">SAP Complete</span>
+        <span className="text-xs font-medium">SAP</span>
       </div>
 
       <Button
