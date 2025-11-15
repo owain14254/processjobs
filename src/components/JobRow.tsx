@@ -1,0 +1,124 @@
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Job } from "@/hooks/useJobStorage";
+import { CalendarIcon, Trash2 } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+
+interface JobRowProps {
+  job: Job;
+  onUpdate: (id: string, updates: Partial<Job>) => void;
+  onDelete: (id: string) => void;
+}
+
+const DEPARTMENTS = [
+  "Process",
+  "Fruit",
+  "Filling",
+  "Warehouse",
+  "Services",
+  "Other",
+];
+
+const getStatusColor = (jobComplete: boolean, sapComplete: boolean) => {
+  if (jobComplete && sapComplete) return "bg-status-darkGreen";
+  if (jobComplete && !sapComplete) return "bg-status-lightGreen";
+  return "bg-status-amber";
+};
+
+export const JobRow = ({ job, onUpdate, onDelete }: JobRowProps) => {
+  return (
+    <div
+      className={cn(
+        "grid grid-cols-[200px_180px_1fr_120px_120px_60px] gap-4 items-center p-4 rounded-lg transition-colors",
+        getStatusColor(job.jobComplete, job.sapComplete)
+      )}
+    >
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className="justify-start text-left font-normal bg-background hover:bg-background/90"
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {format(job.date, "PPP")}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0">
+          <Calendar
+            mode="single"
+            selected={job.date}
+            onSelect={(date) => date && onUpdate(job.id, { date })}
+            initialFocus
+          />
+        </PopoverContent>
+      </Popover>
+
+      <Select
+        value={job.department}
+        onValueChange={(value) => onUpdate(job.id, { department: value })}
+      >
+        <SelectTrigger className="bg-background">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {DEPARTMENTS.map((dept) => (
+            <SelectItem key={dept} value={dept}>
+              {dept}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Input
+        value={job.description}
+        onChange={(e) => onUpdate(job.id, { description: e.target.value })}
+        placeholder="Job description..."
+        className="bg-background text-base"
+      />
+
+      <div className="flex items-center gap-2 justify-center">
+        <Checkbox
+          checked={job.jobComplete}
+          onCheckedChange={(checked) =>
+            onUpdate(job.id, { jobComplete: checked as boolean })
+          }
+        />
+        <span className="text-sm font-medium">Job Complete</span>
+      </div>
+
+      <div className="flex items-center gap-2 justify-center">
+        <Checkbox
+          checked={job.sapComplete}
+          onCheckedChange={(checked) =>
+            onUpdate(job.id, { sapComplete: checked as boolean })
+          }
+        />
+        <span className="text-sm font-medium">SAP Complete</span>
+      </div>
+
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => onDelete(job.id)}
+        className="hover:bg-destructive hover:text-destructive-foreground"
+      >
+        <Trash2 className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+};
