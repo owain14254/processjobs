@@ -52,10 +52,10 @@ export const JobRow = ({ job, onUpdate, onDelete }: JobRowProps) => {
         <PopoverTrigger asChild>
           <Button
             variant="outline"
-            className="justify-start text-left font-normal bg-background hover:bg-background/90"
+            className="justify-start text-left font-normal bg-background hover:bg-background/90 text-xs"
           >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {format(job.date, "PPP")}
+            <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+            <span className="truncate">{format(job.date, "PP")}</span>
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0">
