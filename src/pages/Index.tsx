@@ -5,6 +5,7 @@ import { useJobStorage } from "@/hooks/useJobStorage";
 import { AddJobForm } from "@/components/AddJobForm";
 import { JobRow } from "@/components/JobRow";
 import { CompletedJobsLog } from "@/components/CompletedJobsLog";
+import { HandoverTab } from "@/components/HandoverTab";
 import { Archive, Download, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import mullerLogo from "@/assets/muller-logo.png";
@@ -103,9 +104,10 @@ const Index = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-[400px] grid-cols-2">
+          <TabsList className="grid w-[600px] grid-cols-3">
             <TabsTrigger value="active">Active Jobs ({activeJobs.length})</TabsTrigger>
             <TabsTrigger value="completed">Completed Jobs ({completedJobs.length})</TabsTrigger>
+            <TabsTrigger value="handover">Handover</TabsTrigger>
           </TabsList>
 
           <TabsContent value="active" className="space-y-4">
@@ -148,6 +150,10 @@ const Index = () => {
 
           <TabsContent value="completed">
             <CompletedJobsLog jobs={completedJobs} />
+          </TabsContent>
+
+          <TabsContent value="handover">
+            <HandoverTab activeJobs={activeJobs} completedJobs={completedJobs} />
           </TabsContent>
         </Tabs>
       </div>
