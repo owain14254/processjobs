@@ -38,6 +38,11 @@ All colors MUST be HSL.
 
     --radius: 0.5rem;
 
+    /* Job status colors */
+    --status-amber: 45 100% 51%;
+    --status-light-green: 95 52% 59%;
+    --status-dark-green: 142 100% 35%;
+
     --sidebar-background: 0 0% 98%;
 
     --sidebar-foreground: 240 5.3% 26.1%;
