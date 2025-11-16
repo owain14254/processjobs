@@ -71,9 +71,8 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1, textSize = 1, t
           <Button
             variant="outline"
             className={cn(
-              "justify-start text-left font-normal text-foreground",
-              `bg-${bgColorClass} hover:bg-${bgColorClass}/90`,
-              sizeClasses.text,
+              "justify-start text-left font-normal text-black border-2",
+              `bg-${bgColorClass} hover:bg-${bgColorClass}/90 border-${bgColorClass}`,
               sizeClasses.height,
               textSizeClass,
               textWeightClass
@@ -98,7 +97,7 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1, textSize = 1, t
         onValueChange={(value) => onUpdate(job.id, { department: value })}
       >
         <SelectTrigger className={cn(
-          `bg-${bgColorClass} text-foreground`,
+          `bg-${bgColorClass} text-black border-2 border-${bgColorClass}`,
           sizeClasses.height,
           textSizeClass,
           textWeightClass
@@ -119,8 +118,7 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1, textSize = 1, t
         onChange={(e) => onUpdate(job.id, { description: e.target.value })}
         placeholder="Job description..."
         className={cn(
-          `bg-${bgColorClass} text-foreground`,
-          sizeClasses.text,
+          `bg-${bgColorClass} text-black border-2 border-${bgColorClass}`,
           sizeClasses.height,
           textSizeClass,
           textWeightClass

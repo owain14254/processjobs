@@ -1,5 +1,5 @@
-import { useState, useRef, useMemo } from "react";
-import { KeyRound, ArrowUpDown } from "lucide-react";
+import { useState, useRef } from "react";
+import { KeyRound } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useJobStorage } from "@/hooks/useJobStorage";
@@ -24,7 +24,7 @@ const Index = () => {
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
-  const [sortBy, setSortBy] = useState<"date" | "department" | "completion">("date");
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -126,23 +126,6 @@ const Index = () => {
     }
   };
 
-  const sortedActiveJobs = useMemo(() => {
-    const jobs = [...activeJobs];
-    switch (sortBy) {
-      case "date":
-        return jobs.sort((a, b) => b.date.getTime() - a.date.getTime());
-      case "department":
-        return jobs.sort((a, b) => a.department.localeCompare(b.department));
-      case "completion":
-        return jobs.sort((a, b) => {
-          const aComplete = (a.jobComplete ? 1 : 0) + (a.sapComplete ? 1 : 0);
-          const bComplete = (b.jobComplete ? 1 : 0) + (b.sapComplete ? 1 : 0);
-          return bComplete - aComplete;
-        });
-      default:
-        return jobs;
-    }
-  }, [activeJobs, sortBy]);
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -244,22 +227,7 @@ const Index = () => {
           {/* Tab Content */}
 
           <TabsContent value="active" className="space-y-3">
-            <div className="flex gap-3 items-center">
-              <AddJobForm onAdd={addJob} rowHeight={rowHeight} />
-              <div className="flex items-center gap-2 ml-auto">
-                <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
-                <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-                  <SelectTrigger className="w-[160px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="date">Sort by Date</SelectItem>
-                    <SelectItem value="department">Sort by Department</SelectItem>
-                    <SelectItem value="completion">Sort by Completion</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <AddJobForm onAdd={addJob} rowHeight={rowHeight} />
 
             {activeJobs.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">No active jobs. Add a job to get started.</div>
@@ -273,7 +241,7 @@ const Index = () => {
                   <div className="text-center">SAP</div>
                   <div></div>
                 </div>
-                {sortedActiveJobs.map((job) => (
+                {activeJobs.map((job) => (
                   <JobRow key={job.id} job={job} onUpdate={updateJob} onDelete={deleteJob} rowHeight={rowHeight} textSize={textSize} textBold={textBold} />
                 ))}
               </div>
