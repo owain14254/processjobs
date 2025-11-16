@@ -16,6 +16,7 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import mullerLogo from "@/assets/muller-logo.png";
 
@@ -232,18 +233,24 @@ const Index = () => {
             {activeJobs.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">No active jobs. Add a job to get started.</div>
             ) : (
-              <div className="space-y-1.5">
-                <div className="grid grid-cols-[180px_140px_1fr_100px_100px_50px] gap-2 px-1.5 py-1.5 text-xs font-medium text-muted-foreground">
-                  <div>Date</div>
-                  <div>Department</div>
-                  <div>Description</div>
-                  <div className="text-center">Complete</div>
-                  <div className="text-center">SAP</div>
-                  <div></div>
-                </div>
-                {activeJobs.map((job) => (
-                  <JobRow key={job.id} job={job} onUpdate={updateJob} onDelete={deleteJob} rowHeight={rowHeight} textSize={textSize} textBold={textBold} />
-                ))}
+              <div className="rounded-lg border overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Department</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead className="text-center">Job Complete</TableHead>
+                      <TableHead className="text-center">SAP Complete</TableHead>
+                      <TableHead className="w-[50px]"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {activeJobs.map((job) => (
+                      <JobRow key={job.id} job={job} onUpdate={updateJob} onDelete={deleteJob} rowHeight={rowHeight} textSize={textSize} textBold={textBold} />
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             )}
 
