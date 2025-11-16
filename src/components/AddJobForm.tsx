@@ -1,18 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { CalendarIcon, Plus } from "lucide-react";
 import { format } from "date-fns";
@@ -24,16 +14,9 @@ interface AddJobFormProps {
   rowHeight?: number;
 }
 
-const DEPARTMENTS = [
-  "Process",
-  "Fruit",
-  "Filling",
-  "Warehouse",
-  "Services",
-  "Other",
-];
+const DEPARTMENTS = ["Process", "Fruit", "Filling", "Warehouse", "Services", "Other"];
 
-export const AddJobForm = ({ onAdd, rowHeight = 1 }: AddJobFormProps) => {
+export const AddJobForm = ({ onAdd, rowHeight = 0.5 }: AddJobFormProps) => {
   const sizeClasses = {
     height: ["h-7", "h-8", "h-9"][rowHeight],
     text: ["text-xs", "text-xs", "text-sm"][rowHeight],
@@ -65,22 +48,14 @@ export const AddJobForm = ({ onAdd, rowHeight = 1 }: AddJobFormProps) => {
         <PopoverTrigger asChild>
           <Button
             variant="outline"
-            className={cn(
-              "justify-start text-left font-normal bg-muted hover:bg-muted/80",
-              sizeClasses.height
-            )}
+            className={cn("justify-start text-left font-normal bg-muted hover:bg-muted/80", sizeClasses.height)}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
             {format(date, "PPP")}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0">
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={(date) => date && setDate(date)}
-            initialFocus
-          />
+          <Calendar mode="single" selected={date} onSelect={(date) => date && setDate(date)} initialFocus />
         </PopoverContent>
       </Popover>
 
@@ -110,11 +85,7 @@ export const AddJobForm = ({ onAdd, rowHeight = 1 }: AddJobFormProps) => {
         }}
       />
 
-      <Button
-        onClick={handleAdd}
-        disabled={!department || !description.trim()}
-        size="lg"
-      >
+      <Button onClick={handleAdd} disabled={!department || !description.trim()} size="lg">
         <Plus className="mr-2 h-5 w-5" />
         Add Job
       </Button>
