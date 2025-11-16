@@ -8,13 +8,7 @@ import { JobRow } from "@/components/JobRow";
 import { CompletedJobsLog } from "@/components/CompletedJobsLog";
 import { HandoverTab } from "@/components/HandoverTab";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Archive, Download, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -26,7 +20,7 @@ const Index = () => {
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const {
     activeJobs,
     completedJobs,
@@ -83,7 +77,7 @@ const Index = () => {
           variant: "destructive",
         });
       });
-    
+
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -129,11 +123,11 @@ const Index = () => {
             <div className="flex items-center gap-4">
               <img src={mullerLogo} alt="Müller" className="h-12" />
               <div>
-                <h1 className="text-3xl font-bold">Job Logging Platform</h1>
-                <p className="text-muted-foreground">Track and manage maintenance jobs</p>
+                <h1 className="text-3xl font-bold">Job Log</h1>
+                <p className="text-muted-foreground"> </p>
               </div>
             </div>
-            
+
             <TabsList className="grid w-full max-w-[500px] grid-cols-3">
               <TabsTrigger value="active">Active ({activeJobs.length})</TabsTrigger>
               <TabsTrigger value="completed">Completed ({completedJobs.length})</TabsTrigger>
@@ -157,13 +151,7 @@ const Index = () => {
                 <Button variant="outline" size="icon" asChild title="Import Backup">
                   <span>
                     <Upload className="h-4 w-4" />
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept=".json"
-                      onChange={handleImport}
-                      className="hidden"
-                    />
+                    <input ref={fileInputRef} type="file" accept=".json" onChange={handleImport} className="hidden" />
                   </span>
                 </Button>
               </label>
@@ -176,9 +164,7 @@ const Index = () => {
             <AddJobForm onAdd={addJob} />
 
             {activeJobs.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                No active jobs. Add a job to get started.
-              </div>
+              <div className="text-center py-12 text-muted-foreground">No active jobs. Add a job to get started.</div>
             ) : (
               <div className="space-y-1.5">
                 <div className="grid grid-cols-[180px_140px_1fr_100px_100px_50px] gap-2 px-1.5 py-1.5 text-xs font-medium text-muted-foreground">
@@ -190,12 +176,7 @@ const Index = () => {
                   <div></div>
                 </div>
                 {activeJobs.map((job) => (
-                  <JobRow
-                    key={job.id}
-                    job={job}
-                    onUpdate={updateJob}
-                    onDelete={deleteJob}
-                  />
+                  <JobRow key={job.id} job={job} onUpdate={updateJob} onDelete={deleteJob} />
                 ))}
               </div>
             )}
@@ -211,7 +192,7 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="completed">
-            <CompletedJobsLog 
+            <CompletedJobsLog
               jobs={completedJobs}
               isAdminMode={isAdminMode}
               onDelete={deleteCompletedJob}
@@ -230,9 +211,7 @@ const Index = () => {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Admin Authentication</DialogTitle>
-              <DialogDescription>
-                Enter the admin password to access admin mode
-              </DialogDescription>
+              <DialogDescription>Enter the admin password to access admin mode</DialogDescription>
             </DialogHeader>
             <form onSubmit={handlePasswordSubmit} className="space-y-4">
               <Input
