@@ -267,7 +267,7 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="handover">
-            <HandoverTab activeJobs={activeJobs} completedJobs={completedJobs} textSize={textSize} textBold={textBold} />
+            <HandoverTab activeJobs={activeJobs} completedJobs={completedJobs} textSize={textSize} textBold={textBold} rowHeight={rowHeight} />
           </TabsContent>
         </div>
       </Tabs>
