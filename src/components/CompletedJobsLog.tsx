@@ -161,7 +161,7 @@ export const CompletedJobsLog = ({
                   <TableCell>{format(job.date, "dd/MM/yyyy")}</TableCell>
                   <TableCell>{job.department}</TableCell>
                   <TableCell>{job.description}</TableCell>
-                  <TableCell>{format(job.completedAt, "dd/MM/yyyy HH:mm")}</TableCell>
+                  <TableCell>{format(job.completedAt, "dd/MM/yyyy")}</TableCell>
                   {isAdminMode && <TableCell>
                       <div className="flex gap-2">
                         <Button size="icon" variant="ghost" onClick={() => handleEdit(job)}>
