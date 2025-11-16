@@ -80,7 +80,7 @@ export const HandoverTab = ({ activeJobs, completedJobs }: HandoverTabProps) => 
 
     // Outstanding jobs filter
     if (showOutstandingOnly) {
-      filtered = filtered.filter((job) => !job.jobComplete || !job.sapComplete);
+      filtered = filtered.filter((job) => !job.jobComplete);
     }
 
     // Sort by date descending (most recent first)
