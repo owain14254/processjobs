@@ -20,19 +20,13 @@ interface CompletedJobsLogProps {
   isAdminMode?: boolean;
   onDelete?: (id: string) => void;
   onUpdate?: (id: string, updates: Partial<CompletedJob>) => void;
-  rowHeight?: number;
-  textSize?: number;
-  textBold?: boolean;
 }
 const DEPARTMENTS = ["All", "Process", "Fruit", "Filling", "Warehouse", "Services", "Other"];
 export const CompletedJobsLog = ({
   jobs,
   isAdminMode = false,
   onDelete,
-  onUpdate,
-  rowHeight = 1,
-  textSize = 1,
-  textBold = false
+  onUpdate
 }: CompletedJobsLogProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("All");
@@ -48,15 +42,6 @@ export const CompletedJobsLog = ({
   const [editDate, setEditDate] = useState<Date | undefined>(undefined);
   const [editDepartment, setEditDepartment] = useState("");
   const [deleteJobId, setDeleteJobId] = useState<string | null>(null);
-  
-  const sizeClasses = {
-    padding: ["py-1", "py-2", "py-3"][rowHeight],
-    text: ["text-xs", "text-xs", "text-sm"][rowHeight],
-  };
-
-  const textSizeClass = ["text-xs", "text-sm", "text-base"][textSize];
-  const textWeightClass = textBold ? "font-bold" : "font-normal";
-  
   const filteredJobs = useMemo(() => {
     return jobs.filter(job => {
       // Wildcard search support: * matches any characters
@@ -190,12 +175,12 @@ export const CompletedJobsLog = ({
                 <TableCell colSpan={isAdminMode ? 5 : 4} className="text-center text-muted-foreground py-8">
                   No completed jobs found
                 </TableCell>
-              </TableRow> : filteredJobs.map(job => <TableRow key={job.id} className={sizeClasses.padding}>
-                  <TableCell className={cn(textSizeClass, textWeightClass)}>{format(job.date, "dd/MM/yyyy")}</TableCell>
-                  <TableCell className={cn(textSizeClass, textWeightClass)}>{job.department}</TableCell>
-                  <TableCell className={cn(textSizeClass, textWeightClass)}>{job.description}</TableCell>
-                  <TableCell className={cn(textSizeClass, textWeightClass)}>{format(job.completedAt, "dd/MM/yyyy")}</TableCell>
-                  {isAdminMode && <TableCell className={sizeClasses.text}>
+              </TableRow> : filteredJobs.map(job => <TableRow key={job.id}>
+                  <TableCell>{format(job.date, "dd/MM/yyyy")}</TableCell>
+                  <TableCell>{job.department}</TableCell>
+                  <TableCell>{job.description}</TableCell>
+                  <TableCell>{format(job.completedAt, "dd/MM/yyyy")}</TableCell>
+                  {isAdminMode && <TableCell>
                       <div className="flex gap-2">
                         <Button size="icon" variant="ghost" onClick={() => handleEdit(job)}>
                           <Pencil className="h-4 w-4" />

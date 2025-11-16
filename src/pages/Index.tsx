@@ -334,9 +334,6 @@ const Index = () => {
               isAdminMode={isAdminMode}
               onDelete={deleteCompletedJob}
               onUpdate={updateCompletedJob}
-              rowHeight={rowHeight}
-              textSize={textSize}
-              textBold={textBold}
             />
           </TabsContent>
 
