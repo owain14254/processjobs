@@ -33,10 +33,14 @@ const DEPARTMENTS = [
   "Other",
 ];
 
-export const AddJobForm = ({ onAdd, rowHeight = 1 }: AddJobFormProps) => {
+export const AddJobForm = ({ onAdd, rowHeight = 5 }: AddJobFormProps) => {
+  // Map rowHeight (0-10) to actual dimensions
+  const heightValue = 28 + (rowHeight * 4); // 28px to 68px
+  const textSize = rowHeight <= 3 ? "text-xs" : "text-sm";
+  
   const sizeClasses = {
-    height: ["h-7", "h-8", "h-9"][rowHeight],
-    text: ["text-xs", "text-xs", "text-sm"][rowHeight],
+    height: `h-[${heightValue}px]`,
+    text: textSize,
   };
   const [date, setDate] = useState<Date>(new Date());
   const [department, setDepartment] = useState<string>("");
