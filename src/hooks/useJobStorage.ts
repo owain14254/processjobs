@@ -19,6 +19,10 @@ const COMPLETED_JOBS_KEY = "completedJobs";
 export const useJobStorage = () => {
   const [activeJobs, setActiveJobs] = useState<Job[]>([]);
   const [completedJobs, setCompletedJobs] = useState<CompletedJob[]>([]);
+  const [rowHeight, setRowHeight] = useState<number>(() => {
+    const saved = localStorage.getItem("rowHeight");
+    return saved ? parseInt(saved) : 1; // 0=compact, 1=normal, 2=comfortable
+  });
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -50,6 +54,10 @@ export const useJobStorage = () => {
   useEffect(() => {
     localStorage.setItem(COMPLETED_JOBS_KEY, JSON.stringify(completedJobs));
   }, [completedJobs]);
+
+  useEffect(() => {
+    localStorage.setItem("rowHeight", rowHeight.toString());
+  }, [rowHeight]);
 
   const addJob = (job: Omit<Job, "id">) => {
     const newJob = {
@@ -158,5 +166,7 @@ export const useJobStorage = () => {
     importData,
     deleteCompletedJob,
     updateCompletedJob,
+    rowHeight,
+    setRowHeight,
   };
 };

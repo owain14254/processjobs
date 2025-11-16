@@ -17,9 +17,11 @@ import { Input } from "@/components/ui/input";
 import { CalendarIcon, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { Job } from "@/hooks/useJobStorage";
+import { cn } from "@/lib/utils";
 
 interface AddJobFormProps {
   onAdd: (job: Omit<Job, "id">) => void;
+  rowHeight?: number;
 }
 
 const DEPARTMENTS = [
@@ -31,7 +33,11 @@ const DEPARTMENTS = [
   "Other",
 ];
 
-export const AddJobForm = ({ onAdd }: AddJobFormProps) => {
+export const AddJobForm = ({ onAdd, rowHeight = 1 }: AddJobFormProps) => {
+  const sizeClasses = {
+    height: ["h-7", "h-8", "h-9"][rowHeight],
+    text: ["text-xs", "text-xs", "text-sm"][rowHeight],
+  };
   const [date, setDate] = useState<Date>(new Date());
   const [department, setDepartment] = useState<string>("");
   const [description, setDescription] = useState<string>("");
@@ -59,7 +65,10 @@ export const AddJobForm = ({ onAdd }: AddJobFormProps) => {
         <PopoverTrigger asChild>
           <Button
             variant="outline"
-            className="justify-start text-left font-normal h-9"
+            className={cn(
+              "justify-start text-left font-normal bg-muted hover:bg-muted/80",
+              sizeClasses.height
+            )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
             {format(date, "PPP")}
@@ -76,7 +85,7 @@ export const AddJobForm = ({ onAdd }: AddJobFormProps) => {
       </Popover>
 
       <Select value={department} onValueChange={setDepartment}>
-        <SelectTrigger className="h-9">
+        <SelectTrigger className={cn("bg-muted", sizeClasses.height)}>
           <SelectValue placeholder="Select department" />
         </SelectTrigger>
         <SelectContent>
@@ -92,9 +101,12 @@ export const AddJobForm = ({ onAdd }: AddJobFormProps) => {
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         placeholder="Enter job description..."
-        className="text-base h-9"
+        className={cn("bg-muted", sizeClasses.height, sizeClasses.text)}
         onKeyDown={(e) => {
-          if (e.key === "Enter") handleAdd();
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleAdd();
+          }
         }}
       />
 

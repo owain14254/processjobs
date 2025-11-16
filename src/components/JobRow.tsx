@@ -23,6 +23,7 @@ interface JobRowProps {
   job: Job;
   onUpdate: (id: string, updates: Partial<Job>) => void;
   onDelete: (id: string) => void;
+  rowHeight?: number;
 }
 
 const DEPARTMENTS = [
@@ -40,11 +41,20 @@ const getStatusColor = (jobComplete: boolean, sapComplete: boolean) => {
   return "bg-status-amber";
 };
 
-export const JobRow = ({ job, onUpdate, onDelete }: JobRowProps) => {
+export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1 }: JobRowProps) => {
+  const sizeClasses = {
+    padding: ["p-1", "p-1.5", "p-2"][rowHeight],
+    gap: ["gap-1.5", "gap-2", "gap-3"][rowHeight],
+    height: ["h-7", "h-8", "h-9"][rowHeight],
+    text: ["text-xs", "text-xs", "text-sm"][rowHeight],
+  };
+
   return (
     <div
       className={cn(
-        "grid grid-cols-[180px_140px_1fr_100px_100px_50px] gap-2 items-center p-1.5 rounded-lg transition-colors",
+        "grid grid-cols-[180px_140px_1fr_100px_100px_50px] items-center rounded-lg transition-colors",
+        sizeClasses.padding,
+        sizeClasses.gap,
         getStatusColor(job.jobComplete, job.sapComplete)
       )}
     >
@@ -52,7 +62,11 @@ export const JobRow = ({ job, onUpdate, onDelete }: JobRowProps) => {
         <PopoverTrigger asChild>
           <Button
             variant="outline"
-            className="justify-start text-left font-normal bg-background hover:bg-background/90 text-xs h-8"
+            className={cn(
+              "justify-start text-left font-normal bg-background hover:bg-background/90",
+              sizeClasses.text,
+              sizeClasses.height
+            )}
           >
             <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
             <span className="truncate">{format(job.date, "PP")}</span>
@@ -72,7 +86,7 @@ export const JobRow = ({ job, onUpdate, onDelete }: JobRowProps) => {
         value={job.department}
         onValueChange={(value) => onUpdate(job.id, { department: value })}
       >
-        <SelectTrigger className="bg-background h-8">
+        <SelectTrigger className={cn("bg-background", sizeClasses.height)}>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -88,7 +102,7 @@ export const JobRow = ({ job, onUpdate, onDelete }: JobRowProps) => {
         value={job.description}
         onChange={(e) => onUpdate(job.id, { description: e.target.value })}
         placeholder="Job description..."
-        className="bg-background text-sm h-8"
+        className={cn("bg-background", sizeClasses.text, sizeClasses.height)}
       />
 
       <div className="flex items-center gap-1.5 justify-center">
@@ -115,7 +129,11 @@ export const JobRow = ({ job, onUpdate, onDelete }: JobRowProps) => {
         variant="ghost"
         size="icon"
         onClick={() => onDelete(job.id)}
-        className="hover:bg-destructive hover:text-destructive-foreground h-8 w-8"
+        className={cn(
+          "hover:bg-destructive hover:text-destructive-foreground",
+          sizeClasses.height,
+          rowHeight === 0 ? "w-7" : rowHeight === 1 ? "w-8" : "w-9"
+        )}
       >
         <Trash2 className="h-4 w-4" />
       </Button>
