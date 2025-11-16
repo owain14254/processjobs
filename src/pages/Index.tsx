@@ -232,7 +232,7 @@ const Index = () => {
             {activeJobs.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">No active jobs. Add a job to get started.</div>
             ) : (
-              <div className="space-y-0">
+              <div className="space-y-1">
                 <div className="grid grid-cols-[180px_140px_1fr_100px_100px_50px] gap-2 px-1.5 py-1 text-xs font-medium text-muted-foreground">
                   <div>Date</div>
                   <div>Department</div>

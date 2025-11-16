@@ -59,7 +59,7 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1, textSize = 1, t
   return (
     <div
       className={cn(
-        "grid grid-cols-[180px_140px_1fr_100px_100px_50px] items-center transition-colors",
+        "grid grid-cols-[180px_140px_1fr_100px_100px_50px] items-center rounded-sm transition-colors",
         sizeClasses.padding,
         sizeClasses.gap,
         getStatusColor(job.jobComplete, job.sapComplete)
