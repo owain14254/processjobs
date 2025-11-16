@@ -35,7 +35,7 @@ const DEPARTMENTS = [
 
 export const AddJobForm = ({ onAdd, rowHeight = 1 }: AddJobFormProps) => {
   const sizeClasses = {
-    height: ["h-7", "h-8", "h-9"][rowHeight],
+    height: ["h-5", "h-8", "h-9"][rowHeight],
     text: ["text-xs", "text-xs", "text-sm"][rowHeight],
   };
   const [date, setDate] = useState<Date>(new Date());
