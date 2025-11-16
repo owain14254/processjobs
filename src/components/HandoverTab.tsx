@@ -2,21 +2,8 @@ import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Job, CompletedJob } from "@/hooks/useJobStorage";
 import { format, subHours } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -31,15 +18,7 @@ interface HandoverTabProps {
 
 type HandoverMode = "shift" | "set";
 
-const DEPARTMENTS = [
-  "All",
-  "Process",
-  "Fruit",
-  "Filling",
-  "Warehouse",
-  "Services",
-  "Other",
-];
+const DEPARTMENTS = ["All", "Process", "Fruit", "Filling", "Warehouse", "Services", "Other"];
 
 const getStatusColor = (jobComplete: boolean, sapComplete: boolean) => {
   if (jobComplete && sapComplete) return "bg-status-darkGreen";
@@ -47,8 +26,13 @@ const getStatusColor = (jobComplete: boolean, sapComplete: boolean) => {
   return "bg-status-amber";
 };
 
-
-export const HandoverTab = ({ activeJobs, completedJobs, textSize = 1, textBold = false, rowHeight = 1 }: HandoverTabProps) => {
+export const HandoverTab = ({
+  activeJobs,
+  completedJobs,
+  textSize = 1,
+  textBold = false,
+  rowHeight = 1,
+}: HandoverTabProps) => {
   const [mode, setMode] = useState<HandoverMode>("shift");
   const [departmentFilter, setDepartmentFilter] = useState("All");
   const [showOutstandingOnly, setShowOutstandingOnly] = useState(false);
@@ -59,10 +43,7 @@ export const HandoverTab = ({ activeJobs, completedJobs, textSize = 1, textBold 
 
   const allJobs = useMemo(() => {
     // Combine active and completed jobs
-    const combined = [
-      ...activeJobs,
-      ...completedJobs,
-    ];
+    const combined = [...activeJobs, ...completedJobs];
     return combined;
   }, [activeJobs, completedJobs]);
 
@@ -99,27 +80,17 @@ export const HandoverTab = ({ activeJobs, completedJobs, textSize = 1, textBold 
       {/* Mode Selection */}
       <div className="flex items-center gap-4 flex-wrap">
         <div className="flex gap-2">
-          <Button
-            variant={mode === "shift" ? "default" : "outline"}
-            onClick={() => setMode("shift")}
-          >
-            Shift (12 hours)
+          <Button variant={mode === "shift" ? "default" : "outline"} onClick={() => setMode("shift")}>
+            Shift
           </Button>
-          <Button
-            variant={mode === "set" ? "default" : "outline"}
-            onClick={() => setMode("set")}
-          >
+          <Button variant={mode === "set" ? "default" : "outline"} onClick={() => setMode("set")}>
             Set (96 hours)
           </Button>
         </div>
 
         {/* Outstanding Jobs Toggle */}
         <div className="flex items-center gap-2">
-          <Switch
-            id="outstanding-only"
-            checked={showOutstandingOnly}
-            onCheckedChange={setShowOutstandingOnly}
-          />
+          <Switch id="outstanding-only" checked={showOutstandingOnly} onCheckedChange={setShowOutstandingOnly} />
           <Label htmlFor="outstanding-only" className="text-sm font-medium cursor-pointer">
             Outstanding Only
           </Label>
@@ -191,15 +162,18 @@ export const HandoverTab = ({ activeJobs, completedJobs, textSize = 1, textBold 
               </TableRow>
             ) : (
               filteredJobs.map((job) => (
-                <TableRow 
-                  key={job.id}
-                  className={cn(getStatusColor(job.jobComplete, job.sapComplete))}
-                >
-                  <TableCell className={cn("whitespace-nowrap text-black", cellPadding, textSizeClass, textWeightClass)}>
+                <TableRow key={job.id} className={cn(getStatusColor(job.jobComplete, job.sapComplete))}>
+                  <TableCell
+                    className={cn("whitespace-nowrap text-black", cellPadding, textSizeClass, textWeightClass)}
+                  >
                     {format(job.date, "PPP p")}
                   </TableCell>
-                  <TableCell className={cn("text-black", cellPadding, textSizeClass, textWeightClass)}>{job.department}</TableCell>
-                  <TableCell className={cn("text-black", cellPadding, textSizeClass, textWeightClass)}>{job.description}</TableCell>
+                  <TableCell className={cn("text-black", cellPadding, textSizeClass, textWeightClass)}>
+                    {job.department}
+                  </TableCell>
+                  <TableCell className={cn("text-black", cellPadding, textSizeClass, textWeightClass)}>
+                    {job.description}
+                  </TableCell>
                   <TableCell className={cn("text-center text-black", cellPadding, textSizeClass, textWeightClass)}>
                     {job.jobComplete ? "✓" : "—"}
                   </TableCell>
