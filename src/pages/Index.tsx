@@ -24,7 +24,7 @@ const Index = () => {
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -126,7 +126,6 @@ const Index = () => {
     }
   };
 
-
   return (
     <div className="min-h-screen bg-background p-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -191,11 +190,7 @@ const Index = () => {
                       </div>
                       <div className="flex items-center justify-between">
                         <Label htmlFor="text-bold">Bold Text</Label>
-                        <Switch
-                          id="text-bold"
-                          checked={textBold}
-                          onCheckedChange={setTextBold}
-                        />
+                        <Switch id="text-bold" checked={textBold} onCheckedChange={setTextBold} />
                       </div>
                     </div>
                   </PopoverContent>
@@ -210,7 +205,13 @@ const Index = () => {
                 <KeyRound className="h-4 w-4" />
               </Button>
               <ThemeToggle />
-              <Button onClick={handleExport} variant="outline" size="icon" title="Export Backup" className="bg-green-600 hover:bg-green-700 text-white border-green-600">
+              <Button
+                onClick={handleExport}
+                variant="outline"
+                size="icon"
+                title="Export Backup"
+                className="bg-green-600 hover:bg-green-700 text-white border-green-600"
+              >
                 <Download className="h-4 w-4" />
               </Button>
               <label>
@@ -232,7 +233,7 @@ const Index = () => {
             {activeJobs.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">No active jobs. Add a job to get started.</div>
             ) : (
-              <div className="space-y-1">
+              <div className="space-y-0.1">
                 <div className="grid grid-cols-[180px_140px_1fr_100px_100px_50px] gap-2 px-1.5 py-1 text-xs font-medium text-muted-foreground">
                   <div>Date</div>
                   <div>Department</div>
@@ -242,7 +243,15 @@ const Index = () => {
                   <div></div>
                 </div>
                 {activeJobs.map((job) => (
-                  <JobRow key={job.id} job={job} onUpdate={updateJob} onDelete={deleteJob} rowHeight={rowHeight} textSize={textSize} textBold={textBold} />
+                  <JobRow
+                    key={job.id}
+                    job={job}
+                    onUpdate={updateJob}
+                    onDelete={deleteJob}
+                    rowHeight={rowHeight}
+                    textSize={textSize}
+                    textBold={textBold}
+                  />
                 ))}
               </div>
             )}
@@ -267,7 +276,13 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="handover">
-            <HandoverTab activeJobs={activeJobs} completedJobs={completedJobs} textSize={textSize} textBold={textBold} rowHeight={rowHeight} />
+            <HandoverTab
+              activeJobs={activeJobs}
+              completedJobs={completedJobs}
+              textSize={textSize}
+              textBold={textBold}
+              rowHeight={rowHeight}
+            />
           </TabsContent>
         </div>
       </Tabs>
