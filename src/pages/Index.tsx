@@ -210,7 +210,7 @@ const Index = () => {
                 <KeyRound className="h-4 w-4" />
               </Button>
               <ThemeToggle />
-              <Button onClick={handleExport} variant="outline" size="icon" title="Export Backup">
+              <Button onClick={handleExport} variant="outline" size="icon" title="Export Backup" className="bg-green-600 hover:bg-green-700 text-white border-green-600">
                 <Download className="h-4 w-4" />
               </Button>
               <label>
