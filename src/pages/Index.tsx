@@ -140,34 +140,33 @@ const Index = () => {
             </TabsList>
 
             <div className="flex gap-2">
-              {isAdminMode && (
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" size="icon" title="Row Height Settings">
-                      <Settings className="h-4 w-4" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-80">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>Row Height: {rowHeight}</Label>
-                        <Slider
-                          value={[rowHeight]}
-                          onValueChange={(value) => setRowHeight(value[0])}
-                          min={0}
-                          max={10}
-                          step={1}
-                          className="w-full"
-                        />
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>Most Compact (0)</span>
-                          <span>Most Comfortable (10)</span>
-                        </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="icon" title="Row Height Settings">
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Row Height: {["Compact", "Normal", "Comfortable"][rowHeight]}</Label>
+                      <Slider
+                        value={[rowHeight]}
+                        onValueChange={(value) => setRowHeight(value[0])}
+                        min={0}
+                        max={2}
+                        step={1}
+                        className="w-full"
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Compact</span>
+                        <span>Normal</span>
+                        <span>Comfortable</span>
                       </div>
                     </div>
-                  </PopoverContent>
-                </Popover>
-              )}
+                  </div>
+                </PopoverContent>
+              </Popover>
               <Button
                 variant={isAdminMode ? "destructive" : "outline"}
                 size="icon"
