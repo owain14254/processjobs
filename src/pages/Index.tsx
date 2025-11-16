@@ -227,7 +227,7 @@ const Index = () => {
           {/* Tab Content */}
 
           <TabsContent value="active" className="space-y-3">
-            <AddJobForm onAdd={addJob} rowHeight={rowHeight} />
+            <AddJobForm onAdd={addJob} />
 
             {activeJobs.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">No active jobs. Add a job to get started.</div>
