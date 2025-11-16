@@ -234,9 +234,9 @@ const Index = () => {
               <div className="text-center py-12 text-muted-foreground">No active jobs. Add a job to get started.</div>
             ) : (
               <div className="space-y-0.5">
-                <div className="grid grid-cols-[120px_140px_1fr_100px_100px_50px] gap-2 px-1.5 py-1 text-xs font-medium text-muted-foreground">
-                  <div>Department</div>
+                <div className="grid grid-cols-[180px_140px_1fr_100px_100px_50px] gap-2 px-1.5 py-1 text-xs font-medium text-muted-foreground">
                   <div>Date</div>
+                  <div>Department</div>
                   <div>Description</div>
                   <div className="text-center">Complete</div>
                   <div className="text-center">SAP</div>
