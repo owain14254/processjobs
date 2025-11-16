@@ -145,8 +145,9 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1, textSize = 1, t
           onCheckedChange={(checked) =>
             onUpdate(job.id, { jobComplete: checked as boolean })
           }
+          className="dark:border-black dark:data-[state=checked]:bg-black dark:data-[state=checked]:border-black"
         />
-        <span className="text-xs font-medium">Complete</span>
+        <span className="text-xs font-medium dark:text-black">Complete</span>
       </div>
 
       <div className="flex items-center gap-1.5 justify-center">
@@ -155,8 +156,9 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1, textSize = 1, t
           onCheckedChange={(checked) =>
             onUpdate(job.id, { sapComplete: checked as boolean })
           }
+          className="dark:border-black dark:data-[state=checked]:bg-black dark:data-[state=checked]:border-black"
         />
-        <span className="text-xs font-medium">SAP</span>
+        <span className="text-xs font-medium dark:text-black">SAP</span>
       </div>
 
       <Button
@@ -164,7 +166,7 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1, textSize = 1, t
         size="icon"
         onClick={() => onDelete(job.id)}
         className={cn(
-          "hover:bg-destructive hover:text-destructive-foreground",
+          "hover:bg-destructive hover:text-destructive-foreground dark:text-black dark:hover:text-black",
           sizeClasses.height,
           rowHeight === 0 ? "w-6" : rowHeight === 1 ? "w-7" : "w-8"
         )}

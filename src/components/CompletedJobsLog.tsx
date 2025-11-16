@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Pencil, Trash2, CalendarIcon, X } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ShiftPatternFilter } from "./ShiftPatternFilter";
 import {
   Dialog,
   DialogContent,
@@ -39,7 +40,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CompletedJob } from "@/hooks/useJobStorage";
-import { format } from "date-fns";
+import { format, getHours } from "date-fns";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -70,15 +71,18 @@ export const CompletedJobsLog = ({
   const [departmentFilter, setDepartmentFilter] = useState("All");
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [shiftFilter, setShiftFilter] = useState<{ startDate: Date; endDate: Date; shift: 'days' | 'nights' } | null>(null);
   const [editingJob, setEditingJob] = useState<CompletedJob | null>(null);
   const [editDescription, setEditDescription] = useState("");
+  const [editDate, setEditDate] = useState<Date | undefined>(undefined);
+  const [editDepartment, setEditDepartment] = useState("");
   const [deleteJobId, setDeleteJobId] = useState<string | null>(null);
 
   const filteredJobs = useMemo(() => {
     return jobs.filter((job) => {
       const matchesSearch =
         job.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        format(job.date, "PPP").toLowerCase().includes(searchTerm.toLowerCase());
+        format(job.date, "dd/MM/yyyy").toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesDepartment =
         departmentFilter === "All" || job.department === departmentFilter;
@@ -86,20 +90,48 @@ export const CompletedJobsLog = ({
       const matchesStartDate = !startDate || job.date >= startDate;
       const matchesEndDate = !endDate || job.date <= endDate;
 
-      return matchesSearch && matchesDepartment && matchesStartDate && matchesEndDate;
+      // Shift filter logic
+      let matchesShift = true;
+      if (shiftFilter) {
+        const jobDate = new Date(job.date);
+        const completedAtDate = new Date(job.completedAt);
+        const completedHour = getHours(completedAtDate);
+        
+        // Check if job date is within the shift filter date range
+        const isInDateRange = jobDate >= shiftFilter.startDate && jobDate < shiftFilter.endDate;
+        
+        // Check if completion time matches the shift
+        const isDayShift = completedHour >= 7 && completedHour < 19; // 7am to 7pm
+        const isNightShift = completedHour >= 19 || completedHour < 7; // 7pm to 7am
+        
+        matchesShift = isInDateRange && (
+          (shiftFilter.shift === 'days' && isDayShift) ||
+          (shiftFilter.shift === 'nights' && isNightShift)
+        );
+      }
+
+      return matchesSearch && matchesDepartment && matchesStartDate && matchesEndDate && matchesShift;
     });
-  }, [jobs, searchTerm, departmentFilter, startDate, endDate]);
+  }, [jobs, searchTerm, departmentFilter, startDate, endDate, shiftFilter]);
 
   const handleEdit = (job: CompletedJob) => {
     setEditingJob(job);
     setEditDescription(job.description);
+    setEditDate(job.date);
+    setEditDepartment(job.department);
   };
 
   const handleSaveEdit = () => {
     if (editingJob && onUpdate) {
-      onUpdate(editingJob.id, { description: editDescription });
+      onUpdate(editingJob.id, { 
+        description: editDescription,
+        date: editDate,
+        department: editDepartment,
+      });
       setEditingJob(null);
       setEditDescription("");
+      setEditDate(undefined);
+      setEditDepartment("");
     }
   };
 
@@ -112,6 +144,8 @@ export const CompletedJobsLog = ({
 
   return (
     <div className="space-y-4">
+      <ShiftPatternFilter onFilterChange={setShiftFilter} />
+      
       <div className="flex gap-4 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -202,10 +236,10 @@ export const CompletedJobsLog = ({
             ) : (
               filteredJobs.map((job) => (
                 <TableRow key={job.id}>
-                  <TableCell>{format(job.date, "PPP")}</TableCell>
+                  <TableCell>{format(job.date, "dd/MM/yyyy")}</TableCell>
                   <TableCell>{job.department}</TableCell>
                   <TableCell>{job.description}</TableCell>
-                  <TableCell>{format(job.completedAt, "PPP p")}</TableCell>
+                  <TableCell>{format(job.completedAt, "dd/MM/yyyy HH:mm")}</TableCell>
                   {isAdminMode && (
                     <TableCell>
                       <div className="flex gap-2">
@@ -236,12 +270,50 @@ export const CompletedJobsLog = ({
       <Dialog open={!!editingJob} onOpenChange={() => setEditingJob(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Job Description</DialogTitle>
+            <DialogTitle>Edit Completed Job</DialogTitle>
             <DialogDescription>
-              Update the description for this completed job
+              Update the details for this completed job
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {editDate ? format(editDate, "dd/MM/yyyy") : "Select date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={editDate}
+                    onSelect={setEditDate}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="space-y-2">
+              <Label>Department</Label>
+              <Select value={editDepartment} onValueChange={setEditDepartment}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select department" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DEPARTMENTS.filter(d => d !== "All").map((dept) => (
+                    <SelectItem key={dept} value={dept}>
+                      {dept}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-2">
               <Label>Description</Label>
               <Textarea
