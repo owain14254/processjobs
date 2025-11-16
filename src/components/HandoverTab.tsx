@@ -1,5 +1,7 @@
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -46,6 +48,7 @@ const getStatusColor = (jobComplete: boolean, sapComplete: boolean) => {
 export const HandoverTab = ({ activeJobs, completedJobs }: HandoverTabProps) => {
   const [mode, setMode] = useState<HandoverMode>("shift");
   const [departmentFilter, setDepartmentFilter] = useState("All");
+  const [showOutstandingOnly, setShowOutstandingOnly] = useState(false);
 
   const allJobs = useMemo(() => {
     // Combine active and completed jobs
@@ -75,14 +78,19 @@ export const HandoverTab = ({ activeJobs, completedJobs }: HandoverTabProps) => 
       filtered = filtered.filter((job) => job.department === departmentFilter);
     }
 
+    // Outstanding jobs filter
+    if (showOutstandingOnly) {
+      filtered = filtered.filter((job) => !job.jobComplete || !job.sapComplete);
+    }
+
     // Sort by date descending (most recent first)
     return filtered.sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [allJobs, mode, departmentFilter]);
+  }, [allJobs, mode, departmentFilter, showOutstandingOnly]);
 
   return (
     <div className="space-y-6">
       {/* Mode Selection */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 flex-wrap">
         <div className="flex gap-2">
           <Button
             variant={mode === "shift" ? "default" : "outline"}
@@ -96,6 +104,18 @@ export const HandoverTab = ({ activeJobs, completedJobs }: HandoverTabProps) => 
           >
             Set (96 hours)
           </Button>
+        </div>
+
+        {/* Outstanding Jobs Toggle */}
+        <div className="flex items-center gap-2">
+          <Switch
+            id="outstanding-only"
+            checked={showOutstandingOnly}
+            onCheckedChange={setShowOutstandingOnly}
+          />
+          <Label htmlFor="outstanding-only" className="text-sm font-medium cursor-pointer">
+            Outstanding Only
+          </Label>
         </div>
 
         {/* Department Filter */}

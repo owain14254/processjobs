@@ -1,7 +1,9 @@
 import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, CalendarIcon, X } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Dialog,
   DialogContent,
@@ -39,6 +41,7 @@ import {
 import { CompletedJob } from "@/hooks/useJobStorage";
 import { format } from "date-fns";
 import { Search } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface CompletedJobsLogProps {
   jobs: CompletedJob[];
@@ -65,6 +68,8 @@ export const CompletedJobsLog = ({
 }: CompletedJobsLogProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("All");
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [editingJob, setEditingJob] = useState<CompletedJob | null>(null);
   const [editDescription, setEditDescription] = useState("");
   const [deleteJobId, setDeleteJobId] = useState<string | null>(null);
@@ -78,9 +83,12 @@ export const CompletedJobsLog = ({
       const matchesDepartment =
         departmentFilter === "All" || job.department === departmentFilter;
 
-      return matchesSearch && matchesDepartment;
+      const matchesStartDate = !startDate || job.date >= startDate;
+      const matchesEndDate = !endDate || job.date <= endDate;
+
+      return matchesSearch && matchesDepartment && matchesStartDate && matchesEndDate;
     });
-  }, [jobs, searchTerm, departmentFilter]);
+  }, [jobs, searchTerm, departmentFilter, startDate, endDate]);
 
   const handleEdit = (job: CompletedJob) => {
     setEditingJob(job);
@@ -104,8 +112,8 @@ export const CompletedJobsLog = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-4">
-        <div className="relative flex-1">
+      <div className="flex gap-4 flex-wrap">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search by description or date..."
@@ -115,7 +123,7 @@ export const CompletedJobsLog = ({
           />
         </div>
         <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-          <SelectTrigger className="w-[200px]">
+          <SelectTrigger className="w-[180px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -126,6 +134,51 @@ export const CompletedJobsLog = ({
             ))}
           </SelectContent>
         </Select>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="w-[180px] justify-start text-left font-normal">
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {startDate ? format(startDate, "PP") : "Start Date"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0">
+            <Calendar
+              mode="single"
+              selected={startDate}
+              onSelect={setStartDate}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="w-[180px] justify-start text-left font-normal">
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {endDate ? format(endDate, "PP") : "End Date"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0">
+            <Calendar
+              mode="single"
+              selected={endDate}
+              onSelect={setEndDate}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+        {(startDate || endDate) && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              setStartDate(undefined);
+              setEndDate(undefined);
+            }}
+            title="Clear date filters"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
       </div>
 
       <div className="rounded-lg border">

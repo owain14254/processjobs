@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { KeyRound } from "lucide-react";
+import { useState, useRef, useMemo } from "react";
+import { KeyRound, ArrowUpDown } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useJobStorage } from "@/hooks/useJobStorage";
@@ -14,6 +14,8 @@ import { Archive, Download, Upload, Settings } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import mullerLogo from "@/assets/muller-logo.png";
 
@@ -22,6 +24,7 @@ const Index = () => {
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
+  const [sortBy, setSortBy] = useState<"date" | "department" | "completion">("date");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -37,6 +40,10 @@ const Index = () => {
     updateCompletedJob,
     rowHeight,
     setRowHeight,
+    textSize,
+    setTextSize,
+    textBold,
+    setTextBold,
   } = useJobStorage();
   const { toast } = useToast();
 
@@ -119,9 +126,27 @@ const Index = () => {
     }
   };
 
+  const sortedActiveJobs = useMemo(() => {
+    const jobs = [...activeJobs];
+    switch (sortBy) {
+      case "date":
+        return jobs.sort((a, b) => b.date.getTime() - a.date.getTime());
+      case "department":
+        return jobs.sort((a, b) => a.department.localeCompare(b.department));
+      case "completion":
+        return jobs.sort((a, b) => {
+          const aComplete = (a.jobComplete ? 1 : 0) + (a.sapComplete ? 1 : 0);
+          const bComplete = (b.jobComplete ? 1 : 0) + (b.sapComplete ? 1 : 0);
+          return bComplete - aComplete;
+        });
+      default:
+        return jobs;
+    }
+  }, [activeJobs, sortBy]);
+
   return (
     <div className="min-h-screen bg-background p-6">
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="max-w-[1600px] mx-auto space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between gap-4">
@@ -140,33 +165,59 @@ const Index = () => {
             </TabsList>
 
             <div className="flex gap-2">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="icon" title="Row Height Settings">
-                    <Settings className="h-4 w-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>Row Height: {["Compact", "Normal", "Comfortable"][rowHeight]}</Label>
-                      <Slider
-                        value={[rowHeight]}
-                        onValueChange={(value) => setRowHeight(value[0])}
-                        min={0}
-                        max={2}
-                        step={1}
-                        className="w-full"
-                      />
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>Compact</span>
-                        <span>Normal</span>
-                        <span>Comfortable</span>
+              {isAdminMode && (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="icon" title="Admin Settings">
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Row Height: {["Compact", "Normal", "Comfortable"][rowHeight]}</Label>
+                        <Slider
+                          value={[rowHeight]}
+                          onValueChange={(value) => setRowHeight(value[0])}
+                          min={0}
+                          max={2}
+                          step={1}
+                          className="w-full"
+                        />
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>Compact</span>
+                          <span>Normal</span>
+                          <span>Comfortable</span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Text Size: {["Small", "Normal", "Large"][textSize]}</Label>
+                        <Slider
+                          value={[textSize]}
+                          onValueChange={(value) => setTextSize(value[0])}
+                          min={0}
+                          max={2}
+                          step={1}
+                          className="w-full"
+                        />
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>Small</span>
+                          <span>Normal</span>
+                          <span>Large</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="text-bold">Bold Text</Label>
+                        <Switch
+                          id="text-bold"
+                          checked={textBold}
+                          onCheckedChange={setTextBold}
+                        />
                       </div>
                     </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
+                  </PopoverContent>
+                </Popover>
+              )}
               <Button
                 variant={isAdminMode ? "destructive" : "outline"}
                 size="icon"
@@ -193,7 +244,22 @@ const Index = () => {
           {/* Tab Content */}
 
           <TabsContent value="active" className="space-y-3">
-            <AddJobForm onAdd={addJob} rowHeight={rowHeight} />
+            <div className="flex gap-3 items-center">
+              <AddJobForm onAdd={addJob} rowHeight={rowHeight} />
+              <div className="flex items-center gap-2 ml-auto">
+                <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="date">Sort by Date</SelectItem>
+                    <SelectItem value="department">Sort by Department</SelectItem>
+                    <SelectItem value="completion">Sort by Completion</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
             {activeJobs.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">No active jobs. Add a job to get started.</div>
@@ -207,8 +273,8 @@ const Index = () => {
                   <div className="text-center">SAP</div>
                   <div></div>
                 </div>
-                {activeJobs.map((job) => (
-                  <JobRow key={job.id} job={job} onUpdate={updateJob} onDelete={deleteJob} rowHeight={rowHeight} />
+                {sortedActiveJobs.map((job) => (
+                  <JobRow key={job.id} job={job} onUpdate={updateJob} onDelete={deleteJob} rowHeight={rowHeight} textSize={textSize} textBold={textBold} />
                 ))}
               </div>
             )}
