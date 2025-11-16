@@ -16,7 +16,7 @@ interface AddJobFormProps {
 
 const DEPARTMENTS = ["Process", "Fruit", "Filling", "Warehouse", "Services", "Other"];
 
-export const AddJobForm = ({ onAdd, rowHeight = 0 }: AddJobFormProps) => {
+export const AddJobForm = ({ onAdd, rowHeight = 1 }: AddJobFormProps) => {
   const sizeClasses = {
     height: ["h-7", "h-8", "h-9"][rowHeight],
     text: ["text-xs", "text-xs", "text-sm"][rowHeight],
