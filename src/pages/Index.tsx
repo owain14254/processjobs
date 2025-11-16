@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { KeyRound } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useJobStorage } from "@/hooks/useJobStorage";
@@ -7,11 +8,25 @@ import { JobRow } from "@/components/JobRow";
 import { CompletedJobsLog } from "@/components/CompletedJobsLog";
 import { HandoverTab } from "@/components/HandoverTab";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Archive, Download, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import mullerLogo from "@/assets/muller-logo.png";
 
 const Index = () => {
+  const [activeTab, setActiveTab] = useState("active");
+  const [isAdminMode, setIsAdminMode] = useState(false);
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const {
     activeJobs,
     completedJobs,
@@ -21,9 +36,10 @@ const Index = () => {
     archiveCompletedJobs,
     exportData,
     importData,
+    deleteCompletedJob,
+    updateCompletedJob,
   } = useJobStorage();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("active");
 
   const handleArchive = () => {
     const count = activeJobs.filter((job) => job.jobComplete && job.sapComplete).length;
@@ -67,6 +83,41 @@ const Index = () => {
           variant: "destructive",
         });
       });
+    
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passwordInput === "Process3116") {
+      setIsAdminMode(true);
+      setShowPasswordDialog(false);
+      setPasswordInput("");
+      toast({
+        title: "Admin Mode Enabled",
+        description: "You can now edit and delete completed jobs",
+      });
+    } else {
+      toast({
+        title: "Incorrect Password",
+        description: "Please try again",
+        variant: "destructive",
+      });
+      setPasswordInput("");
+    }
+  };
+
+  const toggleAdminMode = () => {
+    if (isAdminMode) {
+      setIsAdminMode(false);
+      toast({
+        title: "Admin Mode Disabled",
+      });
+    } else {
+      setShowPasswordDialog(true);
+    }
   };
 
   return (
@@ -82,6 +133,14 @@ const Index = () => {
             </div>
           </div>
           <div className="flex gap-2">
+            <Button
+              variant={isAdminMode ? "destructive" : "outline"}
+              size="icon"
+              onClick={toggleAdminMode}
+              title={isAdminMode ? "Exit Admin Mode" : "Admin Mode"}
+            >
+              <KeyRound className="h-4 w-4" />
+            </Button>
             <ThemeToggle />
             <Button onClick={handleExport} variant="outline">
               <Download className="mr-2 h-4 w-4" />
@@ -93,6 +152,7 @@ const Index = () => {
                   <Upload className="mr-2 h-4 w-4" />
                   Import Backup
                   <input
+                    ref={fileInputRef}
                     type="file"
                     accept=".json"
                     onChange={handleImport}
@@ -151,13 +211,51 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="completed">
-            <CompletedJobsLog jobs={completedJobs} />
+            <CompletedJobsLog 
+              jobs={completedJobs}
+              isAdminMode={isAdminMode}
+              onDelete={deleteCompletedJob}
+              onUpdate={updateCompletedJob}
+            />
           </TabsContent>
 
           <TabsContent value="handover">
             <HandoverTab activeJobs={activeJobs} completedJobs={completedJobs} />
           </TabsContent>
         </Tabs>
+
+        <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Admin Authentication</DialogTitle>
+              <DialogDescription>
+                Enter the admin password to access admin mode
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handlePasswordSubmit} className="space-y-4">
+              <Input
+                type="password"
+                placeholder="Enter password"
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                autoFocus
+              />
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowPasswordDialog(false);
+                    setPasswordInput("");
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">Submit</Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

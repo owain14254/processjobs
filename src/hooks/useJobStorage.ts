@@ -137,6 +137,16 @@ export const useJobStorage = () => {
     });
   };
 
+  const deleteCompletedJob = (id: string) => {
+    setCompletedJobs((prev) => prev.filter((job) => job.id !== id));
+  };
+
+  const updateCompletedJob = (id: string, updates: Partial<CompletedJob>) => {
+    setCompletedJobs((prev) =>
+      prev.map((job) => (job.id === id ? { ...job, ...updates } : job))
+    );
+  };
+
   return {
     activeJobs,
     completedJobs,
@@ -146,5 +156,7 @@ export const useJobStorage = () => {
     archiveCompletedJobs,
     exportData,
     importData,
+    deleteCompletedJob,
+    updateCompletedJob,
   };
 };
