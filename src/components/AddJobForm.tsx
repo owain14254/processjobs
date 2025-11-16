@@ -54,12 +54,12 @@ export const AddJobForm = ({ onAdd }: AddJobFormProps) => {
   };
 
   return (
-    <div className="grid grid-cols-[200px_180px_1fr_auto] gap-4 items-center p-4 bg-muted rounded-lg">
+    <div className="grid grid-cols-[200px_180px_1fr_auto] gap-3 items-center p-2 bg-muted rounded-lg">
       <Popover>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
-            className="justify-start text-left font-normal"
+            className="justify-start text-left font-normal h-9"
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
             {format(date, "PPP")}
@@ -76,7 +76,7 @@ export const AddJobForm = ({ onAdd }: AddJobFormProps) => {
       </Popover>
 
       <Select value={department} onValueChange={setDepartment}>
-        <SelectTrigger>
+        <SelectTrigger className="h-9">
           <SelectValue placeholder="Select department" />
         </SelectTrigger>
         <SelectContent>
@@ -92,7 +92,7 @@ export const AddJobForm = ({ onAdd }: AddJobFormProps) => {
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         placeholder="Enter job description..."
-        className="text-base"
+        className="text-base h-9"
         onKeyDown={(e) => {
           if (e.key === "Enter") handleAdd();
         }}

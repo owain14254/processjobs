@@ -172,7 +172,7 @@ const Index = () => {
             <TabsTrigger value="handover">Handover</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="active" className="space-y-4">
+          <TabsContent value="active" className="space-y-3">
             <AddJobForm onAdd={addJob} />
 
             {activeJobs.length === 0 ? (
@@ -180,8 +180,8 @@ const Index = () => {
                 No active jobs. Add a job to get started.
               </div>
             ) : (
-              <div className="space-y-2">
-                <div className="grid grid-cols-[180px_140px_1fr_100px_100px_50px] gap-3 px-3 py-2 text-xs font-medium text-muted-foreground">
+              <div className="space-y-1.5">
+                <div className="grid grid-cols-[180px_140px_1fr_100px_100px_50px] gap-2 px-1.5 py-1.5 text-xs font-medium text-muted-foreground">
                   <div>Date</div>
                   <div>Department</div>
                   <div>Description</div>

@@ -44,7 +44,7 @@ export const JobRow = ({ job, onUpdate, onDelete }: JobRowProps) => {
   return (
     <div
       className={cn(
-        "grid grid-cols-[180px_140px_1fr_100px_100px_50px] gap-3 items-center p-3 rounded-lg transition-colors",
+        "grid grid-cols-[180px_140px_1fr_100px_100px_50px] gap-2 items-center p-1.5 rounded-lg transition-colors",
         getStatusColor(job.jobComplete, job.sapComplete)
       )}
     >
@@ -52,7 +52,7 @@ export const JobRow = ({ job, onUpdate, onDelete }: JobRowProps) => {
         <PopoverTrigger asChild>
           <Button
             variant="outline"
-            className="justify-start text-left font-normal bg-background hover:bg-background/90 text-xs"
+            className="justify-start text-left font-normal bg-background hover:bg-background/90 text-xs h-8"
           >
             <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
             <span className="truncate">{format(job.date, "PP")}</span>
@@ -72,7 +72,7 @@ export const JobRow = ({ job, onUpdate, onDelete }: JobRowProps) => {
         value={job.department}
         onValueChange={(value) => onUpdate(job.id, { department: value })}
       >
-        <SelectTrigger className="bg-background">
+        <SelectTrigger className="bg-background h-8">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -88,7 +88,7 @@ export const JobRow = ({ job, onUpdate, onDelete }: JobRowProps) => {
         value={job.description}
         onChange={(e) => onUpdate(job.id, { description: e.target.value })}
         placeholder="Job description..."
-        className="bg-background text-sm"
+        className="bg-background text-sm h-8"
       />
 
       <div className="flex items-center gap-1.5 justify-center">
@@ -115,7 +115,7 @@ export const JobRow = ({ job, onUpdate, onDelete }: JobRowProps) => {
         variant="ghost"
         size="icon"
         onClick={() => onDelete(job.id)}
-        className="hover:bg-destructive hover:text-destructive-foreground"
+        className="hover:bg-destructive hover:text-destructive-foreground h-8 w-8"
       >
         <Trash2 className="h-4 w-4" />
       </Button>
