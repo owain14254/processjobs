@@ -24,6 +24,8 @@ import { cn } from "@/lib/utils";
 interface HandoverTabProps {
   activeJobs: Job[];
   completedJobs: CompletedJob[];
+  textSize?: number;
+  textBold?: boolean;
 }
 
 type HandoverMode = "shift" | "set";
@@ -45,10 +47,13 @@ const getStatusColor = (jobComplete: boolean, sapComplete: boolean) => {
 };
 
 
-export const HandoverTab = ({ activeJobs, completedJobs }: HandoverTabProps) => {
+export const HandoverTab = ({ activeJobs, completedJobs, textSize = 1, textBold = false }: HandoverTabProps) => {
   const [mode, setMode] = useState<HandoverMode>("shift");
   const [departmentFilter, setDepartmentFilter] = useState("All");
   const [showOutstandingOnly, setShowOutstandingOnly] = useState(false);
+
+  const textSizeClass = ["text-xs", "text-sm", "text-base"][textSize];
+  const textWeightClass = textBold ? "font-bold" : "font-normal";
 
   const allJobs = useMemo(() => {
     // Combine active and completed jobs
@@ -188,15 +193,15 @@ export const HandoverTab = ({ activeJobs, completedJobs }: HandoverTabProps) => 
                   key={job.id}
                   className={cn(getStatusColor(job.jobComplete, job.sapComplete))}
                 >
-                  <TableCell className="whitespace-nowrap">
+                  <TableCell className={cn("whitespace-nowrap text-black", textSizeClass, textWeightClass)}>
                     {format(job.date, "PPP p")}
                   </TableCell>
-                  <TableCell>{job.department}</TableCell>
-                  <TableCell>{job.description}</TableCell>
-                  <TableCell className="text-center">
+                  <TableCell className={cn("text-black", textSizeClass, textWeightClass)}>{job.department}</TableCell>
+                  <TableCell className={cn("text-black", textSizeClass, textWeightClass)}>{job.description}</TableCell>
+                  <TableCell className={cn("text-center text-black", textSizeClass, textWeightClass)}>
                     {job.jobComplete ? "✓" : "—"}
                   </TableCell>
-                  <TableCell className="text-center">
+                  <TableCell className={cn("text-center text-black", textSizeClass, textWeightClass)}>
                     {job.sapComplete ? "✓" : "—"}
                   </TableCell>
                 </TableRow>
