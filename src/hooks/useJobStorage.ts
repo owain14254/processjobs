@@ -130,28 +130,36 @@ export const useJobStorage = () => {
     URL.revokeObjectURL(url);
   };
 
-  const importData = (file: File) => {
+  const importData = (file: File, merge: boolean = false) => {
     return new Promise<void>((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         try {
           const data = JSON.parse(e.target?.result as string);
           if (data.activeJobs) {
-            setActiveJobs(
-              data.activeJobs.map((job: any) => ({
-                ...job,
-                date: new Date(job.date),
-              }))
-            );
+            const importedActiveJobs = data.activeJobs.map((job: any) => ({
+              ...job,
+              date: new Date(job.date),
+            }));
+            
+            if (merge) {
+              setActiveJobs((prev) => [...prev, ...importedActiveJobs]);
+            } else {
+              setActiveJobs(importedActiveJobs);
+            }
           }
           if (data.completedJobs) {
-            setCompletedJobs(
-              data.completedJobs.map((job: any) => ({
-                ...job,
-                date: new Date(job.date),
-                completedAt: new Date(job.completedAt),
-              }))
-            );
+            const importedCompletedJobs = data.completedJobs.map((job: any) => ({
+              ...job,
+              date: new Date(job.date),
+              completedAt: new Date(job.completedAt),
+            }));
+            
+            if (merge) {
+              setCompletedJobs((prev) => [...prev, ...importedCompletedJobs]);
+            } else {
+              setCompletedJobs(importedCompletedJobs);
+            }
           }
           resolve();
         } catch (error) {

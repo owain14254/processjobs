@@ -24,6 +24,8 @@ const Index = () => {
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -75,12 +77,27 @@ const Index = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    importData(file)
+    setPendingImportFile(file);
+    setShowImportDialog(true);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleImportConfirm = (merge: boolean) => {
+    if (!pendingImportFile) return;
+
+    importData(pendingImportFile, merge)
       .then(() => {
         toast({
           title: "Data imported",
-          description: "Job data loaded successfully from backup.",
+          description: merge 
+            ? "Jobs added to current data successfully."
+            : "Job data loaded successfully from backup.",
         });
+        setShowImportDialog(false);
+        setPendingImportFile(null);
       })
       .catch(() => {
         toast({
@@ -89,10 +106,6 @@ const Index = () => {
           variant: "destructive",
         });
       });
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
   };
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
@@ -316,6 +329,33 @@ const Index = () => {
                 <Button type="submit">Submit</Button>
               </div>
             </form>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Import Backup</DialogTitle>
+              <DialogDescription>
+                Choose how to import the backup file
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">
+              <Button 
+                onClick={() => handleImportConfirm(true)} 
+                className="w-full"
+                variant="default"
+              >
+                Add to Current Jobs
+              </Button>
+              <Button 
+                onClick={() => handleImportConfirm(false)} 
+                className="w-full"
+                variant="outline"
+              >
+                Replace All Jobs
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
