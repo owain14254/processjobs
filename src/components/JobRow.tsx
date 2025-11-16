@@ -59,12 +59,37 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1, textSize = 1, t
   return (
     <div
       className={cn(
-        "grid grid-cols-[180px_140px_1fr_100px_100px_50px] items-center rounded-sm transition-colors",
+        "grid grid-cols-[120px_140px_1fr_100px_100px_50px] items-center rounded-sm transition-colors",
         sizeClasses.padding,
         sizeClasses.gap,
         getStatusColor(job.jobComplete, job.sapComplete)
       )}
     >
+      <Select
+        value={job.department}
+        onValueChange={(value) => onUpdate(job.id, { department: value })}
+      >
+        <SelectTrigger className={cn(
+          statusColor,
+          "text-black border-2",
+          statusColor === "bg-status-darkGreen" ? "border-status-darkGreen" :
+          statusColor === "bg-status-lightGreen" ? "border-status-lightGreen" :
+          "border-status-amber",
+          sizeClasses.height,
+          textSizeClass,
+          textWeightClass
+        )}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {DEPARTMENTS.map((dept) => (
+            <SelectItem key={dept} value={dept}>
+              {dept}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
       <Popover>
         <PopoverTrigger asChild>
           <Button
@@ -93,31 +118,6 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1, textSize = 1, t
           />
         </PopoverContent>
       </Popover>
-
-      <Select
-        value={job.department}
-        onValueChange={(value) => onUpdate(job.id, { department: value })}
-      >
-        <SelectTrigger className={cn(
-          statusColor,
-          "text-black border-2",
-          statusColor === "bg-status-darkGreen" ? "border-status-darkGreen" :
-          statusColor === "bg-status-lightGreen" ? "border-status-lightGreen" :
-          "border-status-amber",
-          sizeClasses.height,
-          textSizeClass,
-          textWeightClass
-        )}>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {DEPARTMENTS.map((dept) => (
-            <SelectItem key={dept} value={dept}>
-              {dept}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
 
       <Input
         value={job.description}
