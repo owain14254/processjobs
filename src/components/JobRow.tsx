@@ -55,7 +55,6 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1, textSize = 1, t
   const textWeightClass = textBold ? "font-bold" : "font-normal";
   
   const statusColor = getStatusColor(job.jobComplete, job.sapComplete);
-  const bgColorClass = statusColor.replace("bg-", "");
 
   return (
     <div
@@ -72,7 +71,10 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1, textSize = 1, t
             variant="outline"
             className={cn(
               "justify-start text-left font-normal text-black border-2",
-              `bg-${bgColorClass} hover:bg-${bgColorClass}/90 border-${bgColorClass}`,
+              statusColor,
+              statusColor === "bg-status-darkGreen" ? "hover:bg-status-darkGreen/90 border-status-darkGreen" :
+              statusColor === "bg-status-lightGreen" ? "hover:bg-status-lightGreen/90 border-status-lightGreen" :
+              "hover:bg-status-amber/90 border-status-amber",
               sizeClasses.height,
               textSizeClass,
               textWeightClass
@@ -97,7 +99,11 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1, textSize = 1, t
         onValueChange={(value) => onUpdate(job.id, { department: value })}
       >
         <SelectTrigger className={cn(
-          `bg-${bgColorClass} text-black border-2 border-${bgColorClass}`,
+          statusColor,
+          "text-black border-2",
+          statusColor === "bg-status-darkGreen" ? "border-status-darkGreen" :
+          statusColor === "bg-status-lightGreen" ? "border-status-lightGreen" :
+          "border-status-amber",
           sizeClasses.height,
           textSizeClass,
           textWeightClass
@@ -118,7 +124,11 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1, textSize = 1, t
         onChange={(e) => onUpdate(job.id, { description: e.target.value })}
         placeholder="Job description..."
         className={cn(
-          `bg-${bgColorClass} text-black border-2 border-${bgColorClass}`,
+          statusColor,
+          "text-black border-2",
+          statusColor === "bg-status-darkGreen" ? "border-status-darkGreen" :
+          statusColor === "bg-status-lightGreen" ? "border-status-lightGreen" :
+          "border-status-amber",
           sizeClasses.height,
           textSizeClass,
           textWeightClass
