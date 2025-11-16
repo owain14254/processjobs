@@ -122,55 +122,55 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="max-w-[1600px] mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <img src={mullerLogo} alt="Müller" className="h-12" />
-            <div>
-              <h1 className="text-3xl font-bold">Job Logging Platform</h1>
-              <p className="text-muted-foreground">Track and manage maintenance jobs</p>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <div className="max-w-[1600px] mx-auto space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <img src={mullerLogo} alt="Müller" className="h-12" />
+              <div>
+                <h1 className="text-3xl font-bold">Job Logging Platform</h1>
+                <p className="text-muted-foreground">Track and manage maintenance jobs</p>
+              </div>
+            </div>
+            
+            <TabsList className="grid w-full max-w-[500px] grid-cols-3">
+              <TabsTrigger value="active">Active ({activeJobs.length})</TabsTrigger>
+              <TabsTrigger value="completed">Completed ({completedJobs.length})</TabsTrigger>
+              <TabsTrigger value="handover">Handover</TabsTrigger>
+            </TabsList>
+
+            <div className="flex gap-2">
+              <Button
+                variant={isAdminMode ? "destructive" : "outline"}
+                size="icon"
+                onClick={toggleAdminMode}
+                title={isAdminMode ? "Exit Admin Mode" : "Admin Mode"}
+              >
+                <KeyRound className="h-4 w-4" />
+              </Button>
+              <ThemeToggle />
+              <Button onClick={handleExport} variant="outline" size="icon" title="Export Backup">
+                <Download className="h-4 w-4" />
+              </Button>
+              <label>
+                <Button variant="outline" size="icon" asChild title="Import Backup">
+                  <span>
+                    <Upload className="h-4 w-4" />
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".json"
+                      onChange={handleImport}
+                      className="hidden"
+                    />
+                  </span>
+                </Button>
+              </label>
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button
-              variant={isAdminMode ? "destructive" : "outline"}
-              size="icon"
-              onClick={toggleAdminMode}
-              title={isAdminMode ? "Exit Admin Mode" : "Admin Mode"}
-            >
-              <KeyRound className="h-4 w-4" />
-            </Button>
-            <ThemeToggle />
-            <Button onClick={handleExport} variant="outline">
-              <Download className="mr-2 h-4 w-4" />
-              Export Backup
-            </Button>
-            <label>
-              <Button variant="outline" asChild>
-                <span>
-                  <Upload className="mr-2 h-4 w-4" />
-                  Import Backup
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".json"
-                    onChange={handleImport}
-                    className="hidden"
-                  />
-                </span>
-              </Button>
-            </label>
-          </div>
-        </div>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-[600px] grid-cols-3">
-            <TabsTrigger value="active">Active Jobs ({activeJobs.length})</TabsTrigger>
-            <TabsTrigger value="completed">Completed Jobs ({completedJobs.length})</TabsTrigger>
-            <TabsTrigger value="handover">Handover</TabsTrigger>
-          </TabsList>
+          {/* Tab Content */}
 
           <TabsContent value="active" className="space-y-3">
             <AddJobForm onAdd={addJob} />
@@ -222,8 +222,10 @@ const Index = () => {
           <TabsContent value="handover">
             <HandoverTab activeJobs={activeJobs} completedJobs={completedJobs} />
           </TabsContent>
-        </Tabs>
+        </div>
+      </Tabs>
 
+      <div className="max-w-[1600px] mx-auto">
         <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
           <DialogContent>
             <DialogHeader>
