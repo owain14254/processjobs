@@ -124,7 +124,7 @@ const Index = () => {
               <img src={mullerLogo} alt="Müller" className="h-12" />
               <div>
                 <h1 className="text-3xl font-bold">Job Log</h1>
-                <p className="text-muted-foreground"> </p>
+                <p className="text-muted-foreground">Process Tracker</p>
               </div>
             </div>
 
