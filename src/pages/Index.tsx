@@ -16,7 +16,6 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import mullerLogo from "@/assets/muller-logo.png";
 
@@ -159,44 +158,36 @@ const Index = () => {
                   <PopoverContent className="w-80">
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="row-height">Row Height (0-6)</Label>
-                        <Input
-                          id="row-height"
-                          type="number"
+                        <Label>Row Height: {["Compact", "Normal", "Comfortable"][rowHeight]}</Label>
+                        <Slider
+                          value={[rowHeight]}
+                          onValueChange={(value) => setRowHeight(value[0])}
                           min={0}
-                          max={6}
-                          value={rowHeight}
-                          onChange={(e) => {
-                            const val = parseInt(e.target.value);
-                            if (!isNaN(val) && val >= 0 && val <= 6) {
-                              setRowHeight(val);
-                            }
-                          }}
+                          max={2}
+                          step={1}
                           className="w-full"
                         />
-                        <p className="text-xs text-muted-foreground">
-                          0: Minimal | 1: Extra Compact | 2: Compact | 3: Normal | 4: Comfortable | 5: Spacious | 6: Extra Spacious
-                        </p>
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>Compact</span>
+                          <span>Normal</span>
+                          <span>Comfortable</span>
+                        </div>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="text-size">Text Size (0-6)</Label>
-                        <Input
-                          id="text-size"
-                          type="number"
+                        <Label>Text Size: {["Small", "Normal", "Large"][textSize]}</Label>
+                        <Slider
+                          value={[textSize]}
+                          onValueChange={(value) => setTextSize(value[0])}
                           min={0}
-                          max={6}
-                          value={textSize}
-                          onChange={(e) => {
-                            const val = parseInt(e.target.value);
-                            if (!isNaN(val) && val >= 0 && val <= 6) {
-                              setTextSize(val);
-                            }
-                          }}
+                          max={2}
+                          step={1}
                           className="w-full"
                         />
-                        <p className="text-xs text-muted-foreground">
-                          0: Tiny | 1: Extra Small | 2: Small | 3: Normal | 4: Large | 5: Extra Large | 6: Huge
-                        </p>
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>Small</span>
+                          <span>Normal</span>
+                          <span>Large</span>
+                        </div>
                       </div>
                       <div className="flex items-center justify-between">
                         <Label htmlFor="text-bold">Bold Text</Label>
@@ -241,24 +232,18 @@ const Index = () => {
             {activeJobs.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">No active jobs. Add a job to get started.</div>
             ) : (
-              <div className="rounded-lg border overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Department</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead className="text-center">Job Complete</TableHead>
-                      <TableHead className="text-center">SAP Complete</TableHead>
-                      <TableHead className="w-[50px]"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {activeJobs.map((job) => (
-                      <JobRow key={job.id} job={job} onUpdate={updateJob} onDelete={deleteJob} rowHeight={rowHeight} textSize={textSize} textBold={textBold} />
-                    ))}
-                  </TableBody>
-                </Table>
+              <div className="space-y-1.5">
+                <div className="grid grid-cols-[180px_140px_1fr_100px_100px_50px] gap-2 px-1.5 py-1.5 text-xs font-medium text-muted-foreground">
+                  <div>Date</div>
+                  <div>Department</div>
+                  <div>Description</div>
+                  <div className="text-center">Complete</div>
+                  <div className="text-center">SAP</div>
+                  <div></div>
+                </div>
+                {activeJobs.map((job) => (
+                  <JobRow key={job.id} job={job} onUpdate={updateJob} onDelete={deleteJob} rowHeight={rowHeight} textSize={textSize} textBold={textBold} />
+                ))}
               </div>
             )}
 
