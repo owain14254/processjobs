@@ -8,7 +8,16 @@ import { ShiftPatternFilter } from "./ShiftPatternFilter";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CompletedJob } from "@/hooks/useJobStorage";
@@ -22,12 +31,7 @@ interface CompletedJobsLogProps {
   onUpdate?: (id: string, updates: Partial<CompletedJob>) => void;
 }
 const DEPARTMENTS = ["All", "Process", "Fruit", "Filling", "Warehouse", "Services", "Other"];
-export const CompletedJobsLog = ({
-  jobs,
-  isAdminMode = false,
-  onDelete,
-  onUpdate
-}: CompletedJobsLogProps) => {
+export const CompletedJobsLog = ({ jobs, isAdminMode = false, onDelete, onUpdate }: CompletedJobsLogProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("All");
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
@@ -35,7 +39,7 @@ export const CompletedJobsLog = ({
   const [shiftFilter, setShiftFilter] = useState<{
     startDate: Date;
     endDate: Date;
-    shift: 'days' | 'nights';
+    shift: "days" | "nights";
   } | null>(null);
   const [editingJob, setEditingJob] = useState<CompletedJob | null>(null);
   const [editDescription, setEditDescription] = useState("");
@@ -43,26 +47,26 @@ export const CompletedJobsLog = ({
   const [editDepartment, setEditDepartment] = useState("");
   const [deleteJobId, setDeleteJobId] = useState<string | null>(null);
   const filteredJobs = useMemo(() => {
-    return jobs.filter(job => {
+    return jobs.filter((job) => {
       // Wildcard search support: * matches any characters
       let matchesSearch = true;
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
         const description = job.description.toLowerCase();
         const dateStr = format(job.date, "dd/MM/yyyy").toLowerCase();
-        
-        if (searchLower.includes('*')) {
+
+        if (searchLower.includes("*")) {
           // Convert wildcard pattern to regex
           const regexPattern = searchLower
-            .replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // Escape special chars
-            .replace(/\\\*/g, '.*'); // Convert * to .*
+            .replace(/[.*+?^${}()|[\]\\]/g, "\\$&") // Escape special chars
+            .replace(/\\\*/g, ".*"); // Convert * to .*
           const regex = new RegExp(regexPattern);
           matchesSearch = regex.test(description) || regex.test(dateStr);
         } else {
           matchesSearch = description.includes(searchLower) || dateStr.includes(searchLower);
         }
       }
-      
+
       const matchesDepartment = departmentFilter === "All" || job.department === departmentFilter;
       const matchesStartDate = !startDate || job.date >= startDate;
       const matchesEndDate = !endDate || job.date <= endDate;
@@ -81,7 +85,9 @@ export const CompletedJobsLog = ({
         const isDayShift = completedHour >= 7 && completedHour < 19; // 7am to 7pm
         const isNightShift = completedHour >= 19 || completedHour < 7; // 7pm to 7am
 
-        matchesShift = isInDateRange && (shiftFilter.shift === 'days' && isDayShift || shiftFilter.shift === 'nights' && isNightShift);
+        matchesShift =
+          isInDateRange &&
+          ((shiftFilter.shift === "days" && isDayShift) || (shiftFilter.shift === "nights" && isNightShift));
       }
       return matchesSearch && matchesDepartment && matchesStartDate && matchesEndDate && matchesShift;
     });
@@ -97,7 +103,7 @@ export const CompletedJobsLog = ({
       onUpdate(editingJob.id, {
         description: editDescription,
         date: editDate,
-        department: editDepartment
+        department: editDepartment,
       });
       setEditingJob(null);
       setEditDescription("");
@@ -111,22 +117,28 @@ export const CompletedJobsLog = ({
       setDeleteJobId(null);
     }
   };
-  return <div className="space-y-4">
-      
-      
+  return (
+    <div className="space-y-4">
       <div className="flex gap-4 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search by description or date..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-9" />
+          <Input
+            placeholder="Search by description or date..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
+          />
         </div>
         <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
           <SelectTrigger className="w-[180px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>
+            {DEPARTMENTS.map((dept) => (
+              <SelectItem key={dept} value={dept}>
                 {dept}
-              </SelectItem>)}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Popover>
@@ -151,12 +163,19 @@ export const CompletedJobsLog = ({
             <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus />
           </PopoverContent>
         </Popover>
-        {(startDate || endDate) && <Button variant="ghost" size="icon" onClick={() => {
-        setStartDate(undefined);
-        setEndDate(undefined);
-      }} title="Clear date filters">
+        {(startDate || endDate) && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              setStartDate(undefined);
+              setEndDate(undefined);
+            }}
+            title="Clear date filters"
+          >
             <X className="h-4 w-4" />
-          </Button>}
+          </Button>
+        )}
       </div>
 
       <div className="rounded-lg border">
@@ -171,17 +190,22 @@ export const CompletedJobsLog = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredJobs.length === 0 ? <TableRow>
+            {filteredJobs.length === 0 ? (
+              <TableRow>
                 <TableCell colSpan={isAdminMode ? 5 : 4} className="text-center text-muted-foreground py-8">
                   No completed jobs found
                 </TableCell>
-              </TableRow> : filteredJobs.map(job => <TableRow key={job.id}>
+              </TableRow>
+            ) : (
+              filteredJobs.map((job) => (
+                <TableRow key={job.id}>
                   <TableCell>{format(job.date, "dd/MM/yyyy")}</TableCell>
                   <TableCell>{job.department}</TableCell>
                   <TableCell>{job.description}</TableCell>
                   <TableCell>{format(job.completedAt, "dd/MM/yyyy")}</TableCell>
-                  {isAdminMode && <TableCell>
-                      <div className="flex gap-2">
+                  {isAdminMode && (
+                    <TableCell>
+                      <div className="flex gap-1">
                         <Button size="icon" variant="ghost" onClick={() => handleEdit(job)}>
                           <Pencil className="h-4 w-4" />
                         </Button>
@@ -189,8 +213,11 @@ export const CompletedJobsLog = ({
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
-                    </TableCell>}
-                </TableRow>)}
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
@@ -199,9 +226,7 @@ export const CompletedJobsLog = ({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Completed Job</DialogTitle>
-            <DialogDescription>
-              Update the details for this completed job
-            </DialogDescription>
+            <DialogDescription>Update the details for this completed job</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -214,7 +239,13 @@ export const CompletedJobsLog = ({
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={editDate} onSelect={setEditDate} initialFocus className="pointer-events-auto" />
+                  <Calendar
+                    mode="single"
+                    selected={editDate}
+                    onSelect={setEditDate}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
                 </PopoverContent>
               </Popover>
             </div>
@@ -225,15 +256,17 @@ export const CompletedJobsLog = ({
                   <SelectValue placeholder="Select department" />
                 </SelectTrigger>
                 <SelectContent>
-                  {DEPARTMENTS.filter(d => d !== "All").map(dept => <SelectItem key={dept} value={dept}>
+                  {DEPARTMENTS.filter((d) => d !== "All").map((dept) => (
+                    <SelectItem key={dept} value={dept}>
                       {dept}
-                    </SelectItem>)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
               <Label>Description</Label>
-              <Textarea value={editDescription} onChange={e => setEditDescription(e.target.value)} rows={4} />
+              <Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={4} />
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setEditingJob(null)}>
@@ -259,5 +292,6 @@ export const CompletedJobsLog = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>;
+    </div>
+  );
 };
