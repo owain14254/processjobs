@@ -33,11 +33,15 @@ const DEPARTMENTS = [
   "Other",
 ];
 
-export const AddJobForm = ({ onAdd, rowHeight = 1 }: AddJobFormProps) => {
+export const AddJobForm = ({ onAdd, rowHeight = 3 }: AddJobFormProps) => {
+  const heightClasses = ["h-6", "h-7", "h-7", "h-8", "h-9", "h-10", "h-12"];
+  const textClasses = ["text-[10px]", "text-[11px]", "text-xs", "text-xs", "text-sm", "text-base", "text-lg"];
+  
   const sizeClasses = {
-    height: ["h-7", "h-8", "h-9"][rowHeight],
-    text: ["text-xs", "text-xs", "text-sm"][rowHeight],
+    height: heightClasses[rowHeight] || heightClasses[3],
+    text: textClasses[rowHeight] || textClasses[3],
   };
+  
   const [date, setDate] = useState<Date>(new Date());
   const [department, setDepartment] = useState<string>("");
   const [description, setDescription] = useState<string>("");

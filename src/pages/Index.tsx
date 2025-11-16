@@ -159,48 +159,44 @@ const Index = () => {
                   <PopoverContent className="w-80">
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="row-height">Row Height (0-2): {["Compact", "Normal", "Comfortable"][rowHeight]}</Label>
+                        <Label htmlFor="row-height">Row Height (0-6)</Label>
                         <Input
                           id="row-height"
                           type="number"
                           min={0}
-                          max={2}
+                          max={6}
                           value={rowHeight}
                           onChange={(e) => {
                             const val = parseInt(e.target.value);
-                            if (!isNaN(val) && val >= 0 && val <= 2) {
+                            if (!isNaN(val) && val >= 0 && val <= 6) {
                               setRowHeight(val);
                             }
                           }}
                           className="w-full"
                         />
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>0: Compact</span>
-                          <span>1: Normal</span>
-                          <span>2: Comfortable</span>
-                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          0: Minimal | 1: Extra Compact | 2: Compact | 3: Normal | 4: Comfortable | 5: Spacious | 6: Extra Spacious
+                        </p>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="text-size">Text Size (0-2): {["Small", "Normal", "Large"][textSize]}</Label>
+                        <Label htmlFor="text-size">Text Size (0-6)</Label>
                         <Input
                           id="text-size"
                           type="number"
                           min={0}
-                          max={2}
+                          max={6}
                           value={textSize}
                           onChange={(e) => {
                             const val = parseInt(e.target.value);
-                            if (!isNaN(val) && val >= 0 && val <= 2) {
+                            if (!isNaN(val) && val >= 0 && val <= 6) {
                               setTextSize(val);
                             }
                           }}
                           className="w-full"
                         />
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>0: Small</span>
-                          <span>1: Normal</span>
-                          <span>2: Large</span>
-                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          0: Tiny | 1: Extra Small | 2: Small | 3: Normal | 4: Large | 5: Extra Large | 6: Huge
+                        </p>
                       </div>
                       <div className="flex items-center justify-between">
                         <Label htmlFor="text-bold">Bold Text</Label>
