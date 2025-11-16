@@ -44,7 +44,25 @@ export const CompletedJobsLog = ({
   const [deleteJobId, setDeleteJobId] = useState<string | null>(null);
   const filteredJobs = useMemo(() => {
     return jobs.filter(job => {
-      const matchesSearch = job.description.toLowerCase().includes(searchTerm.toLowerCase()) || format(job.date, "dd/MM/yyyy").toLowerCase().includes(searchTerm.toLowerCase());
+      // Wildcard search support: * matches any characters
+      let matchesSearch = true;
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        const description = job.description.toLowerCase();
+        const dateStr = format(job.date, "dd/MM/yyyy").toLowerCase();
+        
+        if (searchLower.includes('*')) {
+          // Convert wildcard pattern to regex
+          const regexPattern = searchLower
+            .replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // Escape special chars
+            .replace(/\\\*/g, '.*'); // Convert * to .*
+          const regex = new RegExp(regexPattern);
+          matchesSearch = regex.test(description) || regex.test(dateStr);
+        } else {
+          matchesSearch = description.includes(searchLower) || dateStr.includes(searchLower);
+        }
+      }
+      
       const matchesDepartment = departmentFilter === "All" || job.department === departmentFilter;
       const matchesStartDate = !startDate || job.date >= startDate;
       const matchesEndDate = !endDate || job.date <= endDate;
