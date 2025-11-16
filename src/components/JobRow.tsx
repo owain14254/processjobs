@@ -44,10 +44,13 @@ const getStatusColor = (jobComplete: boolean, sapComplete: boolean) => {
   return "bg-status-amber";
 };
 
-export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1, textSize = 1, textBold = false }: JobRowProps) => {
-  const textSizeClass = ["text-xs", "text-sm", "text-base"][textSize];
+export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 3, textSize = 3, textBold = false }: JobRowProps) => {
+  const textSizeClasses = ["text-[10px]", "text-[11px]", "text-xs", "text-sm", "text-base", "text-lg", "text-xl"];
+  const textSizeClass = textSizeClasses[textSize] || textSizeClasses[3];
   const textWeightClass = textBold ? "font-bold" : "font-normal";
-  const cellPadding = ["py-1 px-2", "py-2 px-4", "py-3 px-4"][rowHeight];
+  
+  const cellPaddingOptions = ["py-0 px-1", "py-0.5 px-1.5", "py-1 px-2", "py-2 px-4", "py-3 px-4", "py-4 px-6", "py-5 px-8"];
+  const cellPadding = cellPaddingOptions[rowHeight] || cellPaddingOptions[3];
   
   const statusColor = getStatusColor(job.jobComplete, job.sapComplete);
 
