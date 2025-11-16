@@ -133,6 +133,10 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1, textSize = 1, t
           textSizeClass,
           textWeightClass
         )}
+        style={{
+          fontSize: textSize === 0 ? '0.75rem' : textSize === 1 ? '0.875rem' : '1rem',
+          fontWeight: textBold ? 'bold' : 'normal'
+        }}
       />
 
       <div className="flex items-center gap-1.5 justify-center">
