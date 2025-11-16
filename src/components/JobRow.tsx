@@ -41,12 +41,20 @@ const getStatusColor = (jobComplete: boolean, sapComplete: boolean) => {
   return "bg-status-amber";
 };
 
-export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1 }: JobRowProps) => {
+export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 5 }: JobRowProps) => {
+  // Map rowHeight (0-10) to actual dimensions
+  const paddingValue = 4 + (rowHeight * 2); // 4px to 24px
+  const gapValue = 6 + (rowHeight * 2); // 6px to 26px
+  const heightValue = 24 + (rowHeight * 4); // 24px to 64px
+  const buttonWidthValue = 24 + (rowHeight * 4); // 24px to 64px
+  const textSize = rowHeight <= 3 ? "text-xs" : "text-sm";
+  
   const sizeClasses = {
-    padding: ["p-1", "p-1.5", "p-2"][rowHeight],
-    gap: ["gap-1.5", "gap-2", "gap-3"][rowHeight],
-    height: ["h-7", "h-8", "h-9"][rowHeight],
-    text: ["text-xs", "text-xs", "text-sm"][rowHeight],
+    padding: `p-[${paddingValue}px]`,
+    gap: `gap-[${gapValue}px]`,
+    height: `h-[${heightValue}px]`,
+    text: textSize,
+    buttonWidth: `w-[${buttonWidthValue}px]`,
   };
 
   return (
@@ -132,7 +140,7 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1 }: JobRowProps) 
         className={cn(
           "hover:bg-destructive hover:text-destructive-foreground",
           sizeClasses.height,
-          rowHeight === 0 ? "w-7" : rowHeight === 1 ? "w-8" : "w-9"
+          sizeClasses.buttonWidth
         )}
       >
         <Trash2 className="h-4 w-4" />
