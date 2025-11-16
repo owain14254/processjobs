@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { KeyRound } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ const Index = () => {
   const [passwordInput, setPasswordInput] = useState("");
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
+  const [showBackupReminder, setShowBackupReminder] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -139,6 +140,44 @@ const Index = () => {
     }
   };
 
+  const checkBackupReminder = () => {
+    const lastBackupReminder = localStorage.getItem("lastBackupReminder");
+    if (!lastBackupReminder) {
+      // First time, set timestamp and don't show
+      localStorage.setItem("lastBackupReminder", new Date().toISOString());
+      return;
+    }
+
+    const lastReminderDate = new Date(lastBackupReminder);
+    const now = new Date();
+    const hoursSinceLastReminder = (now.getTime() - lastReminderDate.getTime()) / (1000 * 60 * 60);
+
+    if (hoursSinceLastReminder >= 24) {
+      setShowBackupReminder(true);
+    }
+  };
+
+  const handleBackupReminderClose = () => {
+    setShowBackupReminder(false);
+    localStorage.setItem("lastBackupReminder", new Date().toISOString());
+  };
+
+  const handleBackupReminderDownload = () => {
+    handleExport();
+    handleBackupReminderClose();
+  };
+
+  const testBackupReminder = () => {
+    setShowBackupReminder(true);
+  };
+
+  useEffect(() => {
+    checkBackupReminder();
+    // Check every hour if 24 hours have passed
+    const interval = setInterval(checkBackupReminder, 60 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="min-h-screen bg-background p-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -204,6 +243,16 @@ const Index = () => {
                       <div className="flex items-center justify-between">
                         <Label htmlFor="text-bold">Bold Text</Label>
                         <Switch id="text-bold" checked={textBold} onCheckedChange={setTextBold} />
+                      </div>
+                      <div className="pt-4 border-t">
+                        <Button 
+                          onClick={testBackupReminder} 
+                          variant="outline" 
+                          className="w-full"
+                          size="sm"
+                        >
+                          Test Backup Reminder
+                        </Button>
                       </div>
                     </div>
                   </PopoverContent>
@@ -354,6 +403,30 @@ const Index = () => {
                 variant="outline"
               >
                 Replace All Jobs
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showBackupReminder} onOpenChange={handleBackupReminderClose}>
+          <DialogContent className="sm:max-w-md fixed bottom-4 right-4 top-auto left-auto translate-x-0 translate-y-0">
+            <DialogHeader>
+              <DialogTitle>Please backup the log</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col gap-3 pt-4">
+              <Button 
+                onClick={handleBackupReminderDownload}
+                className="w-full"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download Backup
+              </Button>
+              <Button 
+                onClick={handleBackupReminderClose}
+                variant="outline"
+                className="w-full"
+              >
+                Remind Me Later
               </Button>
             </div>
           </DialogContent>
