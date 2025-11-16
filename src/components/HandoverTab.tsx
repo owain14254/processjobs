@@ -84,7 +84,7 @@ export const HandoverTab = ({
             Shift
           </Button>
           <Button variant={mode === "set" ? "default" : "outline"} onClick={() => setMode("set")}>
-            Set (96 hours)
+            Set
           </Button>
         </div>
 
