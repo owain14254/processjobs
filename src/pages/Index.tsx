@@ -10,7 +10,10 @@ import { HandoverTab } from "@/components/HandoverTab";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Archive, Download, Upload } from "lucide-react";
+import { Archive, Download, Upload, Settings } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import mullerLogo from "@/assets/muller-logo.png";
 
@@ -32,6 +35,8 @@ const Index = () => {
     importData,
     deleteCompletedJob,
     updateCompletedJob,
+    rowHeight,
+    setRowHeight,
   } = useJobStorage();
   const { toast } = useToast();
 
@@ -135,6 +140,33 @@ const Index = () => {
             </TabsList>
 
             <div className="flex gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="icon" title="Row Height Settings">
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Row Height: {["Compact", "Normal", "Comfortable"][rowHeight]}</Label>
+                      <Slider
+                        value={[rowHeight]}
+                        onValueChange={(value) => setRowHeight(value[0])}
+                        min={0}
+                        max={2}
+                        step={1}
+                        className="w-full"
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Compact</span>
+                        <span>Normal</span>
+                        <span>Comfortable</span>
+                      </div>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
               <Button
                 variant={isAdminMode ? "destructive" : "outline"}
                 size="icon"
@@ -161,7 +193,7 @@ const Index = () => {
           {/* Tab Content */}
 
           <TabsContent value="active" className="space-y-3">
-            <AddJobForm onAdd={addJob} />
+            <AddJobForm onAdd={addJob} rowHeight={rowHeight} />
 
             {activeJobs.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">No active jobs. Add a job to get started.</div>
@@ -176,7 +208,7 @@ const Index = () => {
                   <div></div>
                 </div>
                 {activeJobs.map((job) => (
-                  <JobRow key={job.id} job={job} onUpdate={updateJob} onDelete={deleteJob} />
+                  <JobRow key={job.id} job={job} onUpdate={updateJob} onDelete={deleteJob} rowHeight={rowHeight} />
                 ))}
               </div>
             )}
