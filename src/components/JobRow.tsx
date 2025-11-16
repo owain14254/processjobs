@@ -45,9 +45,9 @@ const getStatusColor = (jobComplete: boolean, sapComplete: boolean) => {
 
 export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1, textSize = 1, textBold = false }: JobRowProps) => {
   const sizeClasses = {
-    padding: ["p-1", "p-1.5", "p-2"][rowHeight],
-    gap: ["gap-1.5", "gap-2", "gap-3"][rowHeight],
-    height: ["h-7", "h-8", "h-9"][rowHeight],
+    padding: ["p-0.5", "p-1", "p-1.5"][rowHeight],
+    gap: ["gap-1", "gap-1.5", "gap-2"][rowHeight],
+    height: ["h-6", "h-7", "h-8"][rowHeight],
     text: ["text-xs", "text-xs", "text-sm"][rowHeight],
   };
 
@@ -166,7 +166,7 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1, textSize = 1, t
         className={cn(
           "hover:bg-destructive hover:text-destructive-foreground",
           sizeClasses.height,
-          rowHeight === 0 ? "w-7" : rowHeight === 1 ? "w-8" : "w-9"
+          rowHeight === 0 ? "w-6" : rowHeight === 1 ? "w-7" : "w-8"
         )}
       >
         <Trash2 className="h-4 w-4" />
