@@ -24,6 +24,8 @@ interface JobRowProps {
   onUpdate: (id: string, updates: Partial<Job>) => void;
   onDelete: (id: string) => void;
   rowHeight?: number;
+  textSize?: number;
+  textBold?: boolean;
 }
 
 const DEPARTMENTS = [
@@ -41,13 +43,19 @@ const getStatusColor = (jobComplete: boolean, sapComplete: boolean) => {
   return "bg-status-amber";
 };
 
-export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1 }: JobRowProps) => {
+export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1, textSize = 1, textBold = false }: JobRowProps) => {
   const sizeClasses = {
     padding: ["p-1", "p-1.5", "p-2"][rowHeight],
     gap: ["gap-1.5", "gap-2", "gap-3"][rowHeight],
     height: ["h-7", "h-8", "h-9"][rowHeight],
     text: ["text-xs", "text-xs", "text-sm"][rowHeight],
   };
+
+  const textSizeClass = ["text-xs", "text-sm", "text-base"][textSize];
+  const textWeightClass = textBold ? "font-bold" : "font-normal";
+  
+  const statusColor = getStatusColor(job.jobComplete, job.sapComplete);
+  const bgColorClass = statusColor.replace("bg-", "");
 
   return (
     <div
@@ -63,9 +71,12 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1 }: JobRowProps) 
           <Button
             variant="outline"
             className={cn(
-              "justify-start text-left font-normal bg-background hover:bg-background/90",
+              "justify-start text-left font-normal text-foreground",
+              `bg-${bgColorClass} hover:bg-${bgColorClass}/90`,
               sizeClasses.text,
-              sizeClasses.height
+              sizeClasses.height,
+              textSizeClass,
+              textWeightClass
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
@@ -86,7 +97,12 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1 }: JobRowProps) 
         value={job.department}
         onValueChange={(value) => onUpdate(job.id, { department: value })}
       >
-        <SelectTrigger className={cn("bg-background", sizeClasses.height)}>
+        <SelectTrigger className={cn(
+          `bg-${bgColorClass} text-foreground`,
+          sizeClasses.height,
+          textSizeClass,
+          textWeightClass
+        )}>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -102,7 +118,13 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1 }: JobRowProps) 
         value={job.description}
         onChange={(e) => onUpdate(job.id, { description: e.target.value })}
         placeholder="Job description..."
-        className={cn("bg-background", sizeClasses.text, sizeClasses.height)}
+        className={cn(
+          `bg-${bgColorClass} text-foreground`,
+          sizeClasses.text,
+          sizeClasses.height,
+          textSizeClass,
+          textWeightClass
+        )}
       />
 
       <div className="flex items-center gap-1.5 justify-center">

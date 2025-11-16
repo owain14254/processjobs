@@ -24,6 +24,16 @@ export const useJobStorage = () => {
     return saved ? parseInt(saved) : 1; // 0=compact, 1=normal, 2=comfortable
   });
 
+  const [textSize, setTextSize] = useState<number>(() => {
+    const saved = localStorage.getItem("textSize");
+    return saved ? parseInt(saved) : 1; // 0=small, 1=normal, 2=large
+  });
+
+  const [textBold, setTextBold] = useState<boolean>(() => {
+    const saved = localStorage.getItem("textBold");
+    return saved === "true";
+  });
+
   // Load from localStorage on mount
   useEffect(() => {
     const loadedActiveJobs = localStorage.getItem(ACTIVE_JOBS_KEY);
@@ -58,6 +68,14 @@ export const useJobStorage = () => {
   useEffect(() => {
     localStorage.setItem("rowHeight", rowHeight.toString());
   }, [rowHeight]);
+
+  useEffect(() => {
+    localStorage.setItem("textSize", textSize.toString());
+  }, [textSize]);
+
+  useEffect(() => {
+    localStorage.setItem("textBold", textBold.toString());
+  }, [textBold]);
 
   const addJob = (job: Omit<Job, "id">) => {
     const newJob = {
@@ -168,5 +186,9 @@ export const useJobStorage = () => {
     updateCompletedJob,
     rowHeight,
     setRowHeight,
+    textSize,
+    setTextSize,
+    textBold,
+    setTextBold,
   };
 };
