@@ -159,35 +159,47 @@ const Index = () => {
                   <PopoverContent className="w-80">
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label>Row Height: {["Compact", "Normal", "Comfortable"][rowHeight]}</Label>
-                        <Slider
-                          value={[rowHeight]}
-                          onValueChange={(value) => setRowHeight(value[0])}
+                        <Label htmlFor="row-height">Row Height (0-2): {["Compact", "Normal", "Comfortable"][rowHeight]}</Label>
+                        <Input
+                          id="row-height"
+                          type="number"
                           min={0}
                           max={2}
-                          step={1}
+                          value={rowHeight}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value);
+                            if (!isNaN(val) && val >= 0 && val <= 2) {
+                              setRowHeight(val);
+                            }
+                          }}
                           className="w-full"
                         />
                         <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>Compact</span>
-                          <span>Normal</span>
-                          <span>Comfortable</span>
+                          <span>0: Compact</span>
+                          <span>1: Normal</span>
+                          <span>2: Comfortable</span>
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label>Text Size: {["Small", "Normal", "Large"][textSize]}</Label>
-                        <Slider
-                          value={[textSize]}
-                          onValueChange={(value) => setTextSize(value[0])}
+                        <Label htmlFor="text-size">Text Size (0-2): {["Small", "Normal", "Large"][textSize]}</Label>
+                        <Input
+                          id="text-size"
+                          type="number"
                           min={0}
                           max={2}
-                          step={1}
+                          value={textSize}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value);
+                            if (!isNaN(val) && val >= 0 && val <= 2) {
+                              setTextSize(val);
+                            }
+                          }}
                           className="w-full"
                         />
                         <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>Small</span>
-                          <span>Normal</span>
-                          <span>Large</span>
+                          <span>0: Small</span>
+                          <span>1: Normal</span>
+                          <span>2: Large</span>
                         </div>
                       </div>
                       <div className="flex items-center justify-between">
