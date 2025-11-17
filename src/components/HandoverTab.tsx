@@ -144,18 +144,17 @@ export const HandoverTab = ({
       </div>
 
       {/* Table */}
-      <div className="border rounded-lg">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[150px]">Date/Time</TableHead>
-                <TableHead className="w-[150px]">Department</TableHead>
-                <TableHead className="min-w-[400px]">Description</TableHead>
-                <TableHead className="w-[150px] text-center">Job Complete</TableHead>
-                <TableHead className="w-[150px] text-center">SAP Complete</TableHead>
-              </TableRow>
-            </TableHeader>
+      <div className="border rounded-lg overflow-hidden">
+        <Table className="table-fixed w-full">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[15%]">Date/Time</TableHead>
+              <TableHead className="w-[12%]">Department</TableHead>
+              <TableHead className="w-[48%]">Description</TableHead>
+              <TableHead className="w-[12.5%] text-center">Job Complete</TableHead>
+              <TableHead className="w-[12.5%] text-center">SAP Complete</TableHead>
+            </TableRow>
+          </TableHeader>
           <TableBody>
             {filteredJobs.length === 0 ? (
               <TableRow>
@@ -222,11 +221,11 @@ export const HandoverTab = ({
                 return (
                   <TableRow key={job.id} className={cn(getStatusColor(job.jobComplete, job.sapComplete))}>
                     <TableCell
-                      className={cn("whitespace-nowrap text-black", cellPadding, textSizeClass, textWeightClass)}
+                      className={cn("whitespace-nowrap text-black overflow-hidden text-ellipsis", cellPadding, textSizeClass, textWeightClass)}
                     >
-                      {format(job.date, "PPP p")}
+                      {format(job.date, "dd/MM/yy HH:mm")}
                     </TableCell>
-                    <TableCell className={cn("text-black", cellPadding, textSizeClass, textWeightClass)}>
+                    <TableCell className={cn("text-black overflow-hidden text-ellipsis", cellPadding, textSizeClass, textWeightClass)}>
                       {job.department}
                     </TableCell>
                     <TableCell className={cn("text-black", cellPadding, textSizeClass, textWeightClass)}>
@@ -244,7 +243,6 @@ export const HandoverTab = ({
             )}
           </TableBody>
         </Table>
-        </div>
       </div>
 
       {/* Legend */}
