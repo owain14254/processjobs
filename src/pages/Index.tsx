@@ -275,7 +275,7 @@ const Index = () => {
 
             <div className="flex gap-2">
               {isAdminMode && <>
-                  <AdminSettingsDialog onSettingsChange={handleSettingsChange} />
+                  <AdminSettingsDialog onSettingsChange={handleSettingsChange} onTestSavePrompt={testBackupReminder} />
                   
                 </>}
               <Button variant={isAdminMode ? "destructive" : "outline"} size="icon" onClick={toggleAdminMode} title={isAdminMode ? "Exit Admin Mode" : "Admin Mode"}>

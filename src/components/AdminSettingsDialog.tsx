@@ -65,12 +65,12 @@ const POPUP_SIZE_OPTIONS = ["Small", "Normal", "Large"];
 
 interface AdminSettingsDialogProps {
   onSettingsChange?: (settings: AdminSettingsData) => void;
+  onTestSavePrompt?: () => void;
 }
 
-export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogProps) {
+export function AdminSettingsDialog({ onSettingsChange, onTestSavePrompt }: AdminSettingsDialogProps) {
   const { toast } = useToast();
   const [settings, setSettings] = useState<AdminSettingsData>(defaultSettings);
-  const [showTestPopup, setShowTestPopup] = useState(false);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -96,8 +96,6 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
       description: "All settings have been reset to defaults."
     });
   };
-
-  const popupSizeClass = ["max-w-md", "max-w-2xl", "max-w-4xl"][settings.expandPopupSize];
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -442,39 +440,16 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
                 </p>
               </div>
 
-              {/* Test Popup */}
+              {/* Test Save Popup */}
               <div className="space-y-1">
-                <Label className="text-[11px] font-semibold">Test Popup</Label>
-                <Button onClick={() => setShowTestPopup(true)} className="w-full h-7 text-xs">
-                  Test Save Prompt Pop Up
+                <Label className="text-[11px] font-semibold">Test Save Popup</Label>
+                <Button onClick={() => onTestSavePrompt?.()} className="w-full h-7 text-xs">
+                  Test save popup
                 </Button>
               </div>
             </CardContent>
           </Card>
         </div>
-
-        {/* Test Popup Dialog */}
-        <Dialog open={showTestPopup} onOpenChange={setShowTestPopup}>
-          <DialogContent className={popupSizeClass}>
-            <DialogHeader>
-              <DialogTitle>Test Popup</DialogTitle>
-              <DialogDescription>
-                This is a test of the expand text popup with size: {POPUP_SIZE_OPTIONS[settings.expandPopupSize]}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <p>
-                This popup demonstrates the current size setting. Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-                Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud 
-                exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-              </p>
-              <p>
-                Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-                Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-              </p>
-            </div>
-          </DialogContent>
-        </Dialog>
       </DialogContent>
     </Dialog>
   );
