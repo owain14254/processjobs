@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Job } from "@/hooks/useJobStorage";
 import { CalendarIcon, Trash2 } from "lucide-react";
 import { format } from "date-fns";
@@ -119,17 +120,16 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1, textSize = 1, t
         </SelectContent>
       </Select>
 
-      <Input
+      <Textarea
         value={job.description}
         onChange={(e) => onUpdate(job.id, { description: e.target.value })}
         placeholder="Job description..."
         className={cn(
           statusColor,
-          "text-black border-2",
+          "text-black border-2 min-h-[2rem] resize-none",
           statusColor === "bg-status-darkGreen" ? "border-status-darkGreen" :
           statusColor === "bg-status-lightGreen" ? "border-status-lightGreen" :
           "border-status-amber",
-          sizeClasses.height,
           textSizeClass,
           textWeightClass
         )}
@@ -137,6 +137,7 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1, textSize = 1, t
           fontSize: textSize === 0 ? '0.75rem' : textSize === 1 ? '0.875rem' : '1rem',
           fontWeight: textBold ? 'bold' : 'normal'
         }}
+        rows={1}
       />
 
       <div className="flex items-center gap-1.5 justify-center">
