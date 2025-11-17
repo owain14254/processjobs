@@ -178,7 +178,7 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1, textSize = 1, t
               <DialogHeader>
                 <DialogTitle className="text-black">Full Description</DialogTitle>
               </DialogHeader>
-              <p className="text-sm text-black break-words whitespace-normal">{job.description}</p>
+              <p className="text-sm text-black break-all whitespace-normal overflow-wrap-anywhere">{job.description}</p>
             </DialogContent>
           </Dialog>
         )}
