@@ -96,361 +96,345 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
           <Settings className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-[95vw] h-[90vh] flex flex-col">
-        <DialogHeader className="flex-shrink-0 pb-2">
-          <DialogTitle className="text-xl">Admin Settings</DialogTitle>
-          <DialogDescription className="text-xs">Configure application settings (changes apply in real-time)</DialogDescription>
+      <DialogContent className="max-w-[90vw] max-h-[95vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0 pb-1 space-y-0">
+          <DialogTitle className="text-base">Admin Settings</DialogTitle>
+          <DialogDescription className="text-[11px]">Configure application settings (changes apply in real-time)</DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="visuals" className="w-full flex-1 flex flex-col overflow-hidden">
-          <TabsList className="grid w-full grid-cols-3 flex-shrink-0 h-9">
-            <TabsTrigger value="visuals" className="text-xs">Visuals</TabsTrigger>
-            <TabsTrigger value="general" className="text-xs">General</TabsTrigger>
-            <TabsTrigger value="save" className="text-xs">Save Settings</TabsTrigger>
-          </TabsList>
-
-          {/* Visuals Tab */}
-          <TabsContent value="visuals" className="grid grid-cols-3 gap-3 mt-2 flex-1 min-h-0">
-            <Card className="h-full overflow-y-auto">
-              <CardHeader className="pb-2 pt-3 px-3">
-                <CardTitle className="text-sm">Row Height</CardTitle>
-                <CardDescription className="text-xs">Configure row height for each tab</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3 px-3 pb-3">
-                <div className="space-y-1">
-                  <Label className="text-xs">Active: {ROW_HEIGHT_OPTIONS[settings.rowHeightActive]}</Label>
-                  <Slider 
-                    value={[settings.rowHeightActive]} 
-                    onValueChange={value => updateSetting("rowHeightActive", value[0])} 
-                    min={0} 
-                    max={4} 
-                    step={1} 
-                    className="py-1"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="text-xs">Completed: {ROW_HEIGHT_OPTIONS[settings.rowHeightCompleted]}</Label>
-                  <Slider 
-                    value={[settings.rowHeightCompleted]} 
-                    onValueChange={value => updateSetting("rowHeightCompleted", value[0])} 
-                    min={0} 
-                    max={4} 
-                    step={1} 
-                    className="py-1"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="text-xs">Handover: {ROW_HEIGHT_OPTIONS[settings.rowHeightHandover]}</Label>
-                  <Slider 
-                    value={[settings.rowHeightHandover]} 
-                    onValueChange={value => updateSetting("rowHeightHandover", value[0])} 
-                    min={0} 
-                    max={4} 
-                    step={1} 
-                    className="py-1"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="h-full overflow-y-auto">
-              <CardHeader className="pb-2 pt-3 px-3">
-                <CardTitle className="text-sm">Text Size</CardTitle>
-                <CardDescription className="text-xs">Configure text size for each tab</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3 px-3 pb-3">
-                <div className="space-y-1">
-                  <Label className="text-xs">Active: {TEXT_SIZE_OPTIONS[settings.textSizeActive]}</Label>
-                  <Slider 
-                    value={[settings.textSizeActive]} 
-                    onValueChange={value => updateSetting("textSizeActive", value[0])} 
-                    min={0} 
-                    max={4} 
-                    step={1} 
-                    className="py-1"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="text-xs">Completed: {TEXT_SIZE_OPTIONS[settings.textSizeCompleted]}</Label>
-                  <Slider 
-                    value={[settings.textSizeCompleted]} 
-                    onValueChange={value => updateSetting("textSizeCompleted", value[0])} 
-                    min={0} 
-                    max={4} 
-                    step={1} 
-                    className="py-1"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="text-xs">Handover: {TEXT_SIZE_OPTIONS[settings.textSizeHandover]}</Label>
-                  <Slider 
-                    value={[settings.textSizeHandover]} 
-                    onValueChange={value => updateSetting("textSizeHandover", value[0])} 
-                    min={0} 
-                    max={4} 
-                    step={1} 
-                    className="py-1"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="space-y-3 h-full overflow-y-auto">
-              <Card>
-                <CardHeader className="pb-2 pt-3 px-3">
-                  <CardTitle className="text-sm">Popup Size</CardTitle>
-                  <CardDescription className="text-xs">Expand text popup size</CardDescription>
-                </CardHeader>
-                <CardContent className="px-3 pb-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Size: {POPUP_SIZE_OPTIONS[settings.expandPopupSize]}</Label>
-                    <Slider 
-                      value={[settings.expandPopupSize]} 
-                      onValueChange={value => updateSetting("expandPopupSize", value[0])} 
-                      min={0} 
-                      max={2} 
-                      step={1} 
-                      className="py-1"
+        <div className="grid grid-cols-2 gap-4 flex-1 min-h-0 overflow-y-auto pr-2">
+          {/* Left Column - General Settings */}
+          <Card className="h-fit">
+            <CardHeader className="pb-2 pt-3 px-3 space-y-0">
+              <CardTitle className="text-sm">General Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="px-3 pb-3 space-y-3">
+              {/* App Identity */}
+              <div className="space-y-1">
+                <Label className="text-[11px] font-semibold">App Identity</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-[10px] text-muted-foreground">App Name</Label>
+                    <Input 
+                      value={settings.appName} 
+                      onChange={e => updateSetting("appName", e.target.value)} 
+                      className="h-7 text-xs mt-0.5" 
                     />
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
-              <Card>
-                <CardHeader className="pb-2 pt-3 px-3">
-                  <CardTitle className="text-sm">Status Colors</CardTitle>
-                  <CardDescription className="text-xs">Row colors for each status</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2 px-3 pb-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Open Job</Label>
-                    <div className="flex gap-2 items-center">
-                      <Input 
-                        type="color" 
-                        value={settings.statusColorAmber} 
-                        onChange={e => updateSetting("statusColorAmber", e.target.value)} 
-                        className="w-12 h-7 p-0" 
-                      />
-                      <Input 
-                        type="text" 
-                        value={settings.statusColorAmber} 
-                        onChange={e => updateSetting("statusColorAmber", e.target.value)} 
-                        placeholder="#FFA500" 
-                        className="text-xs h-7 flex-1" 
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <Label className="text-xs">Awaiting SAP</Label>
-                    <div className="flex gap-2 items-center">
-                      <Input 
-                        type="color" 
-                        value={settings.statusColorLightGreen} 
-                        onChange={e => updateSetting("statusColorLightGreen", e.target.value)} 
-                        className="w-12 h-7 p-0" 
-                      />
-                      <Input 
-                        type="text" 
-                        value={settings.statusColorLightGreen} 
-                        onChange={e => updateSetting("statusColorLightGreen", e.target.value)} 
-                        placeholder="#90EE90" 
-                        className="text-xs h-7 flex-1" 
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <Label className="text-xs">Completed</Label>
-                    <div className="flex gap-2 items-center">
-                      <Input 
-                        type="color" 
-                        value={settings.statusColorDarkGreen} 
-                        onChange={e => updateSetting("statusColorDarkGreen", e.target.value)} 
-                        className="w-12 h-7 p-0" 
-                      />
-                      <Input 
-                        type="text" 
-                        value={settings.statusColorDarkGreen} 
-                        onChange={e => updateSetting("statusColorDarkGreen", e.target.value)} 
-                        placeholder="#006400" 
-                        className="text-xs h-7 flex-1" 
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* General Tab */}
-          <TabsContent value="general" className="grid grid-cols-2 gap-3 mt-2 flex-1 min-h-0">
-            <div className="space-y-3 h-full overflow-y-auto">
-              <Card>
-                <CardHeader className="pb-2 pt-3 px-3">
-                  <CardTitle className="text-sm">App Name</CardTitle>
-                  <CardDescription className="text-xs">Main application title</CardDescription>
-                </CardHeader>
-                <CardContent className="px-3 pb-3">
-                  <Label className="text-xs">App Name</Label>
-                  <Input 
-                    value={settings.appName} 
-                    onChange={e => updateSetting("appName", e.target.value)} 
-                    placeholder="Job Log" 
-                    className="h-8 text-xs mt-1" 
-                  />
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2 pt-3 px-3">
-                  <CardTitle className="text-sm">Tab Names</CardTitle>
-                  <CardDescription className="text-xs">Customize tab names</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2 px-3 pb-3">
+              {/* Tab Names */}
+              <div className="space-y-1">
+                <Label className="text-[11px] font-semibold">Tab Names</Label>
+                <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <Label className="text-xs">Active Jobs Tab</Label>
+                    <Label className="text-[10px] text-muted-foreground">Active Tab</Label>
                     <Input 
                       value={settings.tabNameActive} 
                       onChange={e => updateSetting("tabNameActive", e.target.value)} 
-                      placeholder="Active" 
-                      className="h-8 text-xs mt-1" 
+                      className="h-7 text-xs mt-0.5" 
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Completed Jobs Tab</Label>
+                    <Label className="text-[10px] text-muted-foreground">Completed Tab</Label>
                     <Input 
                       value={settings.tabNameCompleted} 
                       onChange={e => updateSetting("tabNameCompleted", e.target.value)} 
-                      placeholder="Completed" 
-                      className="h-8 text-xs mt-1" 
+                      className="h-7 text-xs mt-0.5" 
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Handover Tab</Label>
+                    <Label className="text-[10px] text-muted-foreground">Handover Tab</Label>
                     <Input 
                       value={settings.tabNameHandover} 
                       onChange={e => updateSetting("tabNameHandover", e.target.value)} 
-                      placeholder="Handover" 
-                      className="h-8 text-xs mt-1" 
+                      className="h-7 text-xs mt-0.5" 
                     />
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              </div>
 
-            <div className="space-y-3 h-full overflow-y-auto">
-              <Card>
-                <CardHeader className="pb-2 pt-3 px-3">
-                  <CardTitle className="text-sm">Departments</CardTitle>
-                  <CardDescription className="text-xs">Department dropdown (comma-separated)</CardDescription>
-                </CardHeader>
-                <CardContent className="px-3 pb-3">
-                  <Label className="text-xs">Department List</Label>
-                  <Textarea 
-                    value={settings.departments} 
-                    onChange={e => updateSetting("departments", e.target.value)} 
-                    placeholder="Process, Fruit, Filling, Warehouse, Services, Other" 
-                    rows={2} 
-                    className="text-xs mt-1" 
-                  />
-                </CardContent>
-              </Card>
+              {/* Tab Display Settings Table */}
+              <div className="space-y-1">
+                <Label className="text-[11px] font-semibold">Tab Display Settings</Label>
+                <div className="border rounded-md overflow-hidden">
+                  <table className="w-full text-[10px]">
+                    <thead className="bg-muted/50">
+                      <tr>
+                        <th className="text-left p-1.5 font-medium">Tab</th>
+                        <th className="text-left p-1.5 font-medium">Text Size</th>
+                        <th className="text-left p-1.5 font-medium">Row Height</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-t">
+                        <td className="p-1.5">Active</td>
+                        <td className="p-1.5">
+                          <div className="space-y-0.5">
+                            <div className="text-[9px] text-muted-foreground">{TEXT_SIZE_OPTIONS[settings.textSizeActive]}</div>
+                            <Slider 
+                              value={[settings.textSizeActive]} 
+                              onValueChange={value => updateSetting("textSizeActive", value[0])} 
+                              min={0} max={4} step={1} 
+                              className="w-full"
+                            />
+                          </div>
+                        </td>
+                        <td className="p-1.5">
+                          <div className="space-y-0.5">
+                            <div className="text-[9px] text-muted-foreground">{ROW_HEIGHT_OPTIONS[settings.rowHeightActive]}</div>
+                            <Slider 
+                              value={[settings.rowHeightActive]} 
+                              onValueChange={value => updateSetting("rowHeightActive", value[0])} 
+                              min={0} max={4} step={1} 
+                              className="w-full"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                      <tr className="border-t">
+                        <td className="p-1.5">Completed</td>
+                        <td className="p-1.5">
+                          <div className="space-y-0.5">
+                            <div className="text-[9px] text-muted-foreground">{TEXT_SIZE_OPTIONS[settings.textSizeCompleted]}</div>
+                            <Slider 
+                              value={[settings.textSizeCompleted]} 
+                              onValueChange={value => updateSetting("textSizeCompleted", value[0])} 
+                              min={0} max={4} step={1} 
+                              className="w-full"
+                            />
+                          </div>
+                        </td>
+                        <td className="p-1.5">
+                          <div className="space-y-0.5">
+                            <div className="text-[9px] text-muted-foreground">{ROW_HEIGHT_OPTIONS[settings.rowHeightCompleted]}</div>
+                            <Slider 
+                              value={[settings.rowHeightCompleted]} 
+                              onValueChange={value => updateSetting("rowHeightCompleted", value[0])} 
+                              min={0} max={4} step={1} 
+                              className="w-full"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                      <tr className="border-t">
+                        <td className="p-1.5">Handover</td>
+                        <td className="p-1.5">
+                          <div className="space-y-0.5">
+                            <div className="text-[9px] text-muted-foreground">{TEXT_SIZE_OPTIONS[settings.textSizeHandover]}</div>
+                            <Slider 
+                              value={[settings.textSizeHandover]} 
+                              onValueChange={value => updateSetting("textSizeHandover", value[0])} 
+                              min={0} max={4} step={1} 
+                              className="w-full"
+                            />
+                          </div>
+                        </td>
+                        <td className="p-1.5">
+                          <div className="space-y-0.5">
+                            <div className="text-[9px] text-muted-foreground">{ROW_HEIGHT_OPTIONS[settings.rowHeightHandover]}</div>
+                            <Slider 
+                              value={[settings.rowHeightHandover]} 
+                              onValueChange={value => updateSetting("rowHeightHandover", value[0])} 
+                              min={0} max={4} step={1} 
+                              className="w-full"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
 
-              <Card>
-                <CardHeader className="pb-2 pt-3 px-3">
-                  <CardTitle className="text-sm">Time Durations</CardTitle>
-                  <CardDescription className="text-xs">Shift and set durations (hours)</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2 px-3 pb-3">
+              {/* Departments */}
+              <div className="space-y-1">
+                <Label className="text-[11px] font-semibold">Departments</Label>
+                <Label className="text-[10px] text-muted-foreground">Comma-separated list</Label>
+                <Textarea 
+                  value={settings.departments} 
+                  onChange={e => updateSetting("departments", e.target.value)} 
+                  rows={2} 
+                  className="text-xs resize-none" 
+                />
+              </div>
+
+              {/* Time Durations */}
+              <div className="space-y-1">
+                <Label className="text-[11px] font-semibold">Time Durations (hours)</Label>
+                <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <Label className="text-xs">Shift Duration (hours)</Label>
+                    <Label className="text-[10px] text-muted-foreground">Shift Duration</Label>
                     <Input 
                       type="number" 
                       value={settings.shiftDuration} 
                       onChange={e => updateSetting("shiftDuration", parseInt(e.target.value) || 12)} 
-                      min={1} 
-                      max={24} 
-                      className="h-8 text-xs mt-1" 
+                      min={1} max={24} 
+                      className="h-7 text-xs mt-0.5" 
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Set Duration (hours)</Label>
+                    <Label className="text-[10px] text-muted-foreground">Set Duration</Label>
                     <Input 
                       type="number" 
                       value={settings.setDuration} 
                       onChange={e => updateSetting("setDuration", parseInt(e.target.value) || 96)} 
-                      min={1} 
-                      max={168} 
-                      className="h-8 text-xs mt-1" 
+                      min={1} max={168} 
+                      className="h-7 text-xs mt-0.5" 
                     />
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
+                </div>
+              </div>
 
-          {/* Save Settings Tab */}
-          <TabsContent value="save" className="grid grid-cols-3 gap-3 mt-2 flex-1 min-h-0">
-            <Card>
-              <CardHeader className="pb-2 pt-3 px-3">
-                <CardTitle className="text-sm">Auto-Save</CardTitle>
-                <CardDescription className="text-xs">Automatic save intervals</CardDescription>
-              </CardHeader>
-              <CardContent className="px-3 pb-3">
-                <Label className="text-xs">Auto-Save Interval (minutes)</Label>
+              {/* Status Colors Table */}
+              <div className="space-y-1">
+                <Label className="text-[11px] font-semibold">Status Colors</Label>
+                <div className="border rounded-md overflow-hidden">
+                  <table className="w-full text-[10px]">
+                    <thead className="bg-muted/50">
+                      <tr>
+                        <th className="text-left p-1.5 font-medium">Status</th>
+                        <th className="text-left p-1.5 font-medium">Color</th>
+                        <th className="text-left p-1.5 font-medium w-16">Preview</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-t">
+                        <td className="p-1.5">Open Job</td>
+                        <td className="p-1.5">
+                          <div className="flex gap-1.5 items-center">
+                            <Input 
+                              type="color" 
+                              value={settings.statusColorAmber} 
+                              onChange={e => updateSetting("statusColorAmber", e.target.value)} 
+                              className="w-8 h-6 p-0" 
+                            />
+                            <Input 
+                              type="text" 
+                              value={settings.statusColorAmber} 
+                              onChange={e => updateSetting("statusColorAmber", e.target.value)} 
+                              className="text-[10px] h-6 flex-1" 
+                            />
+                          </div>
+                        </td>
+                        <td className="p-1.5">
+                          <div className="h-6 rounded" style={{ backgroundColor: settings.statusColorAmber }} />
+                        </td>
+                      </tr>
+                      <tr className="border-t">
+                        <td className="p-1.5">Awaiting SAP</td>
+                        <td className="p-1.5">
+                          <div className="flex gap-1.5 items-center">
+                            <Input 
+                              type="color" 
+                              value={settings.statusColorLightGreen} 
+                              onChange={e => updateSetting("statusColorLightGreen", e.target.value)} 
+                              className="w-8 h-6 p-0" 
+                            />
+                            <Input 
+                              type="text" 
+                              value={settings.statusColorLightGreen} 
+                              onChange={e => updateSetting("statusColorLightGreen", e.target.value)} 
+                              className="text-[10px] h-6 flex-1" 
+                            />
+                          </div>
+                        </td>
+                        <td className="p-1.5">
+                          <div className="h-6 rounded" style={{ backgroundColor: settings.statusColorLightGreen }} />
+                        </td>
+                      </tr>
+                      <tr className="border-t">
+                        <td className="p-1.5">Completed</td>
+                        <td className="p-1.5">
+                          <div className="flex gap-1.5 items-center">
+                            <Input 
+                              type="color" 
+                              value={settings.statusColorDarkGreen} 
+                              onChange={e => updateSetting("statusColorDarkGreen", e.target.value)} 
+                              className="w-8 h-6 p-0" 
+                            />
+                            <Input 
+                              type="text" 
+                              value={settings.statusColorDarkGreen} 
+                              onChange={e => updateSetting("statusColorDarkGreen", e.target.value)} 
+                              className="text-[10px] h-6 flex-1" 
+                            />
+                          </div>
+                        </td>
+                        <td className="p-1.5">
+                          <div className="h-6 rounded" style={{ backgroundColor: settings.statusColorDarkGreen }} />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Popup Size */}
+              <div className="space-y-1">
+                <Label className="text-[11px] font-semibold">Expand Text Popup Size</Label>
+                <div className="flex items-center gap-2">
+                  <Slider 
+                    value={[settings.expandPopupSize]} 
+                    onValueChange={value => updateSetting("expandPopupSize", value[0])} 
+                    min={0} max={2} step={1} 
+                    className="flex-1"
+                  />
+                  <span className="text-[10px] text-muted-foreground w-24">{POPUP_SIZE_OPTIONS[settings.expandPopupSize]}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Right Column - Save Settings */}
+          <Card className="h-fit">
+            <CardHeader className="pb-2 pt-3 px-3 space-y-0">
+              <CardTitle className="text-sm">Save Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="px-3 pb-3 space-y-3">
+              {/* Auto-Save */}
+              <div className="space-y-1">
+                <Label className="text-[11px] font-semibold">Auto-Save</Label>
+                <Label className="text-[10px] text-muted-foreground">Interval (minutes)</Label>
                 <Input 
                   type="number" 
                   value={settings.autoSaveInterval} 
                   onChange={e => updateSetting("autoSaveInterval", parseInt(e.target.value) || 5)} 
-                  min={1} 
-                  max={60} 
-                  className="h-8 text-xs mt-1" 
+                  min={1} max={60} 
+                  className="h-7 text-xs mt-0.5" 
                 />
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-[10px] text-muted-foreground">
                   Auto-saves every {settings.autoSaveInterval} min
                 </p>
-              </CardContent>
-            </Card>
+              </div>
 
-            <Card>
-              <CardHeader className="pb-2 pt-3 px-3">
-                <CardTitle className="text-sm">Backup Reminder</CardTitle>
-                <CardDescription className="text-xs">Backup reminder frequency</CardDescription>
-              </CardHeader>
-              <CardContent className="px-3 pb-3">
-                <Label className="text-xs">Backup Reminder Interval (hours)</Label>
+              {/* Backup Reminder */}
+              <div className="space-y-1">
+                <Label className="text-[11px] font-semibold">Backup Reminder</Label>
+                <Label className="text-[10px] text-muted-foreground">Interval (hours)</Label>
                 <Input 
                   type="number" 
                   value={settings.backupReminderInterval} 
                   onChange={e => updateSetting("backupReminderInterval", parseInt(e.target.value) || 24)} 
-                  min={1} 
-                  max={168} 
-                  className="h-8 text-xs mt-1" 
+                  min={1} max={168} 
+                  className="h-7 text-xs mt-0.5" 
                 />
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-[10px] text-muted-foreground">
                   Reminder every {settings.backupReminderInterval} hrs
                 </p>
-              </CardContent>
-            </Card>
+              </div>
 
-            <Card>
-              <CardHeader className="pb-2 pt-3 px-3">
-                <CardTitle className="text-sm">Test Popup</CardTitle>
-                <CardDescription className="text-xs">Test expand text popup</CardDescription>
-              </CardHeader>
-              <CardContent className="px-3 pb-3">
-                <Button onClick={() => setShowTestPopup(true)} className="w-full h-8 text-xs">
+              {/* Test Popup */}
+              <div className="space-y-1">
+                <Label className="text-[11px] font-semibold">Test Popup</Label>
+                <Button onClick={() => setShowTestPopup(true)} className="w-full h-7 text-xs">
                   Test Popup Size
                 </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Test Popup Dialog */}
         <Dialog open={showTestPopup} onOpenChange={setShowTestPopup}>
