@@ -198,19 +198,19 @@ export const CompletedJobsLog = ({ jobs, isAdminMode = false, onDelete, onUpdate
               </TableRow>
             ) : (
               filteredJobs.map((job) => (
-                <TableRow key={job.id}>
-                  <TableCell className="whitespace-nowrap">{format(job.date, "dd/MM/yyyy")}</TableCell>
-                  <TableCell className="whitespace-nowrap">{job.department}</TableCell>
-                  <TableCell className="max-w-0 truncate">{job.description}</TableCell>
-                  <TableCell className="whitespace-nowrap">{format(job.completedAt, "dd/MM/yyyy")}</TableCell>
+                <TableRow key={job.id} className="h-7">
+                  <TableCell className="whitespace-nowrap py-1">{format(job.date, "dd/MM/yyyy")}</TableCell>
+                  <TableCell className="whitespace-nowrap py-1">{job.department}</TableCell>
+                  <TableCell className="max-w-0 truncate py-1">{job.description}</TableCell>
+                  <TableCell className="whitespace-nowrap py-1">{format(job.completedAt, "dd/MM/yyyy")}</TableCell>
                   {isAdminMode && (
-                    <TableCell>
+                    <TableCell className="py-1">
                       <div className="flex gap-1">
-                        <Button size="icon" variant="ghost" onClick={() => handleEdit(job)}>
-                          <Pencil className="h-4 w-4" />
+                        <Button size="icon" variant="ghost" onClick={() => handleEdit(job)} className="h-6 w-6">
+                          <Pencil className="h-3 w-3" />
                         </Button>
-                        <Button size="icon" variant="ghost" onClick={() => setDeleteJobId(job.id)}>
-                          <Trash2 className="h-4 w-4" />
+                        <Button size="icon" variant="ghost" onClick={() => setDeleteJobId(job.id)} className="h-6 w-6">
+                          <Trash2 className="h-3 w-3" />
                         </Button>
                       </div>
                     </TableCell>
