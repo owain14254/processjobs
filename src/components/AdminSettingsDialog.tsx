@@ -19,7 +19,9 @@ interface AdminSettingsData {
   textSizeActive: number;
   textSizeCompleted: number;
   textSizeHandover: number;
-  textBold: boolean;
+  textBoldActive: boolean;
+  textBoldCompleted: boolean;
+  textBoldHandover: boolean;
   expandPopupSize: number;
   statusColorAmber: string;
   statusColorLightGreen: string;
@@ -46,7 +48,9 @@ const defaultSettings: AdminSettingsData = {
   textSizeActive: 2,
   textSizeCompleted: 2,
   textSizeHandover: 2,
-  textBold: false,
+  textBoldActive: false,
+  textBoldCompleted: false,
+  textBoldHandover: false,
   expandPopupSize: 1,
   statusColorAmber: "#FFA500",
   statusColorLightGreen: "#90EE90",
@@ -183,6 +187,7 @@ export function AdminSettingsDialog({ onSettingsChange, onTestSavePrompt }: Admi
                         <th className="text-left p-1.5 font-medium">Tab</th>
                         <th className="text-left p-1.5 font-medium">Text Size</th>
                         <th className="text-left p-1.5 font-medium">Row Height</th>
+                        <th className="text-left p-1.5 font-medium">Bold</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -210,6 +215,12 @@ export function AdminSettingsDialog({ onSettingsChange, onTestSavePrompt }: Admi
                             />
                           </div>
                         </td>
+                        <td className="p-1.5">
+                          <Switch 
+                            checked={settings.textBoldActive} 
+                            onCheckedChange={(checked) => updateSetting("textBoldActive", checked)}
+                          />
+                        </td>
                       </tr>
                       <tr className="border-t">
                         <td className="p-1.5">Completed</td>
@@ -234,6 +245,12 @@ export function AdminSettingsDialog({ onSettingsChange, onTestSavePrompt }: Admi
                               className="w-full"
                             />
                           </div>
+                        </td>
+                        <td className="p-1.5">
+                          <Switch 
+                            checked={settings.textBoldCompleted} 
+                            onCheckedChange={(checked) => updateSetting("textBoldCompleted", checked)}
+                          />
                         </td>
                       </tr>
                       <tr className="border-t">
@@ -260,24 +277,15 @@ export function AdminSettingsDialog({ onSettingsChange, onTestSavePrompt }: Admi
                             />
                           </div>
                         </td>
+                        <td className="p-1.5">
+                          <Switch 
+                            checked={settings.textBoldHandover} 
+                            onCheckedChange={(checked) => updateSetting("textBoldHandover", checked)}
+                          />
+                        </td>
                       </tr>
                     </tbody>
                   </table>
-                </div>
-              </div>
-
-              {/* Text Bold Toggle */}
-              <div className="space-y-1">
-                <Label className="text-[11px] font-semibold">Text Style</Label>
-                <div className="flex items-center space-x-2">
-                  <Switch 
-                    id="text-bold" 
-                    checked={settings.textBold} 
-                    onCheckedChange={(checked) => updateSetting("textBold", checked)}
-                  />
-                  <Label htmlFor="text-bold" className="text-[10px] text-muted-foreground cursor-pointer">
-                    Bold text
-                  </Label>
                 </div>
               </div>
 
