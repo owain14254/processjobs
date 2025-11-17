@@ -21,12 +21,12 @@ export const useJobStorage = () => {
   const [completedJobs, setCompletedJobs] = useState<CompletedJob[]>([]);
   const [rowHeight, setRowHeight] = useState<number>(() => {
     const saved = localStorage.getItem("rowHeight");
-    return saved ? parseInt(saved) : 1; // 0=compact, 1=normal, 2=comfortable
+    return saved ? parseInt(saved) : 2; // 0=extra compact, 1=compact, 2=normal, 3=comfortable, 4=extra comfortable
   });
 
   const [textSize, setTextSize] = useState<number>(() => {
     const saved = localStorage.getItem("textSize");
-    return saved ? parseInt(saved) : 1; // 0=small, 1=normal, 2=large
+    return saved ? parseInt(saved) : 2; // 0=extra small, 1=small, 2=normal, 3=large, 4=extra large
   });
 
   const [textBold, setTextBold] = useState<boolean>(() => {

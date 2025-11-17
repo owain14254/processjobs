@@ -1,12 +1,14 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Job, CompletedJob } from "@/hooks/useJobStorage";
 import { format, subHours } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Expand } from "lucide-react";
 
 interface HandoverTabProps {
   activeJobs: Job[];
@@ -37,9 +39,9 @@ export const HandoverTab = ({
   const [departmentFilter, setDepartmentFilter] = useState("All");
   const [showOutstandingOnly, setShowOutstandingOnly] = useState(false);
 
-  const textSizeClass = ["text-xs", "text-sm", "text-base"][textSize];
+  const textSizeClass = ["text-xs", "text-sm", "text-base", "text-lg", "text-xl"][textSize];
   const textWeightClass = textBold ? "font-bold" : "font-normal";
-  const cellPadding = ["py-1 px-2", "py-2 px-4", "py-3 px-4"][rowHeight];
+  const cellPadding = ["py-0.5 px-1", "py-1 px-2", "py-2 px-4", "py-3 px-4", "py-4 px-6"][rowHeight];
 
   const allJobs = useMemo(() => {
     // Combine active and completed jobs
@@ -142,15 +144,15 @@ export const HandoverTab = ({
       </div>
 
       {/* Jobs Table */}
-      <div className="rounded-lg border overflow-hidden">
+      <div className="rounded-lg border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Department</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead className="text-center">Job Complete</TableHead>
-              <TableHead className="text-center">SAP Complete</TableHead>
+              <TableHead className="w-[180px] min-w-[180px]">Date</TableHead>
+              <TableHead className="w-[140px] min-w-[140px]">Department</TableHead>
+              <TableHead className="min-w-[300px]">Description</TableHead>
+              <TableHead className="text-center w-[120px] min-w-[120px]">Job Complete</TableHead>
+              <TableHead className="text-center w-[120px] min-w-[120px]">SAP Complete</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -161,27 +163,83 @@ export const HandoverTab = ({
                 </TableCell>
               </TableRow>
             ) : (
-              filteredJobs.map((job) => (
-                <TableRow key={job.id} className={cn(getStatusColor(job.jobComplete, job.sapComplete))}>
-                  <TableCell
-                    className={cn("whitespace-nowrap text-black", cellPadding, textSizeClass, textWeightClass)}
-                  >
-                    {format(job.date, "PPP p")}
-                  </TableCell>
-                  <TableCell className={cn("text-black", cellPadding, textSizeClass, textWeightClass)}>
-                    {job.department}
-                  </TableCell>
-                  <TableCell className={cn("text-black", cellPadding, textSizeClass, textWeightClass)}>
-                    {job.description}
-                  </TableCell>
-                  <TableCell className={cn("text-center text-black", cellPadding, textSizeClass, textWeightClass)}>
-                    {job.jobComplete ? "✓" : "—"}
-                  </TableCell>
-                  <TableCell className={cn("text-center text-black", cellPadding, textSizeClass, textWeightClass)}>
-                    {job.sapComplete ? "✓" : "—"}
-                  </TableCell>
-                </TableRow>
-              ))
+              filteredJobs.map((job) => {
+                const DescriptionCell = () => {
+                  const [isOverflowing, setIsOverflowing] = useState(false);
+                  const [showDialog, setShowDialog] = useState(false);
+                  const cellRef = useRef<HTMLDivElement>(null);
+
+                  useEffect(() => {
+                    const checkOverflow = () => {
+                      if (cellRef.current) {
+                        const isOverflow = cellRef.current.scrollWidth > cellRef.current.clientWidth;
+                        setIsOverflowing(isOverflow);
+                      }
+                    };
+                    checkOverflow();
+                    window.addEventListener("resize", checkOverflow);
+                    return () => window.removeEventListener("resize", checkOverflow);
+                  }, [job.description]);
+
+                  const statusColor = getStatusColor(job.jobComplete, job.sapComplete);
+                  const popupSizeClass = ["max-w-lg", "max-w-2xl", "max-w-4xl"][1];
+
+                  return (
+                    <>
+                      <div className="relative flex items-center gap-2">
+                        <div
+                          ref={cellRef}
+                          className="overflow-hidden whitespace-nowrap text-ellipsis flex-1"
+                        >
+                          {job.description}
+                        </div>
+                        {isOverflowing && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 flex-shrink-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+                            onClick={() => setShowDialog(true)}
+                          >
+                            <Expand className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+                        <DialogContent className={cn(popupSizeClass, statusColor)}>
+                          <DialogHeader>
+                            <DialogTitle className="text-black">Full Description</DialogTitle>
+                          </DialogHeader>
+                          <p className="text-sm text-black break-all whitespace-normal overflow-wrap-anywhere">
+                            {job.description}
+                          </p>
+                        </DialogContent>
+                      </Dialog>
+                    </>
+                  );
+                };
+
+                return (
+                  <TableRow key={job.id} className={cn(getStatusColor(job.jobComplete, job.sapComplete))}>
+                    <TableCell
+                      className={cn("whitespace-nowrap text-black", cellPadding, textSizeClass, textWeightClass)}
+                    >
+                      {format(job.date, "PPP p")}
+                    </TableCell>
+                    <TableCell className={cn("text-black", cellPadding, textSizeClass, textWeightClass)}>
+                      {job.department}
+                    </TableCell>
+                    <TableCell className={cn("text-black", cellPadding, textSizeClass, textWeightClass)}>
+                      <DescriptionCell />
+                    </TableCell>
+                    <TableCell className={cn("text-center text-black", cellPadding, textSizeClass, textWeightClass)}>
+                      {job.jobComplete ? "✓" : "—"}
+                    </TableCell>
+                    <TableCell className={cn("text-center text-black", cellPadding, textSizeClass, textWeightClass)}>
+                      {job.sapComplete ? "✓" : "—"}
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>

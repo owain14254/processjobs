@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { KeyRound } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -18,8 +19,10 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import mullerLogo from "@/assets/muller-logo.png";
+import { formatDistanceToNow } from "date-fns";
 
 const Index = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("active");
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
@@ -27,6 +30,7 @@ const Index = () => {
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
   const [showBackupReminder, setShowBackupReminder] = useState(false);
+  const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -68,6 +72,9 @@ const Index = () => {
 
   const handleExport = () => {
     exportData();
+    const now = new Date();
+    setLastSaveTime(now);
+    localStorage.setItem("lastSaveTime", now.toISOString());
     toast({
       title: "Backup created",
       description: "Job data exported successfully. Save the file to your USB stick.",
@@ -178,6 +185,13 @@ const Index = () => {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const savedLastSave = localStorage.getItem("lastSaveTime");
+    if (savedLastSave) {
+      setLastSaveTime(new Date(savedLastSave));
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-background p-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -200,44 +214,57 @@ const Index = () => {
 
             <div className="flex gap-2">
               {isAdminMode && (
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" size="icon" title="Admin Settings">
-                      <Settings className="h-4 w-4" />
-                    </Button>
-                  </PopoverTrigger>
+                <>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => navigate("/admin-settings")}
+                    title="Admin Settings"
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="icon" title="Quick Settings">
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    </PopoverTrigger>
                   <PopoverContent className="w-80">
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label>Row Height: {["Compact", "Normal", "Comfortable"][rowHeight]}</Label>
+                        <Label>Row Height: {["Extra Compact", "Compact", "Normal", "Comfortable", "Extra Comfortable"][rowHeight]}</Label>
                         <Slider
                           value={[rowHeight]}
                           onValueChange={(value) => setRowHeight(value[0])}
                           min={0}
-                          max={2}
+                          max={4}
                           step={1}
                           className="w-full"
                         />
                         <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>Compact</span>
-                          <span>Normal</span>
-                          <span>Comfortable</span>
+                          <span>XS</span>
+                          <span>S</span>
+                          <span>M</span>
+                          <span>L</span>
+                          <span>XL</span>
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label>Text Size: {["Small", "Normal", "Large"][textSize]}</Label>
+                        <Label>Text Size: {["Extra Small", "Small", "Normal", "Large", "Extra Large"][textSize]}</Label>
                         <Slider
                           value={[textSize]}
                           onValueChange={(value) => setTextSize(value[0])}
                           min={0}
-                          max={2}
+                          max={4}
                           step={1}
                           className="w-full"
                         />
                         <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>Small</span>
-                          <span>Normal</span>
-                          <span>Large</span>
+                          <span>XS</span>
+                          <span>S</span>
+                          <span>M</span>
+                          <span>L</span>
+                          <span>XL</span>
                         </div>
                       </div>
                       <div className="flex items-center justify-between">
@@ -257,6 +284,7 @@ const Index = () => {
                     </div>
                   </PopoverContent>
                 </Popover>
+                </>
               )}
               <Button
                 variant={isAdminMode ? "destructive" : "outline"}
@@ -412,6 +440,11 @@ const Index = () => {
           <DialogContent className="sm:max-w-md fixed bottom-4 right-4 top-auto left-auto translate-x-0 translate-y-0">
             <DialogHeader>
               <DialogTitle>Please backup the log</DialogTitle>
+              {lastSaveTime && (
+                <p className="text-sm text-muted-foreground">
+                  Last save: {formatDistanceToNow(lastSaveTime, { addSuffix: true })}
+                </p>
+              )}
             </DialogHeader>
             <div className="flex flex-col gap-3 pt-4">
               <Button 
