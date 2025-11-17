@@ -67,6 +67,10 @@ export const CompletedJobsLog = ({
   const [editDate, setEditDate] = useState<Date | undefined>(undefined);
   const [editDepartment, setEditDepartment] = useState("");
   const [deleteJobId, setDeleteJobId] = useState<string | null>(null);
+  
+  const textSizeClass = ["text-xs", "text-sm", "text-base", "text-lg", "text-xl"][textSize];
+  const textWeightClass = textBold ? "font-bold" : "font-normal";
+  
   const filteredJobs = useMemo(() => {
     return jobs.filter((job) => {
       // Wildcard search support: * matches any characters
@@ -220,10 +224,10 @@ export const CompletedJobsLog = ({
             ) : (
               filteredJobs.map((job) => (
                 <TableRow key={job.id} className="h-7">
-                  <TableCell className="whitespace-nowrap py-1">{format(job.date, "dd/MM/yyyy")}</TableCell>
-                  <TableCell className="whitespace-nowrap py-1">{job.department}</TableCell>
-                  <TableCell className="max-w-0 truncate py-1">{job.description}</TableCell>
-                  <TableCell className="whitespace-nowrap py-1">{format(job.completedAt, "dd/MM/yyyy")}</TableCell>
+                  <TableCell className={cn("whitespace-nowrap py-1", textSizeClass, textWeightClass)}>{format(job.date, "dd/MM/yyyy")}</TableCell>
+                  <TableCell className={cn("whitespace-nowrap py-1", textSizeClass, textWeightClass)}>{job.department}</TableCell>
+                  <TableCell className={cn("max-w-0 truncate py-1", textSizeClass, textWeightClass)}>{job.description}</TableCell>
+                  <TableCell className={cn("whitespace-nowrap py-1", textSizeClass, textWeightClass)}>{format(job.completedAt, "dd/MM/yyyy")}</TableCell>
                   {isAdminMode && (
                     <TableCell className="py-1">
                       <div className="flex gap-1">
