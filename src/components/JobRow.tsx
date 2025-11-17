@@ -183,7 +183,7 @@ export const JobRow = ({
                 <Expand className="h-3.5 w-3.5 text-red-600" />
               </Button>
             </DialogTrigger>
-            <DialogContent className={cn("max-w-2xl", statusColor)}>
+            <DialogContent className={popupSizeClass} style={{ backgroundColor: statusColor }}>
               <DialogHeader>
                 <DialogTitle className="text-black">Full Description</DialogTitle>
               </DialogHeader>
