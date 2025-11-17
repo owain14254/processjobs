@@ -27,6 +27,14 @@ const Index = () => {
   const [showBackupReminder, setShowBackupReminder] = useState(false);
   const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Admin settings state
+  const [adminSettings, setAdminSettings] = useState({
+    tabNameActive: "Active",
+    tabNameCompleted: "Completed",
+    tabNameHandover: "Handover",
+    appName: "Process Tracker"
+  });
   const {
     activeJobs,
     completedJobs,
@@ -164,7 +172,41 @@ const Index = () => {
     if (savedLastSave) {
       setLastSaveTime(new Date(savedLastSave));
     }
+    
+    // Load admin settings
+    const savedSettings = localStorage.getItem("adminSettings");
+    if (savedSettings) {
+      try {
+        const parsed = JSON.parse(savedSettings);
+        setAdminSettings({
+          tabNameActive: parsed.tabNameActive || "Active",
+          tabNameCompleted: parsed.tabNameCompleted || "Completed",
+          tabNameHandover: parsed.tabNameHandover || "Handover",
+          appName: parsed.appName || "Process Tracker"
+        });
+      } catch (e) {
+        console.error("Failed to parse admin settings", e);
+      }
+    }
   }, []);
+  
+  const handleSettingsChange = () => {
+    // Reload settings when they change
+    const savedSettings = localStorage.getItem("adminSettings");
+    if (savedSettings) {
+      try {
+        const parsed = JSON.parse(savedSettings);
+        setAdminSettings({
+          tabNameActive: parsed.tabNameActive || "Active",
+          tabNameCompleted: parsed.tabNameCompleted || "Completed",
+          tabNameHandover: parsed.tabNameHandover || "Handover",
+          appName: parsed.appName || "Process Tracker"
+        });
+      } catch (e) {
+        console.error("Failed to parse admin settings", e);
+      }
+    }
+  };
   return <div className="min-h-screen bg-background p-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="max-w-[1600px] mx-auto space-y-6">
@@ -174,19 +216,19 @@ const Index = () => {
               <img src={mullerLogo} alt="Müller" className="h-12" />
               <div>
                 <h1 className="text-3xl font-bold">Job Log</h1>
-                <p className="text-muted-foreground">Process Tracker</p>
+                <p className="text-muted-foreground">{adminSettings.appName}</p>
               </div>
             </div>
 
             <TabsList className="grid w-full max-w-[500px] grid-cols-3">
-              <TabsTrigger value="active">Active ({activeJobs.length})</TabsTrigger>
-              <TabsTrigger value="completed">Completed ({completedJobs.length})</TabsTrigger>
-              <TabsTrigger value="handover">Handover</TabsTrigger>
+              <TabsTrigger value="active">{adminSettings.tabNameActive} ({activeJobs.length})</TabsTrigger>
+              <TabsTrigger value="completed">{adminSettings.tabNameCompleted} ({completedJobs.length})</TabsTrigger>
+              <TabsTrigger value="handover">{adminSettings.tabNameHandover}</TabsTrigger>
             </TabsList>
 
             <div className="flex gap-2">
               {isAdminMode && <>
-                  <AdminSettingsDialog />
+                  <AdminSettingsDialog onSettingsChange={handleSettingsChange} />
                   
                 </>}
               <Button variant={isAdminMode ? "destructive" : "outline"} size="icon" onClick={toggleAdminMode} title={isAdminMode ? "Exit Admin Mode" : "Admin Mode"}>
