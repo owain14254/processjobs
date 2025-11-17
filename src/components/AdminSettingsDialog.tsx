@@ -446,7 +446,7 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
               <div className="space-y-1">
                 <Label className="text-[11px] font-semibold">Test Popup</Label>
                 <Button onClick={() => setShowTestPopup(true)} className="w-full h-7 text-xs">
-                  Test Save Pop Up
+                  Test Save Prompt Pop Up
                 </Button>
               </div>
             </CardContent>
