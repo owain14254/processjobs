@@ -16,16 +16,20 @@ interface HandoverTabProps {
   textSize?: number;
   textBold?: boolean;
   rowHeight?: number;
+  statusColorAmber?: string;
+  statusColorLightGreen?: string;
+  statusColorDarkGreen?: string;
+  expandPopupSize?: number;
 }
 
 type HandoverMode = "shift" | "set";
 
 const DEPARTMENTS = ["All", "Process", "Fruit", "Filling", "Warehouse", "Services", "Other"];
 
-const getStatusColor = (jobComplete: boolean, sapComplete: boolean) => {
-  if (jobComplete && sapComplete) return "bg-status-darkGreen";
-  if (jobComplete && !sapComplete) return "bg-status-lightGreen";
-  return "bg-status-amber";
+const getStatusColor = (jobComplete: boolean, sapComplete: boolean, colorAmber?: string, colorLightGreen?: string, colorDarkGreen?: string) => {
+  if (jobComplete && sapComplete) return colorDarkGreen || "bg-status-darkGreen";
+  if (jobComplete && !sapComplete) return colorLightGreen || "bg-status-lightGreen";
+  return colorAmber || "bg-status-amber";
 };
 
 export const HandoverTab = ({
@@ -34,6 +38,10 @@ export const HandoverTab = ({
   textSize = 1,
   textBold = false,
   rowHeight = 1,
+  statusColorAmber,
+  statusColorLightGreen,
+  statusColorDarkGreen,
+  expandPopupSize = 1
 }: HandoverTabProps) => {
   const [mode, setMode] = useState<HandoverMode>("shift");
   const [departmentFilter, setDepartmentFilter] = useState("All");
@@ -181,8 +189,8 @@ export const HandoverTab = ({
                     return () => window.removeEventListener("resize", checkOverflow);
                   }, [job.description]);
 
-                  const statusColor = getStatusColor(job.jobComplete, job.sapComplete);
-                  const popupSizeClass = ["max-w-lg", "max-w-2xl", "max-w-4xl"][1];
+                  const statusColor = getStatusColor(job.jobComplete, job.sapComplete, statusColorAmber, statusColorLightGreen, statusColorDarkGreen);
+                  const popupSizeClass = ["max-w-lg", "max-w-2xl", "max-w-4xl", "max-w-6xl", "max-w-7xl"][expandPopupSize];
 
                   return (
                     <>
@@ -219,7 +227,7 @@ export const HandoverTab = ({
                 };
 
                 return (
-                  <TableRow key={job.id} className={cn(getStatusColor(job.jobComplete, job.sapComplete))}>
+                  <TableRow key={job.id} className={cn(getStatusColor(job.jobComplete, job.sapComplete, statusColorAmber, statusColorLightGreen, statusColorDarkGreen))}>
                     <TableCell
                       className={cn("whitespace-nowrap text-black overflow-hidden text-ellipsis", cellPadding, textSizeClass, textWeightClass)}
                     >
