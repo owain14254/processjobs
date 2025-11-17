@@ -360,6 +360,7 @@ const Index = () => {
               setDuration={adminSettings.setDuration} 
               rowHeight={adminSettings.rowHeightHandover} 
               textSize={adminSettings.textSizeHandover} 
+              textBold={adminSettings.textBoldHandover}
               statusColors={{
                 amber: adminSettings.statusColorAmber,
                 lightGreen: adminSettings.statusColorLightGreen,
