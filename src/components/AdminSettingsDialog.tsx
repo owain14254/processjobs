@@ -110,8 +110,8 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
           </TabsList>
 
           {/* Visuals Tab */}
-          <TabsContent value="visuals" className="grid grid-cols-3 gap-4 mt-4 flex-1 overflow-y-auto">
-            <Card className="h-fit">
+          <TabsContent value="visuals" className="grid grid-cols-3 gap-4 mt-4 flex-1 min-h-0">
+            <Card className="h-full overflow-y-auto">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">Row Height Settings</CardTitle>
                 <CardDescription className="text-xs">Configure row height for each tab</CardDescription>
@@ -152,7 +152,7 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
               </CardContent>
             </Card>
 
-            <Card className="h-fit">
+            <Card className="h-full overflow-y-auto">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">Text Size Settings</CardTitle>
                 <CardDescription className="text-xs">Configure text size for each tab</CardDescription>
@@ -193,7 +193,7 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
               </CardContent>
             </Card>
 
-            <div className="space-y-4">
+            <div className="space-y-4 h-full overflow-y-auto">
               <Card className="h-fit">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base">Popup Settings</CardTitle>
@@ -281,8 +281,8 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
           </TabsContent>
 
           {/* General Tab */}
-          <TabsContent value="general" className="grid grid-cols-2 gap-4 mt-4 flex-1 overflow-y-auto">
-            <div className="space-y-4">
+          <TabsContent value="general" className="grid grid-cols-2 gap-4 mt-4 flex-1 min-h-0">
+            <div className="space-y-4 h-full overflow-y-auto">
               <Card className="h-fit">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base">Application Name</CardTitle>
@@ -336,7 +336,7 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
               </Card>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 h-full overflow-y-auto">
               <Card className="h-fit">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base">Departments</CardTitle>
@@ -388,7 +388,7 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
           </TabsContent>
 
           {/* Save Settings Tab */}
-          <TabsContent value="save" className="grid grid-cols-3 gap-4 mt-4 flex-1 overflow-y-auto">
+          <TabsContent value="save" className="grid grid-cols-3 gap-4 mt-4 flex-1 min-h-0">
             <Card className="h-fit">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">Auto-Save Settings</CardTitle>
