@@ -34,10 +34,6 @@ interface JobRowProps {
   rowHeight?: number;
   textSize?: number;
   textBold?: boolean;
-  statusColorAmber?: string;
-  statusColorLightGreen?: string;
-  statusColorDarkGreen?: string;
-  expandPopupSize?: number;
 }
 
 const DEPARTMENTS = [
@@ -49,24 +45,13 @@ const DEPARTMENTS = [
   "Other",
 ];
 
-const getStatusColor = (jobComplete: boolean, sapComplete: boolean, colorAmber?: string, colorLightGreen?: string, colorDarkGreen?: string) => {
-  if (jobComplete && sapComplete) return colorDarkGreen || "bg-status-darkGreen";
-  if (jobComplete && !sapComplete) return colorLightGreen || "bg-status-lightGreen";
-  return colorAmber || "bg-status-amber";
+const getStatusColor = (jobComplete: boolean, sapComplete: boolean) => {
+  if (jobComplete && sapComplete) return "bg-status-darkGreen";
+  if (jobComplete && !sapComplete) return "bg-status-lightGreen";
+  return "bg-status-amber";
 };
 
-export const JobRow = ({ 
-  job, 
-  onUpdate, 
-  onDelete, 
-  rowHeight = 1, 
-  textSize = 2, 
-  textBold = false,
-  statusColorAmber,
-  statusColorLightGreen,
-  statusColorDarkGreen,
-  expandPopupSize = 1
-}: JobRowProps) => {
+export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 2, textSize = 2, textBold = false }: JobRowProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isOverflowing, setIsOverflowing] = useState(false);
 
@@ -80,7 +65,7 @@ export const JobRow = ({
   const textSizeClass = ["text-xs", "text-sm", "text-base", "text-lg", "text-xl"][textSize];
   const textWeightClass = textBold ? "font-bold" : "font-normal";
   
-  const statusColor = getStatusColor(job.jobComplete, job.sapComplete, statusColorAmber, statusColorLightGreen, statusColorDarkGreen);
+  const statusColor = getStatusColor(job.jobComplete, job.sapComplete);
 
   useEffect(() => {
     const checkOverflow = () => {

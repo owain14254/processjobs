@@ -16,51 +16,6 @@ import { Archive, Download, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import mullerLogo from "@/assets/muller-logo.png";
 import { formatDistanceToNow } from "date-fns";
-
-interface AdminSettings {
-  rowHeightActive: number;
-  rowHeightCompleted: number;
-  rowHeightHandover: number;
-  textSizeActive: number;
-  textSizeCompleted: number;
-  textSizeHandover: number;
-  expandPopupSize: number;
-  statusColorAmber: string;
-  statusColorLightGreen: string;
-  statusColorDarkGreen: string;
-  tabNameActive: string;
-  tabNameCompleted: string;
-  tabNameHandover: string;
-  appName: string;
-  departments: string;
-  shiftDuration: number;
-  setDuration: number;
-  autoSaveInterval: number;
-  backupReminderInterval: number;
-}
-
-const defaultSettings: AdminSettings = {
-  rowHeightActive: 1,
-  rowHeightCompleted: 1,
-  rowHeightHandover: 1,
-  textSizeActive: 2,
-  textSizeCompleted: 2,
-  textSizeHandover: 2,
-  expandPopupSize: 1,
-  statusColorAmber: "#f59e0b",
-  statusColorLightGreen: "#84cc16",
-  statusColorDarkGreen: "#22c55e",
-  tabNameActive: "Active",
-  tabNameCompleted: "Completed",
-  tabNameHandover: "Handover",
-  appName: "Job Log",
-  departments: "Process,Fruit,Filling,Warehouse,Services,Other",
-  shiftDuration: 12,
-  setDuration: 4,
-  autoSaveInterval: 30,
-  backupReminderInterval: 24,
-};
-
 const Index = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("active");
@@ -71,7 +26,6 @@ const Index = () => {
   const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
   const [showBackupReminder, setShowBackupReminder] = useState(false);
   const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
-  const [adminSettings, setAdminSettings] = useState<AdminSettings>(defaultSettings);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const {
     activeJobs,
@@ -210,47 +164,7 @@ const Index = () => {
     if (savedLastSave) {
       setLastSaveTime(new Date(savedLastSave));
     }
-    
-    // Load admin settings
-    loadAdminSettings();
   }, []);
-
-  const loadAdminSettings = () => {
-    const getSetting = (key: string, defaultValue: any) => {
-      const value = localStorage.getItem(`admin_${key}`);
-      if (value === null) return defaultValue;
-      if (key.includes('Color') || key.includes('Name') || key === 'departments' || key === 'appName') {
-        return value;
-      }
-      return Number(value);
-    };
-
-    setAdminSettings({
-      rowHeightActive: getSetting('rowHeightActive', defaultSettings.rowHeightActive) as number,
-      rowHeightCompleted: getSetting('rowHeightCompleted', defaultSettings.rowHeightCompleted) as number,
-      rowHeightHandover: getSetting('rowHeightHandover', defaultSettings.rowHeightHandover) as number,
-      textSizeActive: getSetting('textSizeActive', defaultSettings.textSizeActive) as number,
-      textSizeCompleted: getSetting('textSizeCompleted', defaultSettings.textSizeCompleted) as number,
-      textSizeHandover: getSetting('textSizeHandover', defaultSettings.textSizeHandover) as number,
-      expandPopupSize: getSetting('expandPopupSize', defaultSettings.expandPopupSize) as number,
-      statusColorAmber: getSetting('statusColorAmber', defaultSettings.statusColorAmber) as string,
-      statusColorLightGreen: getSetting('statusColorLightGreen', defaultSettings.statusColorLightGreen) as string,
-      statusColorDarkGreen: getSetting('statusColorDarkGreen', defaultSettings.statusColorDarkGreen) as string,
-      tabNameActive: getSetting('tabNameActive', defaultSettings.tabNameActive) as string,
-      tabNameCompleted: getSetting('tabNameCompleted', defaultSettings.tabNameCompleted) as string,
-      tabNameHandover: getSetting('tabNameHandover', defaultSettings.tabNameHandover) as string,
-      appName: getSetting('appName', defaultSettings.appName) as string,
-      departments: getSetting('departments', defaultSettings.departments) as string,
-      shiftDuration: getSetting('shiftDuration', defaultSettings.shiftDuration) as number,
-      setDuration: getSetting('setDuration', defaultSettings.setDuration) as number,
-      autoSaveInterval: getSetting('autoSaveInterval', defaultSettings.autoSaveInterval) as number,
-      backupReminderInterval: getSetting('backupReminderInterval', defaultSettings.backupReminderInterval) as number,
-    });
-  };
-
-  const handleSettingsChange = () => {
-    loadAdminSettings();
-  };
   return <div className="min-h-screen bg-background p-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="max-w-[1600px] mx-auto space-y-6">
@@ -259,20 +173,20 @@ const Index = () => {
             <div className="flex items-center gap-4">
               <img src={mullerLogo} alt="Müller" className="h-12" />
               <div>
-                <h1 className="text-3xl font-bold">{adminSettings.appName}</h1>
+                <h1 className="text-3xl font-bold">Job Log</h1>
                 <p className="text-muted-foreground">Process Tracker</p>
               </div>
             </div>
 
             <TabsList className="grid w-full max-w-[500px] grid-cols-3">
-              <TabsTrigger value="active">{adminSettings.tabNameActive} ({activeJobs.length})</TabsTrigger>
-              <TabsTrigger value="completed">{adminSettings.tabNameCompleted} ({completedJobs.length})</TabsTrigger>
-              <TabsTrigger value="handover">{adminSettings.tabNameHandover}</TabsTrigger>
+              <TabsTrigger value="active">Active ({activeJobs.length})</TabsTrigger>
+              <TabsTrigger value="completed">Completed ({completedJobs.length})</TabsTrigger>
+              <TabsTrigger value="handover">Handover</TabsTrigger>
             </TabsList>
 
             <div className="flex gap-2">
               {isAdminMode && <>
-                  <AdminSettingsDialog onSettingsChange={handleSettingsChange} />
+                  <AdminSettingsDialog />
                   
                 </>}
               <Button variant={isAdminMode ? "destructive" : "outline"} size="icon" onClick={toggleAdminMode} title={isAdminMode ? "Exit Admin Mode" : "Admin Mode"}>
@@ -307,19 +221,7 @@ const Index = () => {
                   <div className="text-center">SAP</div>
                   <div></div>
                 </div>
-                {activeJobs.map(job => <JobRow 
-                  key={job.id} 
-                  job={job} 
-                  onUpdate={updateJob} 
-                  onDelete={deleteJob} 
-                  rowHeight={adminSettings.rowHeightActive} 
-                  textSize={adminSettings.textSizeActive} 
-                  textBold={textBold}
-                  statusColorAmber={adminSettings.statusColorAmber}
-                  statusColorLightGreen={adminSettings.statusColorLightGreen}
-                  statusColorDarkGreen={adminSettings.statusColorDarkGreen}
-                  expandPopupSize={adminSettings.expandPopupSize}
-                />)}
+                {activeJobs.map(job => <JobRow key={job.id} job={job} onUpdate={updateJob} onDelete={deleteJob} rowHeight={rowHeight} textSize={textSize} textBold={textBold} />)}
               </div>}
 
             {activeJobs.some(job => job.jobComplete && job.sapComplete) && <div className="flex justify-center pt-4">
@@ -331,33 +233,11 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="completed">
-            <CompletedJobsLog 
-              jobs={completedJobs} 
-              isAdminMode={isAdminMode} 
-              onDelete={deleteCompletedJob} 
-              onUpdate={updateCompletedJob}
-              rowHeight={adminSettings.rowHeightCompleted}
-              textSize={adminSettings.textSizeCompleted}
-              textBold={textBold}
-              statusColorAmber={adminSettings.statusColorAmber}
-              statusColorLightGreen={adminSettings.statusColorLightGreen}
-              statusColorDarkGreen={adminSettings.statusColorDarkGreen}
-              expandPopupSize={adminSettings.expandPopupSize}
-            />
+            <CompletedJobsLog jobs={completedJobs} isAdminMode={isAdminMode} onDelete={deleteCompletedJob} onUpdate={updateCompletedJob} />
           </TabsContent>
 
           <TabsContent value="handover">
-            <HandoverTab 
-              activeJobs={activeJobs} 
-              completedJobs={completedJobs} 
-              textSize={adminSettings.textSizeHandover} 
-              textBold={textBold} 
-              rowHeight={adminSettings.rowHeightHandover}
-              statusColorAmber={adminSettings.statusColorAmber}
-              statusColorLightGreen={adminSettings.statusColorLightGreen}
-              statusColorDarkGreen={adminSettings.statusColorDarkGreen}
-              expandPopupSize={adminSettings.expandPopupSize}
-            />
+            <HandoverTab activeJobs={activeJobs} completedJobs={completedJobs} textSize={textSize} textBold={textBold} rowHeight={rowHeight} />
           </TabsContent>
         </div>
       </Tabs>

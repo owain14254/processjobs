@@ -29,28 +29,9 @@ interface CompletedJobsLogProps {
   isAdminMode?: boolean;
   onDelete?: (id: string) => void;
   onUpdate?: (id: string, updates: Partial<CompletedJob>) => void;
-  rowHeight?: number;
-  textSize?: number;
-  textBold?: boolean;
-  statusColorAmber?: string;
-  statusColorLightGreen?: string;
-  statusColorDarkGreen?: string;
-  expandPopupSize?: number;
 }
 const DEPARTMENTS = ["All", "Process", "Fruit", "Filling", "Warehouse", "Services", "Other"];
-export const CompletedJobsLog = ({ 
-  jobs, 
-  isAdminMode = false, 
-  onDelete, 
-  onUpdate,
-  rowHeight = 1,
-  textSize = 2,
-  textBold = false,
-  statusColorAmber,
-  statusColorLightGreen,
-  statusColorDarkGreen,
-  expandPopupSize = 1
-}: CompletedJobsLogProps) => {
+export const CompletedJobsLog = ({ jobs, isAdminMode = false, onDelete, onUpdate }: CompletedJobsLogProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("All");
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
