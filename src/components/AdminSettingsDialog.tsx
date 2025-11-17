@@ -96,28 +96,28 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
           <Settings className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-6xl h-[85vh] flex flex-col">
-        <DialogHeader className="flex-shrink-0">
-          <DialogTitle className="text-2xl">Admin Settings</DialogTitle>
-          <DialogDescription>Configure application settings (changes apply in real-time)</DialogDescription>
+      <DialogContent className="max-w-[95vw] h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0 pb-2">
+          <DialogTitle className="text-xl">Admin Settings</DialogTitle>
+          <DialogDescription className="text-xs">Configure application settings (changes apply in real-time)</DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="visuals" className="w-full flex-1 flex flex-col overflow-hidden">
-          <TabsList className="grid w-full grid-cols-3 flex-shrink-0">
-            <TabsTrigger value="visuals">Visuals</TabsTrigger>
-            <TabsTrigger value="general">General</TabsTrigger>
-            <TabsTrigger value="save">Save Settings</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 flex-shrink-0 h-9">
+            <TabsTrigger value="visuals" className="text-xs">Visuals</TabsTrigger>
+            <TabsTrigger value="general" className="text-xs">General</TabsTrigger>
+            <TabsTrigger value="save" className="text-xs">Save Settings</TabsTrigger>
           </TabsList>
 
           {/* Visuals Tab */}
-          <TabsContent value="visuals" className="grid grid-cols-3 gap-4 mt-4 flex-1 min-h-0">
+          <TabsContent value="visuals" className="grid grid-cols-3 gap-3 mt-2 flex-1 min-h-0">
             <Card className="h-full overflow-y-auto">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Row Height Settings</CardTitle>
+              <CardHeader className="pb-2 pt-3 px-3">
+                <CardTitle className="text-sm">Row Height</CardTitle>
                 <CardDescription className="text-xs">Configure row height for each tab</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
+              <CardContent className="space-y-3 px-3 pb-3">
+                <div className="space-y-1">
                   <Label className="text-xs">Active: {ROW_HEIGHT_OPTIONS[settings.rowHeightActive]}</Label>
                   <Slider 
                     value={[settings.rowHeightActive]} 
@@ -125,10 +125,11 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
                     min={0} 
                     max={4} 
                     step={1} 
+                    className="py-1"
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Label className="text-xs">Completed: {ROW_HEIGHT_OPTIONS[settings.rowHeightCompleted]}</Label>
                   <Slider 
                     value={[settings.rowHeightCompleted]} 
@@ -136,10 +137,11 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
                     min={0} 
                     max={4} 
                     step={1} 
+                    className="py-1"
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Label className="text-xs">Handover: {ROW_HEIGHT_OPTIONS[settings.rowHeightHandover]}</Label>
                   <Slider 
                     value={[settings.rowHeightHandover]} 
@@ -147,18 +149,19 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
                     min={0} 
                     max={4} 
                     step={1} 
+                    className="py-1"
                   />
                 </div>
               </CardContent>
             </Card>
 
             <Card className="h-full overflow-y-auto">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Text Size Settings</CardTitle>
+              <CardHeader className="pb-2 pt-3 px-3">
+                <CardTitle className="text-sm">Text Size</CardTitle>
                 <CardDescription className="text-xs">Configure text size for each tab</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
+              <CardContent className="space-y-3 px-3 pb-3">
+                <div className="space-y-1">
                   <Label className="text-xs">Active: {TEXT_SIZE_OPTIONS[settings.textSizeActive]}</Label>
                   <Slider 
                     value={[settings.textSizeActive]} 
@@ -166,10 +169,11 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
                     min={0} 
                     max={4} 
                     step={1} 
+                    className="py-1"
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Label className="text-xs">Completed: {TEXT_SIZE_OPTIONS[settings.textSizeCompleted]}</Label>
                   <Slider 
                     value={[settings.textSizeCompleted]} 
@@ -177,10 +181,11 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
                     min={0} 
                     max={4} 
                     step={1} 
+                    className="py-1"
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Label className="text-xs">Handover: {TEXT_SIZE_OPTIONS[settings.textSizeHandover]}</Label>
                   <Slider 
                     value={[settings.textSizeHandover]} 
@@ -188,19 +193,20 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
                     min={0} 
                     max={4} 
                     step={1} 
+                    className="py-1"
                   />
                 </div>
               </CardContent>
             </Card>
 
-            <div className="space-y-4 h-full overflow-y-auto">
-              <Card className="h-fit">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Popup Settings</CardTitle>
+            <div className="space-y-3 h-full overflow-y-auto">
+              <Card>
+                <CardHeader className="pb-2 pt-3 px-3">
+                  <CardTitle className="text-sm">Popup Size</CardTitle>
                   <CardDescription className="text-xs">Expand text popup size</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
+                <CardContent className="px-3 pb-3">
+                  <div className="space-y-1">
                     <Label className="text-xs">Size: {POPUP_SIZE_OPTIONS[settings.expandPopupSize]}</Label>
                     <Slider 
                       value={[settings.expandPopupSize]} 
@@ -208,70 +214,71 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
                       min={0} 
                       max={2} 
                       step={1} 
+                      className="py-1"
                     />
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="h-fit">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Status Colors</CardTitle>
+              <Card>
+                <CardHeader className="pb-2 pt-3 px-3">
+                  <CardTitle className="text-sm">Status Colors</CardTitle>
                   <CardDescription className="text-xs">Row colors for each status</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-2 px-3 pb-3">
                   <div className="space-y-1">
-                    <Label className="text-xs">Open Job (Amber)</Label>
+                    <Label className="text-xs">Open Job</Label>
                     <div className="flex gap-2 items-center">
                       <Input 
                         type="color" 
                         value={settings.statusColorAmber} 
                         onChange={e => updateSetting("statusColorAmber", e.target.value)} 
-                        className="w-16 h-8" 
+                        className="w-12 h-7 p-0" 
                       />
                       <Input 
                         type="text" 
                         value={settings.statusColorAmber} 
                         onChange={e => updateSetting("statusColorAmber", e.target.value)} 
                         placeholder="#FFA500" 
-                        className="text-xs h-8" 
+                        className="text-xs h-7 flex-1" 
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <Label className="text-xs">Complete, Awaiting SAP (Light Green)</Label>
+                    <Label className="text-xs">Awaiting SAP</Label>
                     <div className="flex gap-2 items-center">
                       <Input 
                         type="color" 
                         value={settings.statusColorLightGreen} 
                         onChange={e => updateSetting("statusColorLightGreen", e.target.value)} 
-                        className="w-16 h-8" 
+                        className="w-12 h-7 p-0" 
                       />
                       <Input 
                         type="text" 
                         value={settings.statusColorLightGreen} 
                         onChange={e => updateSetting("statusColorLightGreen", e.target.value)} 
                         placeholder="#90EE90" 
-                        className="text-xs h-8" 
+                        className="text-xs h-7 flex-1" 
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <Label className="text-xs">Fully Completed (Dark Green)</Label>
+                    <Label className="text-xs">Completed</Label>
                     <div className="flex gap-2 items-center">
                       <Input 
                         type="color" 
                         value={settings.statusColorDarkGreen} 
                         onChange={e => updateSetting("statusColorDarkGreen", e.target.value)} 
-                        className="w-16 h-8" 
+                        className="w-12 h-7 p-0" 
                       />
                       <Input 
                         type="text" 
                         value={settings.statusColorDarkGreen} 
                         onChange={e => updateSetting("statusColorDarkGreen", e.target.value)} 
                         placeholder="#006400" 
-                        className="text-xs h-8" 
+                        className="text-xs h-7 flex-1" 
                       />
                     </div>
                   </div>
@@ -281,37 +288,37 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
           </TabsContent>
 
           {/* General Tab */}
-          <TabsContent value="general" className="grid grid-cols-2 gap-4 mt-4 flex-1 min-h-0">
-            <div className="space-y-4 h-full overflow-y-auto">
-              <Card className="h-fit">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Application Name</CardTitle>
+          <TabsContent value="general" className="grid grid-cols-2 gap-3 mt-2 flex-1 min-h-0">
+            <div className="space-y-3 h-full overflow-y-auto">
+              <Card>
+                <CardHeader className="pb-2 pt-3 px-3">
+                  <CardTitle className="text-sm">App Name</CardTitle>
                   <CardDescription className="text-xs">Main application title</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="px-3 pb-3">
                   <Label className="text-xs">App Name</Label>
                   <Input 
                     value={settings.appName} 
                     onChange={e => updateSetting("appName", e.target.value)} 
                     placeholder="Job Log" 
-                    className="h-9" 
+                    className="h-8 text-xs mt-1" 
                   />
                 </CardContent>
               </Card>
 
-              <Card className="h-fit">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Tab Names</CardTitle>
+              <Card>
+                <CardHeader className="pb-2 pt-3 px-3">
+                  <CardTitle className="text-sm">Tab Names</CardTitle>
                   <CardDescription className="text-xs">Customize tab names</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-2 px-3 pb-3">
                   <div>
                     <Label className="text-xs">Active Jobs Tab</Label>
                     <Input 
                       value={settings.tabNameActive} 
                       onChange={e => updateSetting("tabNameActive", e.target.value)} 
                       placeholder="Active" 
-                      className="h-9" 
+                      className="h-8 text-xs mt-1" 
                     />
                   </div>
                   <div>
@@ -320,7 +327,7 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
                       value={settings.tabNameCompleted} 
                       onChange={e => updateSetting("tabNameCompleted", e.target.value)} 
                       placeholder="Completed" 
-                      className="h-9" 
+                      className="h-8 text-xs mt-1" 
                     />
                   </div>
                   <div>
@@ -329,37 +336,37 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
                       value={settings.tabNameHandover} 
                       onChange={e => updateSetting("tabNameHandover", e.target.value)} 
                       placeholder="Handover" 
-                      className="h-9" 
+                      className="h-8 text-xs mt-1" 
                     />
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            <div className="space-y-4 h-full overflow-y-auto">
-              <Card className="h-fit">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Departments</CardTitle>
-                  <CardDescription className="text-xs">Department dropdown options (comma-separated)</CardDescription>
+            <div className="space-y-3 h-full overflow-y-auto">
+              <Card>
+                <CardHeader className="pb-2 pt-3 px-3">
+                  <CardTitle className="text-sm">Departments</CardTitle>
+                  <CardDescription className="text-xs">Department dropdown (comma-separated)</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="px-3 pb-3">
                   <Label className="text-xs">Department List</Label>
                   <Textarea 
                     value={settings.departments} 
                     onChange={e => updateSetting("departments", e.target.value)} 
                     placeholder="Process, Fruit, Filling, Warehouse, Services, Other" 
-                    rows={3} 
-                    className="text-xs" 
+                    rows={2} 
+                    className="text-xs mt-1" 
                   />
                 </CardContent>
               </Card>
 
-              <Card className="h-fit">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Time Durations</CardTitle>
-                  <CardDescription className="text-xs">Shift and set durations (in hours)</CardDescription>
+              <Card>
+                <CardHeader className="pb-2 pt-3 px-3">
+                  <CardTitle className="text-sm">Time Durations</CardTitle>
+                  <CardDescription className="text-xs">Shift and set durations (hours)</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-2 px-3 pb-3">
                   <div>
                     <Label className="text-xs">Shift Duration (hours)</Label>
                     <Input 
@@ -368,7 +375,7 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
                       onChange={e => updateSetting("shiftDuration", parseInt(e.target.value) || 12)} 
                       min={1} 
                       max={24} 
-                      className="h-9" 
+                      className="h-8 text-xs mt-1" 
                     />
                   </div>
                   <div>
@@ -379,7 +386,7 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
                       onChange={e => updateSetting("setDuration", parseInt(e.target.value) || 96)} 
                       min={1} 
                       max={168} 
-                      className="h-9" 
+                      className="h-8 text-xs mt-1" 
                     />
                   </div>
                 </CardContent>
@@ -388,13 +395,13 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
           </TabsContent>
 
           {/* Save Settings Tab */}
-          <TabsContent value="save" className="grid grid-cols-3 gap-4 mt-4 flex-1 min-h-0">
-            <Card className="h-fit">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Auto-Save Settings</CardTitle>
+          <TabsContent value="save" className="grid grid-cols-3 gap-3 mt-2 flex-1 min-h-0">
+            <Card>
+              <CardHeader className="pb-2 pt-3 px-3">
+                <CardTitle className="text-sm">Auto-Save</CardTitle>
                 <CardDescription className="text-xs">Automatic save intervals</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-3 pb-3">
                 <Label className="text-xs">Auto-Save Interval (minutes)</Label>
                 <Input 
                   type="number" 
@@ -402,20 +409,20 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
                   onChange={e => updateSetting("autoSaveInterval", parseInt(e.target.value) || 5)} 
                   min={1} 
                   max={60} 
-                  className="h-9" 
+                  className="h-8 text-xs mt-1" 
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Auto-saves every {settings.autoSaveInterval} minutes
+                  Auto-saves every {settings.autoSaveInterval} min
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="h-fit">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Backup Reminder</CardTitle>
+            <Card>
+              <CardHeader className="pb-2 pt-3 px-3">
+                <CardTitle className="text-sm">Backup Reminder</CardTitle>
                 <CardDescription className="text-xs">Backup reminder frequency</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-3 pb-3">
                 <Label className="text-xs">Backup Reminder Interval (hours)</Label>
                 <Input 
                   type="number" 
@@ -423,21 +430,21 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
                   onChange={e => updateSetting("backupReminderInterval", parseInt(e.target.value) || 24)} 
                   min={1} 
                   max={168} 
-                  className="h-9" 
+                  className="h-8 text-xs mt-1" 
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Reminder every {settings.backupReminderInterval} hours
+                  Reminder every {settings.backupReminderInterval} hrs
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="h-fit">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Test Popup</CardTitle>
+            <Card>
+              <CardHeader className="pb-2 pt-3 px-3">
+                <CardTitle className="text-sm">Test Popup</CardTitle>
                 <CardDescription className="text-xs">Test expand text popup</CardDescription>
               </CardHeader>
-              <CardContent>
-                <Button onClick={() => setShowTestPopup(true)} className="w-full">
+              <CardContent className="px-3 pb-3">
+                <Button onClick={() => setShowTestPopup(true)} className="w-full h-8 text-xs">
                   Test Popup Size
                 </Button>
               </CardContent>
