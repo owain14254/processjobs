@@ -129,16 +129,18 @@ export const JobRow = ({
         value={job.department}
         onValueChange={(value) => onUpdate(job.id, { department: value })}
       >
-        <SelectTrigger className={cn(
-          statusColor,
-          "text-black border-2",
-          statusColor === "bg-status-darkGreen" ? "border-status-darkGreen" :
-          statusColor === "bg-status-lightGreen" ? "border-status-lightGreen" :
-          "border-status-amber",
-          sizeClasses.height,
-          textSizeClass,
-          textWeightClass
-        )}>
+        <SelectTrigger 
+          className={cn(
+            "text-black border-2",
+            sizeClasses.height,
+            textSizeClass,
+            textWeightClass
+          )}
+          style={{ 
+            backgroundColor: statusColor,
+            borderColor: statusColor
+          }}
+        >
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -157,11 +159,7 @@ export const JobRow = ({
           onChange={(e) => onUpdate(job.id, { description: e.target.value })}
           placeholder="Job description..."
           className={cn(
-            statusColor,
             "text-black border-2",
-            statusColor === "bg-status-darkGreen" ? "border-status-darkGreen" :
-            statusColor === "bg-status-lightGreen" ? "border-status-lightGreen" :
-            "border-status-amber",
             sizeClasses.height,
             textSizeClass,
             textWeightClass,
@@ -169,7 +167,9 @@ export const JobRow = ({
           )}
           style={{
             fontSize: textSize === 0 ? '0.75rem' : textSize === 1 ? '0.875rem' : '1rem',
-            fontWeight: textBold ? 'bold' : 'normal'
+            fontWeight: textBold ? 'bold' : 'normal',
+            backgroundColor: statusColor,
+            borderColor: statusColor
           }}
         />
         {isOverflowing && (
