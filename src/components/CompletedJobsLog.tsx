@@ -204,14 +204,14 @@ export const CompletedJobsLog = ({
       </div>
 
       <div className="rounded-lg border overflow-hidden">
-        <Table>
+        <Table className="table-fixed w-full">
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[110px]">Date</TableHead>
-              <TableHead className="w-[120px]">Department</TableHead>
+              <TableHead className="w-[90px]">Date</TableHead>
+              <TableHead className="w-[100px]">Department</TableHead>
               <TableHead>Description</TableHead>
-              <TableHead className="w-[130px]">Completed At</TableHead>
-              {isAdminMode && <TableHead className="w-[100px]">Actions</TableHead>}
+              <TableHead className="w-[90px]">Completed</TableHead>
+              {isAdminMode && <TableHead className="w-[80px]">Actions</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
