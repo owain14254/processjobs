@@ -14,10 +14,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Job } from "@/hooks/useJobStorage";
-import { CalendarIcon, Trash2 } from "lucide-react";
+import { CalendarIcon, Trash2, Expand } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useRef, useEffect, useState } from "react";
 
 interface JobRowProps {
   job: Job;
@@ -44,6 +52,9 @@ const getStatusColor = (jobComplete: boolean, sapComplete: boolean) => {
 };
 
 export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1, textSize = 1, textBold = false }: JobRowProps) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [isOverflowing, setIsOverflowing] = useState(false);
+
   const sizeClasses = {
     padding: ["p-0.5", "p-1", "p-1.5"][rowHeight],
     gap: ["gap-1", "gap-1.5", "gap-2"][rowHeight],
@@ -55,6 +66,17 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1, textSize = 1, t
   const textWeightClass = textBold ? "font-bold" : "font-normal";
   
   const statusColor = getStatusColor(job.jobComplete, job.sapComplete);
+
+  useEffect(() => {
+    const checkOverflow = () => {
+      if (inputRef.current) {
+        setIsOverflowing(inputRef.current.scrollWidth > inputRef.current.clientWidth);
+      }
+    };
+    checkOverflow();
+    window.addEventListener('resize', checkOverflow);
+    return () => window.removeEventListener('resize', checkOverflow);
+  }, [job.description]);
 
   return (
     <div
@@ -119,25 +141,48 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1, textSize = 1, t
         </SelectContent>
       </Select>
 
-      <Input
-        value={job.description}
-        onChange={(e) => onUpdate(job.id, { description: e.target.value })}
-        placeholder="Job description..."
-        className={cn(
-          statusColor,
-          "text-black border-2",
-          statusColor === "bg-status-darkGreen" ? "border-status-darkGreen" :
-          statusColor === "bg-status-lightGreen" ? "border-status-lightGreen" :
-          "border-status-amber",
-          sizeClasses.height,
-          textSizeClass,
-          textWeightClass
+      <div className="relative">
+        <Input
+          ref={inputRef}
+          value={job.description}
+          onChange={(e) => onUpdate(job.id, { description: e.target.value })}
+          placeholder="Job description..."
+          className={cn(
+            statusColor,
+            "text-black border-2",
+            statusColor === "bg-status-darkGreen" ? "border-status-darkGreen" :
+            statusColor === "bg-status-lightGreen" ? "border-status-lightGreen" :
+            "border-status-amber",
+            sizeClasses.height,
+            textSizeClass,
+            textWeightClass,
+            isOverflowing && "pr-8"
+          )}
+          style={{
+            fontSize: textSize === 0 ? '0.75rem' : textSize === 1 ? '0.875rem' : '1rem',
+            fontWeight: textBold ? 'bold' : 'normal'
+          }}
+        />
+        {isOverflowing && (
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-0 top-1/2 -translate-y-1/2 h-6 w-6 hover:bg-transparent"
+              >
+                <Expand className="h-3.5 w-3.5 text-red-600" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Full Description</DialogTitle>
+              </DialogHeader>
+              <p className="text-sm">{job.description}</p>
+            </DialogContent>
+          </Dialog>
         )}
-        style={{
-          fontSize: textSize === 0 ? '0.75rem' : textSize === 1 ? '0.875rem' : '1rem',
-          fontWeight: textBold ? 'bold' : 'normal'
-        }}
-      />
+      </div>
 
       <div className="flex items-center gap-1.5 justify-center">
         <Checkbox
