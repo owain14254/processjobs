@@ -87,6 +87,16 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
     onSettingsChange?.(newSettings);
   };
 
+  const handleReset = () => {
+    setSettings(defaultSettings);
+    localStorage.setItem("adminSettings", JSON.stringify(defaultSettings));
+    onSettingsChange?.(defaultSettings);
+    toast({
+      title: "Settings reset",
+      description: "All settings have been reset to defaults."
+    });
+  };
+
   const popupSizeClass = ["max-w-md", "max-w-2xl", "max-w-4xl"][settings.expandPopupSize];
 
   return (
@@ -428,9 +438,14 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
               {/* Test Popup */}
               <div className="space-y-1">
                 <Label className="text-[11px] font-semibold">Test Popup</Label>
-                <Button onClick={() => setShowTestPopup(true)} className="w-full h-7 text-xs">
-                  Test Popup Size
-                </Button>
+                <div className="flex gap-2">
+                  <Button onClick={() => setShowTestPopup(true)} className="flex-1 h-7 text-xs">
+                    Test Popup Size
+                  </Button>
+                  <Button onClick={handleReset} variant="outline" className="flex-1 h-7 text-xs">
+                    Reset to Defaults
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>

@@ -34,24 +34,32 @@ interface JobRowProps {
   rowHeight?: number;
   textSize?: number;
   textBold?: boolean;
+  departments?: string[];
+  statusColors?: {
+    amber: string;
+    lightGreen: string;
+    darkGreen: string;
+  };
+  expandPopupSize?: number;
 }
 
-const DEPARTMENTS = [
-  "Process",
-  "Fruit",
-  "Filling",
-  "Warehouse",
-  "Services",
-  "Other",
-];
-
-const getStatusColor = (jobComplete: boolean, sapComplete: boolean) => {
-  if (jobComplete && sapComplete) return "bg-status-darkGreen";
-  if (jobComplete && !sapComplete) return "bg-status-lightGreen";
-  return "bg-status-amber";
+const getStatusColor = (jobComplete: boolean, sapComplete: boolean, colors: { amber: string; lightGreen: string; darkGreen: string }) => {
+  if (jobComplete && sapComplete) return colors.darkGreen;
+  if (jobComplete && !sapComplete) return colors.lightGreen;
+  return colors.amber;
 };
 
-export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 2, textSize = 2, textBold = false }: JobRowProps) => {
+export const JobRow = ({ 
+  job, 
+  onUpdate, 
+  onDelete, 
+  rowHeight = 2, 
+  textSize = 2, 
+  textBold = false,
+  departments = ["Process", "Fruit", "Filling", "Warehouse", "Services", "Other"],
+  statusColors = { amber: "#FFA500", lightGreen: "#90EE90", darkGreen: "#006400" },
+  expandPopupSize = 1
+}: JobRowProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isOverflowing, setIsOverflowing] = useState(false);
 
@@ -65,7 +73,8 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 2, textSize = 2, t
   const textSizeClass = ["text-xs", "text-sm", "text-base", "text-lg", "text-xl"][textSize];
   const textWeightClass = textBold ? "font-bold" : "font-normal";
   
-  const statusColor = getStatusColor(job.jobComplete, job.sapComplete);
+  const statusColor = getStatusColor(job.jobComplete, job.sapComplete, statusColors);
+  const popupSizeClass = ["max-w-md", "max-w-2xl", "max-w-4xl"][expandPopupSize];
 
   useEffect(() => {
     const checkOverflow = () => {
@@ -83,9 +92,9 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 2, textSize = 2, t
       className={cn(
         "grid grid-cols-[180px_140px_1fr_100px_100px_50px] items-center rounded-sm transition-colors",
         sizeClasses.padding,
-        sizeClasses.gap,
-        getStatusColor(job.jobComplete, job.sapComplete)
+        sizeClasses.gap
       )}
+      style={{ backgroundColor: statusColor }}
     >
       <Popover>
         <PopoverTrigger asChild>
@@ -93,14 +102,14 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 2, textSize = 2, t
             variant="outline"
             className={cn(
               "justify-start text-left font-normal text-black border-2",
-              statusColor,
-              statusColor === "bg-status-darkGreen" ? "hover:bg-status-darkGreen/90 border-status-darkGreen" :
-              statusColor === "bg-status-lightGreen" ? "hover:bg-status-lightGreen/90 border-status-lightGreen" :
-              "hover:bg-status-amber/90 border-status-amber",
               sizeClasses.height,
               textSizeClass,
               textWeightClass
             )}
+            style={{ 
+              backgroundColor: statusColor,
+              borderColor: statusColor
+            }}
           >
             <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
             <span className="truncate">{format(job.date, "PP")}</span>
@@ -133,7 +142,7 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 2, textSize = 2, t
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {DEPARTMENTS.map((dept) => (
+          {departments.map((dept) => (
             <SelectItem key={dept} value={dept}>
               {dept}
             </SelectItem>

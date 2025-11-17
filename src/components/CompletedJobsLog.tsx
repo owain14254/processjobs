@@ -29,9 +29,30 @@ interface CompletedJobsLogProps {
   isAdminMode?: boolean;
   onDelete?: (id: string) => void;
   onUpdate?: (id: string, updates: Partial<CompletedJob>) => void;
+  rowHeight?: number;
+  textSize?: number;
+  textBold?: boolean;
+  departments?: string[];
+  statusColors?: {
+    amber: string;
+    lightGreen: string;
+    darkGreen: string;
+  };
+  expandPopupSize?: number;
 }
-const DEPARTMENTS = ["All", "Process", "Fruit", "Filling", "Warehouse", "Services", "Other"];
-export const CompletedJobsLog = ({ jobs, isAdminMode = false, onDelete, onUpdate }: CompletedJobsLogProps) => {
+
+export const CompletedJobsLog = ({ 
+  jobs, 
+  isAdminMode = false, 
+  onDelete, 
+  onUpdate,
+  rowHeight = 2,
+  textSize = 2,
+  textBold = false,
+  departments = ["All", "Process", "Fruit", "Filling", "Warehouse", "Services", "Other"],
+  statusColors = { amber: "#FFA500", lightGreen: "#90EE90", darkGreen: "#006400" },
+  expandPopupSize = 1
+}: CompletedJobsLogProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("All");
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
@@ -134,7 +155,7 @@ export const CompletedJobsLog = ({ jobs, isAdminMode = false, onDelete, onUpdate
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {DEPARTMENTS.map((dept) => (
+            {departments.map((dept) => (
               <SelectItem key={dept} value={dept}>
                 {dept}
               </SelectItem>
@@ -256,7 +277,7 @@ export const CompletedJobsLog = ({ jobs, isAdminMode = false, onDelete, onUpdate
                   <SelectValue placeholder="Select department" />
                 </SelectTrigger>
                 <SelectContent>
-                  {DEPARTMENTS.filter((d) => d !== "All").map((dept) => (
+                  {departments.filter((d) => d !== "All").map((dept) => (
                     <SelectItem key={dept} value={dept}>
                       {dept}
                     </SelectItem>
