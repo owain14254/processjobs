@@ -8,6 +8,7 @@ import { ShiftPatternFilter } from "./ShiftPatternFilter";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -178,14 +179,14 @@ export const CompletedJobsLog = ({ jobs, isAdminMode = false, onDelete, onUpdate
         )}
       </div>
 
-      <div className="rounded-lg border">
+      <ScrollArea className="rounded-lg border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Department</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Completed At</TableHead>
+              <TableHead className="min-w-[110px]">Date</TableHead>
+              <TableHead className="min-w-[120px]">Department</TableHead>
+              <TableHead className="min-w-[200px]">Description</TableHead>
+              <TableHead className="min-w-[130px]">Completed At</TableHead>
               {isAdminMode && <TableHead className="w-[100px]">Actions</TableHead>}
             </TableRow>
           </TableHeader>
@@ -199,10 +200,10 @@ export const CompletedJobsLog = ({ jobs, isAdminMode = false, onDelete, onUpdate
             ) : (
               filteredJobs.map((job) => (
                 <TableRow key={job.id}>
-                  <TableCell>{format(job.date, "dd/MM/yyyy")}</TableCell>
-                  <TableCell>{job.department}</TableCell>
-                  <TableCell>{job.description}</TableCell>
-                  <TableCell>{format(job.completedAt, "dd/MM/yyyy")}</TableCell>
+                  <TableCell className="min-w-[110px]">{format(job.date, "dd/MM/yyyy")}</TableCell>
+                  <TableCell className="min-w-[120px]">{job.department}</TableCell>
+                  <TableCell className="min-w-[200px]">{job.description}</TableCell>
+                  <TableCell className="min-w-[130px]">{format(job.completedAt, "dd/MM/yyyy")}</TableCell>
                   {isAdminMode && (
                     <TableCell>
                       <div className="flex gap-1">
@@ -220,7 +221,8 @@ export const CompletedJobsLog = ({ jobs, isAdminMode = false, onDelete, onUpdate
             )}
           </TableBody>
         </Table>
-      </div>
+        <ScrollBar orientation="horizontal" />
+      </ScrollArea>
 
       <Dialog open={!!editingJob} onOpenChange={() => setEditingJob(null)}>
         <DialogContent>
