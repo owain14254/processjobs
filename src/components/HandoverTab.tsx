@@ -143,18 +143,19 @@ export const HandoverTab = ({
         </p>
       </div>
 
-      {/* Jobs Table */}
-      <div className="rounded-lg border overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[180px] min-w-[180px]">Date</TableHead>
-              <TableHead className="w-[140px] min-w-[140px]">Department</TableHead>
-              <TableHead className="min-w-[300px]">Description</TableHead>
-              <TableHead className="text-center w-[120px] min-w-[120px]">Job Complete</TableHead>
-              <TableHead className="text-center w-[120px] min-w-[120px]">SAP Complete</TableHead>
-            </TableRow>
-          </TableHeader>
+      {/* Table */}
+      <div className="border rounded-lg">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[150px]">Date/Time</TableHead>
+                <TableHead className="w-[150px]">Department</TableHead>
+                <TableHead className="min-w-[400px]">Description</TableHead>
+                <TableHead className="w-[150px] text-center">Job Complete</TableHead>
+                <TableHead className="w-[150px] text-center">SAP Complete</TableHead>
+              </TableRow>
+            </TableHeader>
           <TableBody>
             {filteredJobs.length === 0 ? (
               <TableRow>
@@ -243,6 +244,7 @@ export const HandoverTab = ({
             )}
           </TableBody>
         </Table>
+        </div>
       </div>
 
       {/* Legend */}

@@ -9,14 +9,10 @@ import { JobRow } from "@/components/JobRow";
 import { CompletedJobsLog } from "@/components/CompletedJobsLog";
 import { HandoverTab } from "@/components/HandoverTab";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { AdminSettingsDialog } from "@/components/AdminSettingsDialog";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Archive, Download, Upload, Settings } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Slider } from "@/components/ui/slider";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Archive, Download, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import mullerLogo from "@/assets/muller-logo.png";
 import { formatDistanceToNow } from "date-fns";
@@ -215,75 +211,15 @@ const Index = () => {
             <div className="flex gap-2">
               {isAdminMode && (
                 <>
+                  <AdminSettingsDialog />
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => navigate("/admin-settings")}
-                    title="Admin Settings"
+                    onClick={testBackupReminder}
+                    title="Test Backup Reminder"
                   >
-                    <Settings className="h-4 w-4" />
+                    <Archive className="h-4 w-4" />
                   </Button>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="icon" title="Quick Settings">
-                        <Settings className="h-4 w-4" />
-                      </Button>
-                    </PopoverTrigger>
-                  <PopoverContent className="w-80">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>Row Height: {["Extra Compact", "Compact", "Normal", "Comfortable", "Extra Comfortable"][rowHeight]}</Label>
-                        <Slider
-                          value={[rowHeight]}
-                          onValueChange={(value) => setRowHeight(value[0])}
-                          min={0}
-                          max={4}
-                          step={1}
-                          className="w-full"
-                        />
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>XS</span>
-                          <span>S</span>
-                          <span>M</span>
-                          <span>L</span>
-                          <span>XL</span>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Text Size: {["Extra Small", "Small", "Normal", "Large", "Extra Large"][textSize]}</Label>
-                        <Slider
-                          value={[textSize]}
-                          onValueChange={(value) => setTextSize(value[0])}
-                          min={0}
-                          max={4}
-                          step={1}
-                          className="w-full"
-                        />
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>XS</span>
-                          <span>S</span>
-                          <span>M</span>
-                          <span>L</span>
-                          <span>XL</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="text-bold">Bold Text</Label>
-                        <Switch id="text-bold" checked={textBold} onCheckedChange={setTextBold} />
-                      </div>
-                      <div className="pt-4 border-t">
-                        <Button 
-                          onClick={testBackupReminder} 
-                          variant="outline" 
-                          className="w-full"
-                          size="sm"
-                        >
-                          Test Backup Reminder
-                        </Button>
-                      </div>
-                    </div>
-                  </PopoverContent>
-                </Popover>
                 </>
               )}
               <Button
