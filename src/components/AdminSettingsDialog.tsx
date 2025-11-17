@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -18,6 +19,7 @@ interface AdminSettingsData {
   textSizeActive: number;
   textSizeCompleted: number;
   textSizeHandover: number;
+  textBold: boolean;
   expandPopupSize: number;
   statusColorAmber: string;
   statusColorLightGreen: string;
@@ -44,6 +46,7 @@ const defaultSettings: AdminSettingsData = {
   textSizeActive: 2,
   textSizeCompleted: 2,
   textSizeHandover: 2,
+  textBold: false,
   expandPopupSize: 1,
   statusColorAmber: "#FFA500",
   statusColorLightGreen: "#90EE90",
@@ -260,6 +263,21 @@ export function AdminSettingsDialog({ onSettingsChange, onTestSavePrompt }: Admi
                       </tr>
                     </tbody>
                   </table>
+                </div>
+              </div>
+
+              {/* Text Bold Toggle */}
+              <div className="space-y-1">
+                <Label className="text-[11px] font-semibold">Text Style</Label>
+                <div className="flex items-center space-x-2">
+                  <Switch 
+                    id="text-bold" 
+                    checked={settings.textBold} 
+                    onCheckedChange={(checked) => updateSetting("textBold", checked)}
+                  />
+                  <Label htmlFor="text-bold" className="text-[10px] text-muted-foreground cursor-pointer">
+                    Bold text
+                  </Label>
                 </div>
               </div>
 
