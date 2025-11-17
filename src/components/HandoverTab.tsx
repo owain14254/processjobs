@@ -12,54 +12,57 @@ import { Expand } from "lucide-react";
 
 interface HandoverTabProps {
   activeJobs: Job[];
-  completedJobs: CompletedJob[];
-  textSize?: number;
-  textBold?: boolean;
+  shiftDuration?: number;
+  setDuration?: number;
   rowHeight?: number;
+  textSize?: number;
+  statusColors?: {
+    amber: string;
+    lightGreen: string;
+    darkGreen: string;
+  };
 }
 
 type HandoverMode = "shift" | "set";
 
 const DEPARTMENTS = ["All", "Process", "Fruit", "Filling", "Warehouse", "Services", "Other"];
 
-const getStatusColor = (jobComplete: boolean, sapComplete: boolean) => {
-  if (jobComplete && sapComplete) return "bg-status-darkGreen";
-  if (jobComplete && !sapComplete) return "bg-status-lightGreen";
-  return "bg-status-amber";
+const getStatusColor = (jobComplete: boolean, sapComplete: boolean, colors: { amber: string; lightGreen: string; darkGreen: string }) => {
+  if (jobComplete && sapComplete) return colors.darkGreen;
+  if (jobComplete && !sapComplete) return colors.lightGreen;
+  return colors.amber;
 };
 
 export const HandoverTab = ({
   activeJobs,
-  completedJobs,
-  textSize = 1,
-  textBold = false,
+  shiftDuration = 12,
+  setDuration = 96,
   rowHeight = 1,
+  textSize = 1,
+  statusColors = { amber: "#FFA500", lightGreen: "#90EE90", darkGreen: "#006400" }
 }: HandoverTabProps) => {
   const [mode, setMode] = useState<HandoverMode>("shift");
   const [departmentFilter, setDepartmentFilter] = useState("All");
   const [showOutstandingOnly, setShowOutstandingOnly] = useState(false);
 
   const textSizeClass = ["text-xs", "text-sm", "text-base", "text-lg", "text-xl"][textSize];
-  const textWeightClass = textBold ? "font-bold" : "font-normal";
   const cellPadding = ["py-0.5 px-1", "py-1 px-2", "py-2 px-4", "py-3 px-4", "py-4 px-6"][rowHeight];
 
   const allJobs = useMemo(() => {
-    // Combine active and completed jobs
-    const combined = [...activeJobs, ...completedJobs];
-    return combined;
-  }, [activeJobs, completedJobs]);
+    return activeJobs;
+  }, [activeJobs]);
 
   const filteredJobs = useMemo(() => {
     let filtered = [...allJobs];
 
     // Time filtering
     if (mode === "shift") {
-      // Last 12 hours
-      const cutoff = subHours(new Date(), 12);
+      // Last X hours based on shiftDuration
+      const cutoff = subHours(new Date(), shiftDuration);
       filtered = filtered.filter((job) => job.date >= cutoff);
     } else {
-      // Set: last 96 hours
-      const cutoff = subHours(new Date(), 96);
+      // Set: last X hours based on setDuration
+      const cutoff = subHours(new Date(), setDuration);
       filtered = filtered.filter((job) => job.date >= cutoff);
     }
 
@@ -75,7 +78,7 @@ export const HandoverTab = ({
 
     // Sort by date descending (most recent first)
     return filtered.sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [allJobs, mode, departmentFilter, showOutstandingOnly]);
+  }, [allJobs, mode, departmentFilter, showOutstandingOnly, shiftDuration, setDuration]);
 
   return (
     <div className="space-y-6">
@@ -181,7 +184,7 @@ export const HandoverTab = ({
                     return () => window.removeEventListener("resize", checkOverflow);
                   }, [job.description]);
 
-                  const statusColor = getStatusColor(job.jobComplete, job.sapComplete);
+                  const statusColor = getStatusColor(job.jobComplete, job.sapComplete, statusColors);
                   const popupSizeClass = ["max-w-lg", "max-w-2xl", "max-w-4xl"][1];
 
                   return (
@@ -205,7 +208,7 @@ export const HandoverTab = ({
                         )}
                       </div>
                       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-                        <DialogContent className={cn(popupSizeClass, statusColor)}>
+                        <DialogContent className={cn(popupSizeClass)} style={{ backgroundColor: statusColor }}>
                           <DialogHeader>
                             <DialogTitle className="text-black">Full Description</DialogTitle>
                           </DialogHeader>
@@ -219,22 +222,22 @@ export const HandoverTab = ({
                 };
 
                 return (
-                  <TableRow key={job.id} className={cn(getStatusColor(job.jobComplete, job.sapComplete))}>
+                  <TableRow key={job.id} style={{ backgroundColor: getStatusColor(job.jobComplete, job.sapComplete, statusColors) }}>
                     <TableCell
-                      className={cn("whitespace-nowrap text-black overflow-hidden text-ellipsis", cellPadding, textSizeClass, textWeightClass)}
+                      className={cn("whitespace-nowrap text-black overflow-hidden text-ellipsis", cellPadding, textSizeClass)}
                     >
                       {format(job.date, "dd/MM/yy HH:mm")}
                     </TableCell>
-                    <TableCell className={cn("text-black overflow-hidden text-ellipsis", cellPadding, textSizeClass, textWeightClass)}>
+                    <TableCell className={cn("text-black overflow-hidden text-ellipsis", cellPadding, textSizeClass)}>
                       {job.department}
                     </TableCell>
-                    <TableCell className={cn("text-black", cellPadding, textSizeClass, textWeightClass)}>
+                    <TableCell className={cn("text-black", cellPadding, textSizeClass)}>
                       <DescriptionCell />
                     </TableCell>
-                    <TableCell className={cn("text-center text-black", cellPadding, textSizeClass, textWeightClass)}>
+                    <TableCell className={cn("text-center text-black", cellPadding, textSizeClass)}>
                       {job.jobComplete ? "✓" : "—"}
                     </TableCell>
-                    <TableCell className={cn("text-center text-black", cellPadding, textSizeClass, textWeightClass)}>
+                    <TableCell className={cn("text-center text-black", cellPadding, textSizeClass)}>
                       {job.sapComplete ? "✓" : "—"}
                     </TableCell>
                   </TableRow>

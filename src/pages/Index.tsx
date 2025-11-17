@@ -36,7 +36,17 @@ const Index = () => {
     appName: "Process Tracker",
     departments: ["Process", "Fruit", "Filling", "Warehouse", "Services", "Other"],
     shiftDuration: 12,
-    setDuration: 96
+    setDuration: 96,
+    rowHeightActive: 2,
+    rowHeightCompleted: 2,
+    rowHeightHandover: 2,
+    textSizeActive: 2,
+    textSizeCompleted: 2,
+    textSizeHandover: 2,
+    expandPopupSize: 1,
+    statusColorAmber: "#FFA500",
+    statusColorLightGreen: "#90EE90",
+    statusColorDarkGreen: "#006400"
   });
   const {
     activeJobs,
@@ -192,7 +202,17 @@ const Index = () => {
           appName: parsed.appName || "Process Tracker",
           departments: deptArray,
           shiftDuration: parsed.shiftDuration || 12,
-          setDuration: parsed.setDuration || 96
+          setDuration: parsed.setDuration || 96,
+          rowHeightActive: parsed.rowHeightActive ?? 2,
+          rowHeightCompleted: parsed.rowHeightCompleted ?? 2,
+          rowHeightHandover: parsed.rowHeightHandover ?? 2,
+          textSizeActive: parsed.textSizeActive ?? 2,
+          textSizeCompleted: parsed.textSizeCompleted ?? 2,
+          textSizeHandover: parsed.textSizeHandover ?? 2,
+          expandPopupSize: parsed.expandPopupSize ?? 1,
+          statusColorAmber: parsed.statusColorAmber || "#FFA500",
+          statusColorLightGreen: parsed.statusColorLightGreen || "#90EE90",
+          statusColorDarkGreen: parsed.statusColorDarkGreen || "#006400"
         });
       } catch (e) {
         console.error("Failed to parse admin settings", e);
@@ -217,7 +237,17 @@ const Index = () => {
           appName: parsed.appName || "Process Tracker",
           departments: deptArray,
           shiftDuration: parsed.shiftDuration || 12,
-          setDuration: parsed.setDuration || 96
+          setDuration: parsed.setDuration || 96,
+          rowHeightActive: parsed.rowHeightActive ?? 2,
+          rowHeightCompleted: parsed.rowHeightCompleted ?? 2,
+          rowHeightHandover: parsed.rowHeightHandover ?? 2,
+          textSizeActive: parsed.textSizeActive ?? 2,
+          textSizeCompleted: parsed.textSizeCompleted ?? 2,
+          textSizeHandover: parsed.textSizeHandover ?? 2,
+          expandPopupSize: parsed.expandPopupSize ?? 1,
+          statusColorAmber: parsed.statusColorAmber || "#FFA500",
+          statusColorLightGreen: parsed.statusColorLightGreen || "#90EE90",
+          statusColorDarkGreen: parsed.statusColorDarkGreen || "#006400"
         });
       } catch (e) {
         console.error("Failed to parse admin settings", e);
@@ -280,7 +310,11 @@ const Index = () => {
                   <div className="text-center">SAP</div>
                   <div></div>
                 </div>
-                {activeJobs.map(job => <JobRow key={job.id} job={job} onUpdate={updateJob} onDelete={deleteJob} rowHeight={rowHeight} textSize={textSize} textBold={textBold} />)}
+                {activeJobs.map(job => <JobRow key={job.id} job={job} onUpdate={updateJob} onDelete={deleteJob} rowHeight={adminSettings.rowHeightActive} textSize={adminSettings.textSizeActive} textBold={textBold} departments={adminSettings.departments} statusColors={{
+                    amber: adminSettings.statusColorAmber,
+                    lightGreen: adminSettings.statusColorLightGreen,
+                    darkGreen: adminSettings.statusColorDarkGreen
+                  }} expandPopupSize={adminSettings.expandPopupSize} />)}
               </div>}
 
             {activeJobs.some(job => job.jobComplete && job.sapComplete) && <div className="flex justify-center pt-4">
@@ -292,11 +326,37 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="completed">
-            <CompletedJobsLog jobs={completedJobs} isAdminMode={isAdminMode} onDelete={deleteCompletedJob} onUpdate={updateCompletedJob} />
+            <CompletedJobsLog 
+              jobs={completedJobs} 
+              isAdminMode={isAdminMode} 
+              onDelete={deleteCompletedJob} 
+              onUpdate={updateCompletedJob} 
+              rowHeight={adminSettings.rowHeightCompleted} 
+              textSize={adminSettings.textSizeCompleted} 
+              textBold={textBold} 
+              departments={["All", ...adminSettings.departments]} 
+              statusColors={{
+                amber: adminSettings.statusColorAmber,
+                lightGreen: adminSettings.statusColorLightGreen,
+                darkGreen: adminSettings.statusColorDarkGreen
+              }} 
+              expandPopupSize={adminSettings.expandPopupSize} 
+            />
           </TabsContent>
 
           <TabsContent value="handover">
-            <HandoverTab activeJobs={activeJobs} completedJobs={completedJobs} textSize={textSize} textBold={textBold} rowHeight={rowHeight} />
+            <HandoverTab 
+              activeJobs={activeJobs} 
+              shiftDuration={adminSettings.shiftDuration} 
+              setDuration={adminSettings.setDuration} 
+              rowHeight={adminSettings.rowHeightHandover} 
+              textSize={adminSettings.textSizeHandover} 
+              statusColors={{
+                amber: adminSettings.statusColorAmber,
+                lightGreen: adminSettings.statusColorLightGreen,
+                darkGreen: adminSettings.statusColorDarkGreen
+              }} 
+            />
           </TabsContent>
         </div>
       </Tabs>
