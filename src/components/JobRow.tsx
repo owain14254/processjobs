@@ -51,18 +51,18 @@ const getStatusColor = (jobComplete: boolean, sapComplete: boolean) => {
   return "bg-status-amber";
 };
 
-export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1, textSize = 1, textBold = false }: JobRowProps) => {
+export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 2, textSize = 2, textBold = false }: JobRowProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isOverflowing, setIsOverflowing] = useState(false);
 
   const sizeClasses = {
-    padding: ["p-0.5", "p-1", "p-1.5"][rowHeight],
-    gap: ["gap-1", "gap-1.5", "gap-2"][rowHeight],
-    height: ["h-6", "h-7", "h-8"][rowHeight],
-    text: ["text-xs", "text-xs", "text-sm"][rowHeight],
+    padding: ["p-0.5", "p-1", "p-1.5", "p-2", "p-3"][rowHeight],
+    gap: ["gap-0.5", "gap-1", "gap-1.5", "gap-2", "gap-3"][rowHeight],
+    height: ["h-6", "h-7", "h-8", "h-9", "h-10"][rowHeight],
+    text: ["text-xs", "text-xs", "text-sm", "text-sm", "text-base"][rowHeight],
   };
 
-  const textSizeClass = ["text-xs", "text-sm", "text-base"][textSize];
+  const textSizeClass = ["text-xs", "text-sm", "text-base", "text-lg", "text-xl"][textSize];
   const textWeightClass = textBold ? "font-bold" : "font-normal";
   
   const statusColor = getStatusColor(job.jobComplete, job.sapComplete);
