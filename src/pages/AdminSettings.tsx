@@ -9,7 +9,6 @@ import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-
 interface AdminSettingsData {
   // Visuals
   rowHeightActive: number;
@@ -22,7 +21,7 @@ interface AdminSettingsData {
   statusColorAmber: string;
   statusColorLightGreen: string;
   statusColorDarkGreen: string;
-  
+
   // General
   tabNameActive: string;
   tabNameCompleted: string;
@@ -31,12 +30,11 @@ interface AdminSettingsData {
   departments: string;
   shiftDuration: number;
   setDuration: number;
-  
+
   // Save
   autoSaveInterval: number;
   backupReminderInterval: number;
 }
-
 const defaultSettings: AdminSettingsData = {
   rowHeightActive: 1,
   rowHeightCompleted: 1,
@@ -56,43 +54,44 @@ const defaultSettings: AdminSettingsData = {
   shiftDuration: 12,
   setDuration: 96,
   autoSaveInterval: 5,
-  backupReminderInterval: 24,
+  backupReminderInterval: 24
 };
-
 const ROW_HEIGHT_OPTIONS = ["Extra Compact", "Compact", "Normal", "Comfortable", "Extra Comfortable"];
 const TEXT_SIZE_OPTIONS = ["Extra Small", "Small", "Normal", "Large", "Extra Large"];
 const POPUP_SIZE_OPTIONS = ["Small", "Normal", "Large"];
-
 export default function AdminSettings() {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [settings, setSettings] = useState<AdminSettingsData>(defaultSettings);
   const [hasChanges, setHasChanges] = useState(false);
-
   useEffect(() => {
     const savedSettings = localStorage.getItem("adminSettings");
     if (savedSettings) {
-      setSettings({ ...defaultSettings, ...JSON.parse(savedSettings) });
+      setSettings({
+        ...defaultSettings,
+        ...JSON.parse(savedSettings)
+      });
     }
   }, []);
-
   const handleSave = () => {
     localStorage.setItem("adminSettings", JSON.stringify(settings));
     localStorage.setItem("lastSettingsSave", new Date().toISOString());
     setHasChanges(false);
     toast({
       title: "Settings Saved",
-      description: "Your admin settings have been saved successfully.",
+      description: "Your admin settings have been saved successfully."
     });
   };
-
-  const updateSetting = <K extends keyof AdminSettingsData>(key: K, value: AdminSettingsData[K]) => {
-    setSettings((prev) => ({ ...prev, [key]: value }));
+  const updateSetting = <K extends keyof AdminSettingsData,>(key: K, value: AdminSettingsData[K]) => {
+    setSettings(prev => ({
+      ...prev,
+      [key]: value
+    }));
     setHasChanges(true);
   };
-
-  return (
-    <div className="min-h-screen bg-background p-6">
+  return <div className="min-h-screen bg-background p-6">
       <div className="max-w-[1200px] mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -129,43 +128,20 @@ export default function AdminSettings() {
               <CardContent className="space-y-6">
                 <div className="space-y-2">
                   <Label>Active Jobs Tab: {ROW_HEIGHT_OPTIONS[settings.rowHeightActive]}</Label>
-                  <Slider
-                    value={[settings.rowHeightActive]}
-                    onValueChange={(value) => updateSetting("rowHeightActive", value[0])}
-                    min={0}
-                    max={4}
-                    step={1}
-                    className="w-full"
-                  />
+                  <Slider value={[settings.rowHeightActive]} onValueChange={value => updateSetting("rowHeightActive", value[0])} min={0} max={4} step={1} className="w-full" />
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    {ROW_HEIGHT_OPTIONS.map((option, idx) => (
-                      <span key={idx}>{option}</span>
-                    ))}
+                    {ROW_HEIGHT_OPTIONS.map((option, idx) => {})}
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label>Completed Jobs Tab: {ROW_HEIGHT_OPTIONS[settings.rowHeightCompleted]}</Label>
-                  <Slider
-                    value={[settings.rowHeightCompleted]}
-                    onValueChange={(value) => updateSetting("rowHeightCompleted", value[0])}
-                    min={0}
-                    max={4}
-                    step={1}
-                    className="w-full"
-                  />
+                  <Slider value={[settings.rowHeightCompleted]} onValueChange={value => updateSetting("rowHeightCompleted", value[0])} min={0} max={4} step={1} className="w-full" />
                 </div>
 
                 <div className="space-y-2">
                   <Label>Handover Tab: {ROW_HEIGHT_OPTIONS[settings.rowHeightHandover]}</Label>
-                  <Slider
-                    value={[settings.rowHeightHandover]}
-                    onValueChange={(value) => updateSetting("rowHeightHandover", value[0])}
-                    min={0}
-                    max={4}
-                    step={1}
-                    className="w-full"
-                  />
+                  <Slider value={[settings.rowHeightHandover]} onValueChange={value => updateSetting("rowHeightHandover", value[0])} min={0} max={4} step={1} className="w-full" />
                 </div>
               </CardContent>
             </Card>
@@ -178,43 +154,20 @@ export default function AdminSettings() {
               <CardContent className="space-y-6">
                 <div className="space-y-2">
                   <Label>Active Jobs Tab: {TEXT_SIZE_OPTIONS[settings.textSizeActive]}</Label>
-                  <Slider
-                    value={[settings.textSizeActive]}
-                    onValueChange={(value) => updateSetting("textSizeActive", value[0])}
-                    min={0}
-                    max={4}
-                    step={1}
-                    className="w-full"
-                  />
+                  <Slider value={[settings.textSizeActive]} onValueChange={value => updateSetting("textSizeActive", value[0])} min={0} max={4} step={1} className="w-full" />
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    {TEXT_SIZE_OPTIONS.map((option, idx) => (
-                      <span key={idx}>{option}</span>
-                    ))}
+                    {TEXT_SIZE_OPTIONS.map((option, idx) => {})}
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label>Completed Jobs Tab: {TEXT_SIZE_OPTIONS[settings.textSizeCompleted]}</Label>
-                  <Slider
-                    value={[settings.textSizeCompleted]}
-                    onValueChange={(value) => updateSetting("textSizeCompleted", value[0])}
-                    min={0}
-                    max={4}
-                    step={1}
-                    className="w-full"
-                  />
+                  <Slider value={[settings.textSizeCompleted]} onValueChange={value => updateSetting("textSizeCompleted", value[0])} min={0} max={4} step={1} className="w-full" />
                 </div>
 
                 <div className="space-y-2">
                   <Label>Handover Tab: {TEXT_SIZE_OPTIONS[settings.textSizeHandover]}</Label>
-                  <Slider
-                    value={[settings.textSizeHandover]}
-                    onValueChange={(value) => updateSetting("textSizeHandover", value[0])}
-                    min={0}
-                    max={4}
-                    step={1}
-                    className="w-full"
-                  />
+                  <Slider value={[settings.textSizeHandover]} onValueChange={value => updateSetting("textSizeHandover", value[0])} min={0} max={4} step={1} className="w-full" />
                 </div>
               </CardContent>
             </Card>
@@ -226,18 +179,9 @@ export default function AdminSettings() {
               </CardHeader>
               <CardContent className="space-y-2">
                 <Label>Expand Popup Size: {POPUP_SIZE_OPTIONS[settings.expandPopupSize]}</Label>
-                <Slider
-                  value={[settings.expandPopupSize]}
-                  onValueChange={(value) => updateSetting("expandPopupSize", value[0])}
-                  min={0}
-                  max={2}
-                  step={1}
-                  className="w-full"
-                />
+                <Slider value={[settings.expandPopupSize]} onValueChange={value => updateSetting("expandPopupSize", value[0])} min={0} max={2} step={1} className="w-full" />
                 <div className="flex justify-between text-xs text-muted-foreground">
-                  {POPUP_SIZE_OPTIONS.map((option, idx) => (
-                    <span key={idx}>{option}</span>
-                  ))}
+                  {POPUP_SIZE_OPTIONS.map((option, idx) => <span key={idx}>{option}</span>)}
                 </div>
               </CardContent>
             </Card>
@@ -251,54 +195,24 @@ export default function AdminSettings() {
                 <div className="space-y-2">
                   <Label>Open Job (Amber)</Label>
                   <div className="flex gap-2 items-center">
-                    <Input
-                      type="color"
-                      value={settings.statusColorAmber}
-                      onChange={(e) => updateSetting("statusColorAmber", e.target.value)}
-                      className="w-20 h-10"
-                    />
-                    <Input
-                      type="text"
-                      value={settings.statusColorAmber}
-                      onChange={(e) => updateSetting("statusColorAmber", e.target.value)}
-                      placeholder="#FFA500"
-                    />
+                    <Input type="color" value={settings.statusColorAmber} onChange={e => updateSetting("statusColorAmber", e.target.value)} className="w-20 h-10" />
+                    <Input type="text" value={settings.statusColorAmber} onChange={e => updateSetting("statusColorAmber", e.target.value)} placeholder="#FFA500" />
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label>Complete, Awaiting SAP (Light Green)</Label>
                   <div className="flex gap-2 items-center">
-                    <Input
-                      type="color"
-                      value={settings.statusColorLightGreen}
-                      onChange={(e) => updateSetting("statusColorLightGreen", e.target.value)}
-                      className="w-20 h-10"
-                    />
-                    <Input
-                      type="text"
-                      value={settings.statusColorLightGreen}
-                      onChange={(e) => updateSetting("statusColorLightGreen", e.target.value)}
-                      placeholder="#90EE90"
-                    />
+                    <Input type="color" value={settings.statusColorLightGreen} onChange={e => updateSetting("statusColorLightGreen", e.target.value)} className="w-20 h-10" />
+                    <Input type="text" value={settings.statusColorLightGreen} onChange={e => updateSetting("statusColorLightGreen", e.target.value)} placeholder="#90EE90" />
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label>Fully Completed (Dark Green)</Label>
                   <div className="flex gap-2 items-center">
-                    <Input
-                      type="color"
-                      value={settings.statusColorDarkGreen}
-                      onChange={(e) => updateSetting("statusColorDarkGreen", e.target.value)}
-                      className="w-20 h-10"
-                    />
-                    <Input
-                      type="text"
-                      value={settings.statusColorDarkGreen}
-                      onChange={(e) => updateSetting("statusColorDarkGreen", e.target.value)}
-                      placeholder="#006400"
-                    />
+                    <Input type="color" value={settings.statusColorDarkGreen} onChange={e => updateSetting("statusColorDarkGreen", e.target.value)} className="w-20 h-10" />
+                    <Input type="text" value={settings.statusColorDarkGreen} onChange={e => updateSetting("statusColorDarkGreen", e.target.value)} placeholder="#006400" />
                   </div>
                 </div>
               </CardContent>
@@ -314,11 +228,7 @@ export default function AdminSettings() {
               </CardHeader>
               <CardContent>
                 <Label>App Name</Label>
-                <Input
-                  value={settings.appName}
-                  onChange={(e) => updateSetting("appName", e.target.value)}
-                  placeholder="Job Log"
-                />
+                <Input value={settings.appName} onChange={e => updateSetting("appName", e.target.value)} placeholder="Job Log" />
               </CardContent>
             </Card>
 
@@ -330,27 +240,15 @@ export default function AdminSettings() {
               <CardContent className="space-y-4">
                 <div>
                   <Label>Active Jobs Tab</Label>
-                  <Input
-                    value={settings.tabNameActive}
-                    onChange={(e) => updateSetting("tabNameActive", e.target.value)}
-                    placeholder="Active"
-                  />
+                  <Input value={settings.tabNameActive} onChange={e => updateSetting("tabNameActive", e.target.value)} placeholder="Active" />
                 </div>
                 <div>
                   <Label>Completed Jobs Tab</Label>
-                  <Input
-                    value={settings.tabNameCompleted}
-                    onChange={(e) => updateSetting("tabNameCompleted", e.target.value)}
-                    placeholder="Completed"
-                  />
+                  <Input value={settings.tabNameCompleted} onChange={e => updateSetting("tabNameCompleted", e.target.value)} placeholder="Completed" />
                 </div>
                 <div>
                   <Label>Handover Tab</Label>
-                  <Input
-                    value={settings.tabNameHandover}
-                    onChange={(e) => updateSetting("tabNameHandover", e.target.value)}
-                    placeholder="Handover"
-                  />
+                  <Input value={settings.tabNameHandover} onChange={e => updateSetting("tabNameHandover", e.target.value)} placeholder="Handover" />
                 </div>
               </CardContent>
             </Card>
@@ -362,12 +260,7 @@ export default function AdminSettings() {
               </CardHeader>
               <CardContent>
                 <Label>Department List</Label>
-                <Textarea
-                  value={settings.departments}
-                  onChange={(e) => updateSetting("departments", e.target.value)}
-                  placeholder="Process, Fruit, Filling, Warehouse, Services, Other"
-                  rows={3}
-                />
+                <Textarea value={settings.departments} onChange={e => updateSetting("departments", e.target.value)} placeholder="Process, Fruit, Filling, Warehouse, Services, Other" rows={3} />
               </CardContent>
             </Card>
 
@@ -379,23 +272,11 @@ export default function AdminSettings() {
               <CardContent className="space-y-4">
                 <div>
                   <Label>Shift Duration (hours)</Label>
-                  <Input
-                    type="number"
-                    value={settings.shiftDuration}
-                    onChange={(e) => updateSetting("shiftDuration", parseInt(e.target.value) || 12)}
-                    min={1}
-                    max={24}
-                  />
+                  <Input type="number" value={settings.shiftDuration} onChange={e => updateSetting("shiftDuration", parseInt(e.target.value) || 12)} min={1} max={24} />
                 </div>
                 <div>
                   <Label>Set Duration (hours)</Label>
-                  <Input
-                    type="number"
-                    value={settings.setDuration}
-                    onChange={(e) => updateSetting("setDuration", parseInt(e.target.value) || 96)}
-                    min={1}
-                    max={168}
-                  />
+                  <Input type="number" value={settings.setDuration} onChange={e => updateSetting("setDuration", parseInt(e.target.value) || 96)} min={1} max={168} />
                 </div>
               </CardContent>
             </Card>
@@ -411,13 +292,7 @@ export default function AdminSettings() {
               <CardContent className="space-y-4">
                 <div>
                   <Label>Auto-Save Interval (minutes)</Label>
-                  <Input
-                    type="number"
-                    value={settings.autoSaveInterval}
-                    onChange={(e) => updateSetting("autoSaveInterval", parseInt(e.target.value) || 5)}
-                    min={1}
-                    max={60}
-                  />
+                  <Input type="number" value={settings.autoSaveInterval} onChange={e => updateSetting("autoSaveInterval", parseInt(e.target.value) || 5)} min={1} max={60} />
                   <p className="text-xs text-muted-foreground mt-1">
                     Data is automatically saved to local storage every {settings.autoSaveInterval} minutes
                   </p>
@@ -432,13 +307,7 @@ export default function AdminSettings() {
               </CardHeader>
               <CardContent>
                 <Label>Backup Reminder Interval (hours)</Label>
-                <Input
-                  type="number"
-                  value={settings.backupReminderInterval}
-                  onChange={(e) => updateSetting("backupReminderInterval", parseInt(e.target.value) || 24)}
-                  min={1}
-                  max={168}
-                />
+                <Input type="number" value={settings.backupReminderInterval} onChange={e => updateSetting("backupReminderInterval", parseInt(e.target.value) || 24)} min={1} max={168} />
                 <p className="text-xs text-muted-foreground mt-1">
                   Show backup reminder every {settings.backupReminderInterval} hours
                 </p>
@@ -447,6 +316,5 @@ export default function AdminSettings() {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
-  );
+    </div>;
 }
