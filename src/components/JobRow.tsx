@@ -174,11 +174,11 @@ export const JobRow = ({ job, onUpdate, onDelete, rowHeight = 1, textSize = 1, t
                 <Expand className="h-3.5 w-3.5 text-red-600" />
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className={cn("max-w-2xl", statusColor)}>
               <DialogHeader>
-                <DialogTitle>Full Description</DialogTitle>
+                <DialogTitle className="text-black">Full Description</DialogTitle>
               </DialogHeader>
-              <p className="text-sm">{job.description}</p>
+              <p className="text-sm text-black break-words whitespace-normal">{job.description}</p>
             </DialogContent>
           </Dialog>
         )}
