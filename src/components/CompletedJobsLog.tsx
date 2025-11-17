@@ -90,7 +90,7 @@ export const CompletedJobsLog = ({ jobs, isAdminMode = false, onDelete, onUpdate
           ((shiftFilter.shift === "days" && isDayShift) || (shiftFilter.shift === "nights" && isNightShift));
       }
       return matchesSearch && matchesDepartment && matchesStartDate && matchesEndDate && matchesShift;
-    });
+    }).sort((a, b) => b.date.getTime() - a.date.getTime());
   }, [jobs, searchTerm, departmentFilter, startDate, endDate, shiftFilter]);
   const handleEdit = (job: CompletedJob) => {
     setEditingJob(job);
