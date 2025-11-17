@@ -43,6 +43,7 @@ const Index = () => {
     textSizeActive: 2,
     textSizeCompleted: 2,
     textSizeHandover: 2,
+    textBold: false,
     expandPopupSize: 1,
     statusColorAmber: "#FFA500",
     statusColorLightGreen: "#90EE90",
@@ -209,6 +210,7 @@ const Index = () => {
           textSizeActive: parsed.textSizeActive ?? 2,
           textSizeCompleted: parsed.textSizeCompleted ?? 2,
           textSizeHandover: parsed.textSizeHandover ?? 2,
+          textBold: parsed.textBold ?? false,
           expandPopupSize: parsed.expandPopupSize ?? 1,
           statusColorAmber: parsed.statusColorAmber || "#FFA500",
           statusColorLightGreen: parsed.statusColorLightGreen || "#90EE90",
@@ -244,6 +246,7 @@ const Index = () => {
           textSizeActive: parsed.textSizeActive ?? 2,
           textSizeCompleted: parsed.textSizeCompleted ?? 2,
           textSizeHandover: parsed.textSizeHandover ?? 2,
+          textBold: parsed.textBold ?? false,
           expandPopupSize: parsed.expandPopupSize ?? 1,
           statusColorAmber: parsed.statusColorAmber || "#FFA500",
           statusColorLightGreen: parsed.statusColorLightGreen || "#90EE90",
@@ -310,7 +313,7 @@ const Index = () => {
                   <div className="text-center">SAP</div>
                   <div></div>
                 </div>
-                {activeJobs.map(job => <JobRow key={job.id} job={job} onUpdate={updateJob} onDelete={deleteJob} rowHeight={adminSettings.rowHeightActive} textSize={adminSettings.textSizeActive} textBold={textBold} departments={adminSettings.departments} statusColors={{
+                {activeJobs.map(job => <JobRow key={job.id} job={job} onUpdate={updateJob} onDelete={deleteJob} rowHeight={adminSettings.rowHeightActive} textSize={adminSettings.textSizeActive} textBold={adminSettings.textBold} departments={adminSettings.departments} statusColors={{
                     amber: adminSettings.statusColorAmber,
                     lightGreen: adminSettings.statusColorLightGreen,
                     darkGreen: adminSettings.statusColorDarkGreen
@@ -333,7 +336,7 @@ const Index = () => {
               onUpdate={updateCompletedJob} 
               rowHeight={adminSettings.rowHeightCompleted} 
               textSize={adminSettings.textSizeCompleted} 
-              textBold={textBold} 
+              textBold={adminSettings.textBold} 
               departments={["All", ...adminSettings.departments]} 
               statusColors={{
                 amber: adminSettings.statusColorAmber,
