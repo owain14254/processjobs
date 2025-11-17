@@ -11,11 +11,10 @@ import { cn } from "@/lib/utils";
 
 interface AddJobFormProps {
   onAdd: (job: Omit<Job, "id">) => void;
+  departments?: string[];
 }
 
-const DEPARTMENTS = ["Process", "Fruit", "Filling", "Warehouse", "Services", "Other"];
-
-export const AddJobForm = ({ onAdd }: AddJobFormProps) => {
+export const AddJobForm = ({ onAdd, departments = ["Process", "Fruit", "Filling", "Warehouse", "Services", "Other"] }: AddJobFormProps) => {
   const [date, setDate] = useState<Date>(new Date());
   const [department, setDepartment] = useState<string>("");
   const [description, setDescription] = useState<string>("");
@@ -59,7 +58,7 @@ export const AddJobForm = ({ onAdd }: AddJobFormProps) => {
           <SelectValue placeholder="Select department" />
         </SelectTrigger>
         <SelectContent>
-          {DEPARTMENTS.map((dept) => (
+          {departments.map((dept) => (
             <SelectItem key={dept} value={dept}>
               {dept}
             </SelectItem>

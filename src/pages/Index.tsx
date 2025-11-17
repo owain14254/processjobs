@@ -33,7 +33,10 @@ const Index = () => {
     tabNameActive: "Active",
     tabNameCompleted: "Completed",
     tabNameHandover: "Handover",
-    appName: "Process Tracker"
+    appName: "Process Tracker",
+    departments: ["Process", "Fruit", "Filling", "Warehouse", "Services", "Other"],
+    shiftDuration: 12,
+    setDuration: 96
   });
   const {
     activeJobs,
@@ -178,11 +181,18 @@ const Index = () => {
     if (savedSettings) {
       try {
         const parsed = JSON.parse(savedSettings);
+        const deptArray = parsed.departments 
+          ? parsed.departments.split(',').map((d: string) => d.trim()).filter((d: string) => d)
+          : ["Process", "Fruit", "Filling", "Warehouse", "Services", "Other"];
+        
         setAdminSettings({
           tabNameActive: parsed.tabNameActive || "Active",
           tabNameCompleted: parsed.tabNameCompleted || "Completed",
           tabNameHandover: parsed.tabNameHandover || "Handover",
-          appName: parsed.appName || "Process Tracker"
+          appName: parsed.appName || "Process Tracker",
+          departments: deptArray,
+          shiftDuration: parsed.shiftDuration || 12,
+          setDuration: parsed.setDuration || 96
         });
       } catch (e) {
         console.error("Failed to parse admin settings", e);
@@ -196,11 +206,18 @@ const Index = () => {
     if (savedSettings) {
       try {
         const parsed = JSON.parse(savedSettings);
+        const deptArray = parsed.departments 
+          ? parsed.departments.split(',').map((d: string) => d.trim()).filter((d: string) => d)
+          : ["Process", "Fruit", "Filling", "Warehouse", "Services", "Other"];
+        
         setAdminSettings({
           tabNameActive: parsed.tabNameActive || "Active",
           tabNameCompleted: parsed.tabNameCompleted || "Completed",
           tabNameHandover: parsed.tabNameHandover || "Handover",
-          appName: parsed.appName || "Process Tracker"
+          appName: parsed.appName || "Process Tracker",
+          departments: deptArray,
+          shiftDuration: parsed.shiftDuration || 12,
+          setDuration: parsed.setDuration || 96
         });
       } catch (e) {
         console.error("Failed to parse admin settings", e);
@@ -252,7 +269,7 @@ const Index = () => {
           {/* Tab Content */}
 
           <TabsContent value="active" className="space-y-3">
-            <AddJobForm onAdd={addJob} />
+            <AddJobForm onAdd={addJob} departments={adminSettings.departments} />
 
             {activeJobs.length === 0 ? <div className="text-center py-12 text-muted-foreground">No active jobs. Add a job to get started.</div> : <div className="space-y-0.5">
                 <div className="grid grid-cols-[180px_140px_1fr_100px_100px_50px] gap-2 px-1.5 py-1 text-xs font-medium text-muted-foreground">
