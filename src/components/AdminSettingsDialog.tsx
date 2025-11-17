@@ -108,8 +108,15 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
       </DialogTrigger>
       <DialogContent className="max-w-[90vw] max-h-[95vh] flex flex-col">
         <DialogHeader className="flex-shrink-0 pb-1 space-y-0">
-          <DialogTitle className="text-base">Admin Settings</DialogTitle>
-          <DialogDescription className="text-[11px]">Configure application settings (changes apply in real-time)</DialogDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle className="text-base">Admin Settings</DialogTitle>
+              <DialogDescription className="text-[11px]">Configure application settings (changes apply in real-time)</DialogDescription>
+            </div>
+            <Button onClick={handleReset} variant="outline" size="sm" className="h-7 text-xs">
+              Reset to Defaults
+            </Button>
+          </div>
         </DialogHeader>
 
         <div className="grid grid-cols-2 gap-4 flex-1 min-h-0 overflow-y-auto pr-2">
@@ -438,14 +445,9 @@ export function AdminSettingsDialog({ onSettingsChange }: AdminSettingsDialogPro
               {/* Test Popup */}
               <div className="space-y-1">
                 <Label className="text-[11px] font-semibold">Test Popup</Label>
-                <div className="flex gap-2">
-                  <Button onClick={() => setShowTestPopup(true)} className="flex-1 h-7 text-xs">
-                    Test Popup Size
-                  </Button>
-                  <Button onClick={handleReset} variant="outline" className="flex-1 h-7 text-xs">
-                    Reset to Defaults
-                  </Button>
-                </div>
+                <Button onClick={() => setShowTestPopup(true)} className="w-full h-7 text-xs">
+                  Test Save Pop Up
+                </Button>
               </div>
             </CardContent>
           </Card>
