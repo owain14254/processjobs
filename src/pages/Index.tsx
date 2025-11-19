@@ -46,10 +46,14 @@ const Index = () => {
     textBoldActive: false,
     textBoldCompleted: false,
     textBoldHandover: false,
-    expandPopupSize: 1,
-    statusColorAmber: "#FFA500",
-    statusColorLightGreen: "#90EE90",
-    statusColorDarkGreen: "#006400"
+    expandPopupSize: 2,
+    statusColorAmber: "#ffc252",
+    statusColorLightGreen: "#8bea8b",
+    statusColorDarkGreen: "#00b300",
+    flag1Color: "#ff6b6b",
+    flag2Color: "#4ecdc4",
+    flag3Color: "#ffe66d",
+    flag4Color: "#a8dadc"
   });
   const {
     activeJobs,
@@ -215,10 +219,14 @@ const Index = () => {
           textBoldActive: parsed.textBoldActive ?? false,
           textBoldCompleted: parsed.textBoldCompleted ?? false,
           textBoldHandover: parsed.textBoldHandover ?? false,
-          expandPopupSize: parsed.expandPopupSize ?? 1,
-          statusColorAmber: parsed.statusColorAmber || "#FFA500",
-          statusColorLightGreen: parsed.statusColorLightGreen || "#90EE90",
-          statusColorDarkGreen: parsed.statusColorDarkGreen || "#006400"
+          expandPopupSize: parsed.expandPopupSize ?? 2,
+          statusColorAmber: parsed.statusColorAmber || "#ffc252",
+          statusColorLightGreen: parsed.statusColorLightGreen || "#8bea8b",
+          statusColorDarkGreen: parsed.statusColorDarkGreen || "#00b300",
+          flag1Color: parsed.flag1Color || "#ff6b6b",
+          flag2Color: parsed.flag2Color || "#4ecdc4",
+          flag3Color: parsed.flag3Color || "#ffe66d",
+          flag4Color: parsed.flag4Color || "#a8dadc"
         });
       } catch (e) {
         console.error("Failed to parse admin settings", e);
@@ -253,10 +261,14 @@ const Index = () => {
           textBoldActive: parsed.textBoldActive ?? false,
           textBoldCompleted: parsed.textBoldCompleted ?? false,
           textBoldHandover: parsed.textBoldHandover ?? false,
-          expandPopupSize: parsed.expandPopupSize ?? 1,
-          statusColorAmber: parsed.statusColorAmber || "#FFA500",
-          statusColorLightGreen: parsed.statusColorLightGreen || "#90EE90",
-          statusColorDarkGreen: parsed.statusColorDarkGreen || "#006400"
+          expandPopupSize: parsed.expandPopupSize ?? 2,
+          statusColorAmber: parsed.statusColorAmber || "#ffc252",
+          statusColorLightGreen: parsed.statusColorLightGreen || "#8bea8b",
+          statusColorDarkGreen: parsed.statusColorDarkGreen || "#00b300",
+          flag1Color: parsed.flag1Color || "#ff6b6b",
+          flag2Color: parsed.flag2Color || "#4ecdc4",
+          flag3Color: parsed.flag3Color || "#ffe66d",
+          flag4Color: parsed.flag4Color || "#a8dadc"
         });
       } catch (e) {
         console.error("Failed to parse admin settings", e);
@@ -311,7 +323,8 @@ const Index = () => {
             <AddJobForm onAdd={addJob} departments={adminSettings.departments} />
 
             {activeJobs.length === 0 ? <div className="text-center py-12 text-muted-foreground">No active jobs. Add a job to get started.</div> : <div className="space-y-0.5">
-                <div className="grid grid-cols-[180px_140px_1fr_100px_100px_50px] gap-2 px-1.5 py-1 text-xs font-medium text-muted-foreground">
+                <div className="grid grid-cols-[40px_180px_140px_1fr_100px_100px_50px] gap-2 px-1.5 py-1 text-xs font-medium text-muted-foreground">
+                  <div>Flag</div>
                   <div>Date</div>
                   <div>Department</div>
                   <div>Description</div>
@@ -323,7 +336,12 @@ const Index = () => {
                     amber: adminSettings.statusColorAmber,
                     lightGreen: adminSettings.statusColorLightGreen,
                     darkGreen: adminSettings.statusColorDarkGreen
-                  }} expandPopupSize={adminSettings.expandPopupSize} />)}
+                  }} expandPopupSize={adminSettings.expandPopupSize} flagColors={{
+                    flag1: adminSettings.flag1Color,
+                    flag2: adminSettings.flag2Color,
+                    flag3: adminSettings.flag3Color,
+                    flag4: adminSettings.flag4Color
+                  }} />)}
               </div>}
 
             {activeJobs.some(job => job.jobComplete && job.sapComplete) && <div className="flex justify-center pt-4">
