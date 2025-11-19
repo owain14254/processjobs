@@ -26,10 +26,6 @@ interface AdminSettingsData {
   statusColorAmber: string;
   statusColorLightGreen: string;
   statusColorDarkGreen: string;
-  flag1Color: string;
-  flag2Color: string;
-  flag3Color: string;
-  flag4Color: string;
 
   // General
   tabNameActive: string;
@@ -59,10 +55,6 @@ const defaultSettings: AdminSettingsData = {
   statusColorAmber: "#ffc252",
   statusColorLightGreen: "#8bea8b",
   statusColorDarkGreen: "#00b300",
-  flag1Color: "#dc2626",
-  flag2Color: "#f59e0b",
-  flag3Color: "#16a34a",
-  flag4Color: "#2563eb",
   tabNameActive: "Active",
   tabNameCompleted: "Completed",
   tabNameHandover: "Handover",
@@ -431,112 +423,6 @@ export function AdminSettingsDialog({ onSettingsChange, onTestSavePrompt }: Admi
                     className="flex-1"
                   />
                   <span className="text-[10px] text-muted-foreground w-24">{POPUP_SIZE_OPTIONS[settings.expandPopupSize]}</span>
-                </div>
-              </div>
-
-              {/* Flag Colors Table */}
-              <div className="space-y-1">
-                <Label className="text-[11px] font-semibold">Shift Flag Colors</Label>
-                <div className="border rounded-md overflow-hidden">
-                  <table className="w-full text-[10px]">
-                    <thead className="bg-muted/50">
-                      <tr>
-                        <th className="text-left p-1.5 font-medium">Flag</th>
-                        <th className="text-left p-1.5 font-medium">Color</th>
-                        <th className="text-left p-1.5 font-medium w-16">Preview</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                       <tr className="border-t">
-                        <td className="p-1.5">Flag 1 (Red)</td>
-                        <td className="p-1.5">
-                          <div className="flex gap-1.5 items-center">
-                            <Input 
-                              type="color" 
-                              value={settings.flag1Color} 
-                              onChange={e => updateSetting("flag1Color", e.target.value)} 
-                              className="w-8 h-6 p-0" 
-                            />
-                            <Input 
-                              type="text" 
-                              value={settings.flag1Color} 
-                              onChange={e => updateSetting("flag1Color", e.target.value)} 
-                              className="text-[10px] h-6 flex-1" 
-                            />
-                          </div>
-                        </td>
-                        <td className="p-1.5">
-                          <div className="h-6 rounded" style={{ backgroundColor: settings.flag1Color }} />
-                        </td>
-                      </tr>
-                      <tr className="border-t">
-                        <td className="p-1.5">Flag 2 (Amber)</td>
-                        <td className="p-1.5">
-                          <div className="flex gap-1.5 items-center">
-                            <Input 
-                              type="color" 
-                              value={settings.flag2Color} 
-                              onChange={e => updateSetting("flag2Color", e.target.value)} 
-                              className="w-8 h-6 p-0" 
-                            />
-                            <Input 
-                              type="text" 
-                              value={settings.flag2Color} 
-                              onChange={e => updateSetting("flag2Color", e.target.value)} 
-                              className="text-[10px] h-6 flex-1" 
-                            />
-                          </div>
-                        </td>
-                        <td className="p-1.5">
-                          <div className="h-6 rounded" style={{ backgroundColor: settings.flag2Color }} />
-                        </td>
-                      </tr>
-                      <tr className="border-t">
-                        <td className="p-1.5">Flag 3 (Green)</td>
-                        <td className="p-1.5">
-                          <div className="flex gap-1.5 items-center">
-                            <Input 
-                              type="color" 
-                              value={settings.flag3Color} 
-                              onChange={e => updateSetting("flag3Color", e.target.value)} 
-                              className="w-8 h-6 p-0" 
-                            />
-                            <Input 
-                              type="text" 
-                              value={settings.flag3Color} 
-                              onChange={e => updateSetting("flag3Color", e.target.value)} 
-                              className="text-[10px] h-6 flex-1" 
-                            />
-                          </div>
-                        </td>
-                        <td className="p-1.5">
-                          <div className="h-6 rounded" style={{ backgroundColor: settings.flag3Color }} />
-                        </td>
-                      </tr>
-                      <tr className="border-t">
-                        <td className="p-1.5">Flag 4 (Blue)</td>
-                        <td className="p-1.5">
-                          <div className="flex gap-1.5 items-center">
-                            <Input 
-                              type="color" 
-                              value={settings.flag4Color} 
-                              onChange={e => updateSetting("flag4Color", e.target.value)} 
-                              className="w-8 h-6 p-0" 
-                            />
-                            <Input 
-                              type="text" 
-                              value={settings.flag4Color} 
-                              onChange={e => updateSetting("flag4Color", e.target.value)} 
-                              className="text-[10px] h-6 flex-1" 
-                            />
-                          </div>
-                        </td>
-                        <td className="p-1.5">
-                          <div className="h-6 rounded" style={{ backgroundColor: settings.flag4Color }} />
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
                 </div>
               </div>
             </CardContent>
