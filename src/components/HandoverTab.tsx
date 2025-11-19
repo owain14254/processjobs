@@ -87,9 +87,9 @@ export const HandoverTab = ({
       filtered = filtered.filter((job) => job.department === departmentFilter);
     }
 
-    // Outstanding jobs filter - hide fully completed jobs
+    // Outstanding jobs filter - hide any jobs that are complete (either just job or both)
     if (showOutstandingOnly) {
-      filtered = filtered.filter((job) => !(job.jobComplete && job.sapComplete));
+      filtered = filtered.filter((job) => !job.jobComplete && !job.sapComplete);
     }
 
     // Sort by date descending (most recent first)

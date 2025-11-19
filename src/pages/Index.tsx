@@ -16,6 +16,7 @@ import { Archive, Download, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import mullerLogo from "@/assets/muller-logo.png";
 import { formatDistanceToNow } from "date-fns";
+import { FlagPresetsDialog } from "@/components/FlagPresetsDialog";
 const Index = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("active");
@@ -27,6 +28,7 @@ const Index = () => {
   const [showBackupReminder, setShowBackupReminder] = useState(false);
   const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showFlagPresetsDialog, setShowFlagPresetsDialog] = useState(false);
   
   // Admin settings state
   const [adminSettings, setAdminSettings] = useState({
@@ -71,7 +73,9 @@ const Index = () => {
     textSize,
     setTextSize,
     textBold,
-    setTextBold
+    setTextBold,
+    flagPresets,
+    setFlagPresets,
   } = useJobStorage();
   const {
     toast
@@ -281,7 +285,13 @@ const Index = () => {
           {/* Header */}
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <img src={mullerLogo} alt="Müller" className="h-12" />
+              <button 
+                onClick={() => setShowFlagPresetsDialog(true)}
+                className="hover:opacity-70 transition-opacity"
+                title="Manage Flag Presets"
+              >
+                <img src={mullerLogo} alt="Müller" className="h-12 cursor-pointer" />
+              </button>
               <div>
                 <h1 className="text-3xl font-bold">Job Log</h1>
                 <p className="text-muted-foreground">{adminSettings.appName}</p>
@@ -323,8 +333,8 @@ const Index = () => {
             <AddJobForm onAdd={addJob} departments={adminSettings.departments} />
 
             {activeJobs.length === 0 ? <div className="text-center py-12 text-muted-foreground">No active jobs. Add a job to get started.</div> : <div className="space-y-0.5">
-                <div className="grid grid-cols-[40px_180px_140px_1fr_100px_100px_50px] gap-2 px-1.5 py-1 text-xs font-medium text-muted-foreground">
-                  <div>Flag</div>
+                <div className="grid grid-cols-[20px_180px_140px_1fr_100px_100px_50px] gap-2 px-1.5 py-1 text-xs font-medium text-muted-foreground">
+                  <div></div>
                   <div>Date</div>
                   <div>Department</div>
                   <div>Description</div>
@@ -336,12 +346,7 @@ const Index = () => {
                     amber: adminSettings.statusColorAmber,
                     lightGreen: adminSettings.statusColorLightGreen,
                     darkGreen: adminSettings.statusColorDarkGreen
-                  }} expandPopupSize={adminSettings.expandPopupSize} flagColors={{
-                    flag1: adminSettings.flag1Color,
-                    flag2: adminSettings.flag2Color,
-                    flag3: adminSettings.flag3Color,
-                    flag4: adminSettings.flag4Color
-                  }} />)}
+                  }} expandPopupSize={adminSettings.expandPopupSize} flagPresets={flagPresets} />)}
               </div>}
 
             {activeJobs.some(job => job.jobComplete && job.sapComplete) && <div className="flex justify-center pt-4">
@@ -452,6 +457,13 @@ const Index = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        <FlagPresetsDialog 
+          open={showFlagPresetsDialog}
+          onOpenChange={setShowFlagPresetsDialog}
+          presets={flagPresets}
+          onPresetsChange={setFlagPresets}
+        />
       </div>
     </div>;
 };

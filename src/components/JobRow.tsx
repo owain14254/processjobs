@@ -28,6 +28,8 @@ import { CalendarIcon, Trash2, Expand } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useRef, useEffect, useState } from "react";
+import { FlagSelector } from "./FlagSelector";
+import { FlagPreset } from "./FlagPresetsDialog";
 
 interface JobRowProps {
   job: Job;
@@ -43,12 +45,7 @@ interface JobRowProps {
     darkGreen: string;
   };
   expandPopupSize?: number;
-  flagColors?: {
-    flag1: string;
-    flag2: string;
-    flag3: string;
-    flag4: string;
-  };
+  flagPresets?: FlagPreset[];
 }
 
 const getStatusColor = (jobComplete: boolean, sapComplete: boolean, colors: { amber: string; lightGreen: string; darkGreen: string }) => {
@@ -67,11 +64,10 @@ export const JobRow = ({
   departments = ["Process", "Fruit", "Filling", "Warehouse", "Services", "Other"],
   statusColors = { amber: "#FFA500", lightGreen: "#90EE90", darkGreen: "#006400" },
   expandPopupSize = 1,
-  flagColors = { flag1: "#ff6b6b", flag2: "#4ecdc4", flag3: "#ffe66d", flag4: "#a8dadc" }
+  flagPresets = []
 }: JobRowProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isOverflowing, setIsOverflowing] = useState(false);
-  const [flagDialogOpen, setFlagDialogOpen] = useState(false);
 
   const sizeClasses = {
     padding: ["p-0.5", "p-1", "p-1.5", "p-2", "p-3"][rowHeight],
@@ -87,10 +83,6 @@ export const JobRow = ({
   const popupSizeClass = ["max-w-md", "max-w-2xl", "max-w-4xl", "max-w-6xl", "max-w-7xl"][expandPopupSize];
   const popupHeightClass = ["max-h-[300px]", "max-h-[400px]", "max-h-[500px]", "max-h-[600px]", "max-h-[700px]"][expandPopupSize];
   const popupTextClass = ["text-sm", "text-base", "text-lg", "text-xl", "text-2xl"][expandPopupSize];
-  
-  const getFlagColor = (flag: "1" | "2" | "3" | "4") => {
-    return flagColors[`flag${flag}` as keyof typeof flagColors];
-  };
 
   useEffect(() => {
     const checkOverflow = () => {
@@ -106,80 +98,20 @@ export const JobRow = ({
   return (
     <div
       className={cn(
-        "grid grid-cols-[28px_180px_140px_1fr_100px_100px_50px] items-center rounded-sm transition-colors relative",
+        "grid grid-cols-[20px_180px_140px_1fr_100px_100px_50px] items-center rounded-sm transition-colors relative group",
         sizeClasses.padding,
         sizeClasses.gap
       )}
       style={{ backgroundColor: statusColor }}
     >
-      {/* Flag Badge - Small and unobtrusive */}
+      {/* Flag Selector */}
       <div className="flex justify-center items-center">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-5 w-5 rounded-full p-0 hover:bg-transparent group"
-            >
-              {job.flag ? (
-                <div 
-                  className="h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-semibold border-2 border-black/20"
-                  style={{ backgroundColor: getFlagColor(job.flag) }}
-                >
-                  {job.flag}
-                </div>
-              ) : (
-                <div className="h-5 w-5 rounded-full flex items-center justify-center border border-dashed border-muted-foreground/30 group-hover:border-muted-foreground/50 bg-background/50">
-                  <span className="text-[10px] text-muted-foreground">+</span>
-                </div>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-2">
-            <div className="space-y-2">
-              <div className="flex gap-2">
-                {(["1", "2", "3", "4"] as const).map((flagNum) => (
-                  <Button
-                    key={flagNum}
-                    size="icon"
-                    className="h-8 w-8 rounded-full text-xs font-semibold"
-                    style={{ backgroundColor: getFlagColor(flagNum) }}
-                    onClick={() => {
-                      onUpdate(job.id, { flag: flagNum });
-                      if (job.flag === flagNum) {
-                        setFlagDialogOpen(true);
-                      }
-                    }}
-                  >
-                    {flagNum}
-                  </Button>
-                ))}
-              </div>
-              {job.flag && (
-                <div className="pt-2 border-t space-y-2">
-                  <Label className="text-xs">Flag Details</Label>
-                  <Textarea
-                    value={job.flagDetails || ""}
-                    onChange={(e) => onUpdate(job.id, { flagDetails: e.target.value })}
-                    placeholder="Enter flag details..."
-                    rows={3}
-                    className="text-xs"
-                  />
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="w-full"
-                    onClick={() => {
-                      onUpdate(job.id, { flag: undefined, flagDetails: undefined });
-                    }}
-                  >
-                    Remove Flag
-                  </Button>
-                </div>
-              )}
-            </div>
-          </PopoverContent>
-        </Popover>
+        <FlagSelector
+          selectedPresetId={job.flagPresetId}
+          presets={flagPresets}
+          onSelect={(presetId) => onUpdate(job.id, { flagPresetId: presetId })}
+          onRemove={() => onUpdate(job.id, { flagPresetId: undefined })}
+        />
       </div>
       <Popover>
         <PopoverTrigger asChild>
@@ -246,13 +178,13 @@ export const JobRow = ({
           className={cn(
             "text-black border",
             sizeClasses.height,
-            textSizeClass,
             textWeightClass,
             isOverflowing && "pr-8"
           )}
           style={{
             backgroundColor: statusColor,
-            borderColor: statusColor
+            borderColor: statusColor,
+            fontSize: `${[12, 14, 16, 18, 20][textSize]}px`
           }}
         />
         {isOverflowing && (
