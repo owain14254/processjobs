@@ -12,6 +12,7 @@ import { Expand } from "lucide-react";
 
 interface HandoverTabProps {
   activeJobs: Job[];
+  completedJobs: CompletedJob[];
   shiftDuration?: number;
   setDuration?: number;
   rowHeight?: number;
@@ -36,6 +37,7 @@ const getStatusColor = (jobComplete: boolean, sapComplete: boolean, colors: { am
 
 export const HandoverTab = ({
   activeJobs,
+  completedJobs,
   shiftDuration = 12,
   setDuration = 96,
   rowHeight = 1,
@@ -52,8 +54,19 @@ export const HandoverTab = ({
   const cellPadding = ["py-0.5 px-1", "py-1 px-2", "py-2 px-4", "py-3 px-4", "py-4 px-6"][rowHeight];
 
   const allJobs = useMemo(() => {
-    return activeJobs;
-  }, [activeJobs]);
+    // Convert completed jobs to Job format and combine with active jobs
+    const convertedCompletedJobs: Job[] = completedJobs.map(cJob => ({
+      id: cJob.id,
+      date: cJob.date,
+      department: cJob.department,
+      description: cJob.description,
+      jobComplete: true,
+      sapComplete: true,
+      flag: cJob.flag,
+      flagDetails: cJob.flagDetails
+    }));
+    return [...activeJobs, ...convertedCompletedJobs];
+  }, [activeJobs, completedJobs]);
 
   const filteredJobs = useMemo(() => {
     let filtered = [...allJobs];
@@ -74,7 +87,7 @@ export const HandoverTab = ({
       filtered = filtered.filter((job) => job.department === departmentFilter);
     }
 
-    // Outstanding jobs filter - now only filters out fully completed jobs (both jobComplete AND sapComplete)
+    // Outstanding jobs filter - hide fully completed jobs
     if (showOutstandingOnly) {
       filtered = filtered.filter((job) => !(job.jobComplete && job.sapComplete));
     }
