@@ -7,6 +7,9 @@ export interface Job {
   description: string;
   jobComplete: boolean;
   sapComplete: boolean;
+  jobNumber?: string;
+  flagPresetId?: string;
+  // Legacy fields for backwards compatibility
   flag?: "1" | "2" | "3" | "4";
   flagDetails?: string;
 }
@@ -34,6 +37,16 @@ export const useJobStorage = () => {
   const [textBold, setTextBold] = useState<boolean>(() => {
     const saved = localStorage.getItem("textBold");
     return saved === "true";
+  });
+
+  const [flagPresets, setFlagPresets] = useState<Array<{
+    id: string;
+    shiftNumber: string;
+    priorityColor: "red" | "amber" | "green";
+    details: string;
+  }>>(() => {
+    const saved = localStorage.getItem("flagPresets");
+    return saved ? JSON.parse(saved) : [];
   });
 
   // Load from localStorage on mount
@@ -78,6 +91,10 @@ export const useJobStorage = () => {
   useEffect(() => {
     localStorage.setItem("textBold", textBold.toString());
   }, [textBold]);
+
+  useEffect(() => {
+    localStorage.setItem("flagPresets", JSON.stringify(flagPresets));
+  }, [flagPresets]);
 
   const addJob = (job: Omit<Job, "id">) => {
     const newJob = {
@@ -190,15 +207,17 @@ export const useJobStorage = () => {
     updateJob,
     deleteJob,
     archiveCompletedJobs,
-    exportData,
-    importData,
-    deleteCompletedJob,
-    updateCompletedJob,
     rowHeight,
     setRowHeight,
     textSize,
     setTextSize,
     textBold,
     setTextBold,
+    exportData,
+    importData,
+    deleteCompletedJob,
+    updateCompletedJob,
+    flagPresets,
+    setFlagPresets,
   };
 };
