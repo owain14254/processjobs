@@ -16,6 +16,7 @@ import { Archive, Download, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import mullerLogo from "@/assets/muller-logo.png";
 import { formatDistanceToNow } from "date-fns";
+import { Settings } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -278,10 +279,15 @@ const Index = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button 
-                    className="hover:opacity-70 transition-opacity"
+                    className="hover:opacity-70 transition-opacity relative"
                     title="Menu"
                   >
                     <img src={mullerLogo} alt="Müller" className="h-12 cursor-pointer" />
+                    {isAdminMode && (
+                      <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] px-1.5 py-0.5 rounded-full font-semibold">
+                        ADMIN
+                      </span>
+                    )}
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
@@ -289,6 +295,15 @@ const Index = () => {
                     <KeyRound className="h-4 w-4 mr-2" />
                     {isAdminMode ? "Exit Admin Mode" : "Enter Admin Mode"}
                   </DropdownMenuItem>
+                  {isAdminMode && (
+                    <DropdownMenuItem onSelect={(e) => {
+                      e.preventDefault();
+                      document.querySelector('[data-admin-settings-trigger]')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+                    }}>
+                      <Settings className="h-4 w-4 mr-2" />
+                      Admin Settings
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
               <div>
@@ -304,9 +319,9 @@ const Index = () => {
             </TabsList>
 
             <div className="flex gap-2">
-              {isAdminMode && <>
-                  <AdminSettingsDialog onSettingsChange={handleSettingsChange} onTestSavePrompt={testBackupReminder} />
-                </>}
+              <div className="hidden">
+                <AdminSettingsDialog onSettingsChange={handleSettingsChange} onTestSavePrompt={testBackupReminder} />
+              </div>
               <ThemeToggle />
               <Button onClick={handleExport} variant="outline" size="icon" title="Export Backup" className="bg-green-600 hover:bg-green-700 text-white border-green-600">
                 <Download className="h-4 w-4" />

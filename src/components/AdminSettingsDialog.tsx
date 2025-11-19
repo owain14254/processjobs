@@ -106,7 +106,7 @@ export function AdminSettingsDialog({ onSettingsChange, onTestSavePrompt }: Admi
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+      <DialogTrigger asChild data-admin-settings-trigger>
         <Button variant="outline" size="icon">
           <Settings className="h-4 w-4" />
         </Button>
