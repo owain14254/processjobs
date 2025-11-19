@@ -50,10 +50,10 @@ const Index = () => {
     statusColorAmber: "#ffc252",
     statusColorLightGreen: "#8bea8b",
     statusColorDarkGreen: "#00b300",
-    flag1Color: "#ff6b6b",
-    flag2Color: "#4ecdc4",
-    flag3Color: "#ffe66d",
-    flag4Color: "#a8dadc"
+    flag1Color: "#dc2626",
+    flag2Color: "#f59e0b",
+    flag3Color: "#16a34a",
+    flag4Color: "#2563eb"
   });
   const {
     activeJobs,
@@ -223,10 +223,10 @@ const Index = () => {
           statusColorAmber: parsed.statusColorAmber || "#ffc252",
           statusColorLightGreen: parsed.statusColorLightGreen || "#8bea8b",
           statusColorDarkGreen: parsed.statusColorDarkGreen || "#00b300",
-          flag1Color: parsed.flag1Color || "#ff6b6b",
-          flag2Color: parsed.flag2Color || "#4ecdc4",
-          flag3Color: parsed.flag3Color || "#ffe66d",
-          flag4Color: parsed.flag4Color || "#a8dadc"
+          flag1Color: parsed.flag1Color || "#dc2626",
+          flag2Color: parsed.flag2Color || "#f59e0b",
+          flag3Color: parsed.flag3Color || "#16a34a",
+          flag4Color: parsed.flag4Color || "#2563eb"
         });
       } catch (e) {
         console.error("Failed to parse admin settings", e);
@@ -265,10 +265,10 @@ const Index = () => {
           statusColorAmber: parsed.statusColorAmber || "#ffc252",
           statusColorLightGreen: parsed.statusColorLightGreen || "#8bea8b",
           statusColorDarkGreen: parsed.statusColorDarkGreen || "#00b300",
-          flag1Color: parsed.flag1Color || "#ff6b6b",
-          flag2Color: parsed.flag2Color || "#4ecdc4",
-          flag3Color: parsed.flag3Color || "#ffe66d",
-          flag4Color: parsed.flag4Color || "#a8dadc"
+          flag1Color: parsed.flag1Color || "#dc2626",
+          flag2Color: parsed.flag2Color || "#f59e0b",
+          flag3Color: parsed.flag3Color || "#16a34a",
+          flag4Color: parsed.flag4Color || "#2563eb"
         });
       } catch (e) {
         console.error("Failed to parse admin settings", e);
@@ -373,7 +373,8 @@ const Index = () => {
 
           <TabsContent value="handover">
             <HandoverTab 
-              activeJobs={activeJobs} 
+              activeJobs={activeJobs}
+              completedJobs={completedJobs}
               shiftDuration={adminSettings.shiftDuration} 
               setDuration={adminSettings.setDuration} 
               rowHeight={adminSettings.rowHeightHandover} 

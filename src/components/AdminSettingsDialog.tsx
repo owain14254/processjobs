@@ -59,10 +59,10 @@ const defaultSettings: AdminSettingsData = {
   statusColorAmber: "#ffc252",
   statusColorLightGreen: "#8bea8b",
   statusColorDarkGreen: "#00b300",
-  flag1Color: "#ff6b6b",
-  flag2Color: "#4ecdc4",
-  flag3Color: "#ffe66d",
-  flag4Color: "#a8dadc",
+  flag1Color: "#dc2626",
+  flag2Color: "#f59e0b",
+  flag3Color: "#16a34a",
+  flag4Color: "#2563eb",
   tabNameActive: "Active",
   tabNameCompleted: "Completed",
   tabNameHandover: "Handover",
@@ -447,8 +447,8 @@ export function AdminSettingsDialog({ onSettingsChange, onTestSavePrompt }: Admi
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="border-t">
-                        <td className="p-1.5">Flag 1</td>
+                       <tr className="border-t">
+                        <td className="p-1.5">Flag 1 (Red)</td>
                         <td className="p-1.5">
                           <div className="flex gap-1.5 items-center">
                             <Input 
@@ -470,7 +470,7 @@ export function AdminSettingsDialog({ onSettingsChange, onTestSavePrompt }: Admi
                         </td>
                       </tr>
                       <tr className="border-t">
-                        <td className="p-1.5">Flag 2</td>
+                        <td className="p-1.5">Flag 2 (Amber)</td>
                         <td className="p-1.5">
                           <div className="flex gap-1.5 items-center">
                             <Input 
@@ -492,7 +492,7 @@ export function AdminSettingsDialog({ onSettingsChange, onTestSavePrompt }: Admi
                         </td>
                       </tr>
                       <tr className="border-t">
-                        <td className="p-1.5">Flag 3</td>
+                        <td className="p-1.5">Flag 3 (Green)</td>
                         <td className="p-1.5">
                           <div className="flex gap-1.5 items-center">
                             <Input 
@@ -514,7 +514,7 @@ export function AdminSettingsDialog({ onSettingsChange, onTestSavePrompt }: Admi
                         </td>
                       </tr>
                       <tr className="border-t">
-                        <td className="p-1.5">Flag 4</td>
+                        <td className="p-1.5">Flag 4 (Blue)</td>
                         <td className="p-1.5">
                           <div className="flex gap-1.5 items-center">
                             <Input 
