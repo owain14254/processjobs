@@ -14,6 +14,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -41,6 +43,12 @@ interface JobRowProps {
     darkGreen: string;
   };
   expandPopupSize?: number;
+  flagColors?: {
+    flag1: string;
+    flag2: string;
+    flag3: string;
+    flag4: string;
+  };
 }
 
 const getStatusColor = (jobComplete: boolean, sapComplete: boolean, colors: { amber: string; lightGreen: string; darkGreen: string }) => {
@@ -58,10 +66,12 @@ export const JobRow = ({
   textBold = false,
   departments = ["Process", "Fruit", "Filling", "Warehouse", "Services", "Other"],
   statusColors = { amber: "#FFA500", lightGreen: "#90EE90", darkGreen: "#006400" },
-  expandPopupSize = 1
+  expandPopupSize = 1,
+  flagColors = { flag1: "#ff6b6b", flag2: "#4ecdc4", flag3: "#ffe66d", flag4: "#a8dadc" }
 }: JobRowProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isOverflowing, setIsOverflowing] = useState(false);
+  const [flagDialogOpen, setFlagDialogOpen] = useState(false);
 
   const sizeClasses = {
     padding: ["p-0.5", "p-1", "p-1.5", "p-2", "p-3"][rowHeight],
@@ -74,7 +84,11 @@ export const JobRow = ({
   const textWeightClass = textBold ? "font-bold" : "font-normal";
   
   const statusColor = getStatusColor(job.jobComplete, job.sapComplete, statusColors);
-  const popupSizeClass = ["max-w-md", "max-w-2xl", "max-w-4xl"][expandPopupSize];
+  const popupSizeClass = ["max-w-md", "max-w-2xl", "max-w-4xl", "max-w-6xl", "max-w-7xl"][expandPopupSize];
+  
+  const getFlagColor = (flag: "1" | "2" | "3" | "4") => {
+    return flagColors[`flag${flag}` as keyof typeof flagColors];
+  };
 
   useEffect(() => {
     const checkOverflow = () => {
@@ -90,12 +104,83 @@ export const JobRow = ({
   return (
     <div
       className={cn(
-        "grid grid-cols-[180px_140px_1fr_100px_100px_50px] items-center rounded-sm transition-colors",
+        "grid grid-cols-[40px_180px_140px_1fr_100px_100px_50px] items-center rounded-sm transition-colors",
         sizeClasses.padding,
         sizeClasses.gap
       )}
       style={{ backgroundColor: statusColor }}
     >
+      {/* Flag Circle */}
+      <div className="flex justify-center">
+        {job.flag ? (
+          <Dialog open={flagDialogOpen} onOpenChange={setFlagDialogOpen}>
+            <DialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full p-0 hover:opacity-80"
+                style={{ backgroundColor: getFlagColor(job.flag) }}
+              >
+                <span className="text-sm font-bold text-black">{job.flag}</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Shift Flag {job.flag}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label>Flag Details</Label>
+                  <Textarea
+                    value={job.flagDetails || ""}
+                    onChange={(e) => onUpdate(job.id, { flagDetails: e.target.value })}
+                    placeholder="Enter flag details..."
+                    rows={4}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      onUpdate(job.id, { flag: undefined, flagDetails: undefined });
+                      setFlagDialogOpen(false);
+                    }}
+                  >
+                    Remove Flag
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        ) : (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full border-2 border-dashed border-muted-foreground/30 hover:border-muted-foreground/50"
+              >
+                <span className="text-xs text-muted-foreground">+</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-2">
+              <div className="flex gap-2">
+                {(["1", "2", "3", "4"] as const).map((flagNum) => (
+                  <Button
+                    key={flagNum}
+                    size="icon"
+                    className="h-10 w-10 rounded-full"
+                    style={{ backgroundColor: getFlagColor(flagNum) }}
+                    onClick={() => onUpdate(job.id, { flag: flagNum })}
+                  >
+                    <span className="text-sm font-bold text-black">{flagNum}</span>
+                  </Button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+        )}
+      </div>
       <Popover>
         <PopoverTrigger asChild>
           <Button
@@ -159,7 +244,7 @@ export const JobRow = ({
           onChange={(e) => onUpdate(job.id, { description: e.target.value })}
           placeholder="Job description..."
           className={cn(
-            "text-black border-2",
+            "text-black border",
             sizeClasses.height,
             textSizeClass,
             textWeightClass,

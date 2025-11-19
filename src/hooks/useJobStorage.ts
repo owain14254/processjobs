@@ -7,6 +7,8 @@ export interface Job {
   description: string;
   jobComplete: boolean;
   sapComplete: boolean;
+  flag?: "1" | "2" | "3" | "4";
+  flagDetails?: string;
 }
 
 export interface CompletedJob extends Job {
