@@ -16,7 +16,12 @@ import { Archive, Download, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import mullerLogo from "@/assets/muller-logo.png";
 import { formatDistanceToNow } from "date-fns";
-import { FlagPresetsDialog } from "@/components/FlagPresetsDialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 const Index = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("active");
@@ -28,7 +33,6 @@ const Index = () => {
   const [showBackupReminder, setShowBackupReminder] = useState(false);
   const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [showFlagPresetsDialog, setShowFlagPresetsDialog] = useState(false);
   
   // Admin settings state
   const [adminSettings, setAdminSettings] = useState({
@@ -51,11 +55,7 @@ const Index = () => {
     expandPopupSize: 2,
     statusColorAmber: "#ffc252",
     statusColorLightGreen: "#8bea8b",
-    statusColorDarkGreen: "#00b300",
-    flag1Color: "#dc2626",
-    flag2Color: "#f59e0b",
-    flag3Color: "#16a34a",
-    flag4Color: "#2563eb"
+    statusColorDarkGreen: "#00b300"
   });
   const {
     activeJobs,
@@ -73,9 +73,7 @@ const Index = () => {
     textSize,
     setTextSize,
     textBold,
-    setTextBold,
-    flagPresets,
-    setFlagPresets,
+    setTextBold
   } = useJobStorage();
   const {
     toast
@@ -226,11 +224,7 @@ const Index = () => {
           expandPopupSize: parsed.expandPopupSize ?? 2,
           statusColorAmber: parsed.statusColorAmber || "#ffc252",
           statusColorLightGreen: parsed.statusColorLightGreen || "#8bea8b",
-          statusColorDarkGreen: parsed.statusColorDarkGreen || "#00b300",
-          flag1Color: parsed.flag1Color || "#dc2626",
-          flag2Color: parsed.flag2Color || "#f59e0b",
-          flag3Color: parsed.flag3Color || "#16a34a",
-          flag4Color: parsed.flag4Color || "#2563eb"
+          statusColorDarkGreen: parsed.statusColorDarkGreen || "#00b300"
         });
       } catch (e) {
         console.error("Failed to parse admin settings", e);
@@ -268,11 +262,7 @@ const Index = () => {
           expandPopupSize: parsed.expandPopupSize ?? 2,
           statusColorAmber: parsed.statusColorAmber || "#ffc252",
           statusColorLightGreen: parsed.statusColorLightGreen || "#8bea8b",
-          statusColorDarkGreen: parsed.statusColorDarkGreen || "#00b300",
-          flag1Color: parsed.flag1Color || "#dc2626",
-          flag2Color: parsed.flag2Color || "#f59e0b",
-          flag3Color: parsed.flag3Color || "#16a34a",
-          flag4Color: parsed.flag4Color || "#2563eb"
+          statusColorDarkGreen: parsed.statusColorDarkGreen || "#00b300"
         });
       } catch (e) {
         console.error("Failed to parse admin settings", e);
@@ -285,13 +275,22 @@ const Index = () => {
           {/* Header */}
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <button 
-                onClick={() => setShowFlagPresetsDialog(true)}
-                className="hover:opacity-70 transition-opacity"
-                title="Manage Flag Presets"
-              >
-                <img src={mullerLogo} alt="Müller" className="h-12 cursor-pointer" />
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button 
+                    className="hover:opacity-70 transition-opacity"
+                    title="Menu"
+                  >
+                    <img src={mullerLogo} alt="Müller" className="h-12 cursor-pointer" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <DropdownMenuItem onClick={toggleAdminMode}>
+                    <KeyRound className="h-4 w-4 mr-2" />
+                    {isAdminMode ? "Exit Admin Mode" : "Enter Admin Mode"}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <div>
                 <h1 className="text-3xl font-bold">Job Log</h1>
                 <p className="text-muted-foreground">{adminSettings.appName}</p>
@@ -307,11 +306,7 @@ const Index = () => {
             <div className="flex gap-2">
               {isAdminMode && <>
                   <AdminSettingsDialog onSettingsChange={handleSettingsChange} onTestSavePrompt={testBackupReminder} />
-                  
                 </>}
-              <Button variant={isAdminMode ? "destructive" : "outline"} size="icon" onClick={toggleAdminMode} title={isAdminMode ? "Exit Admin Mode" : "Admin Mode"}>
-                <KeyRound className="h-4 w-4" />
-              </Button>
               <ThemeToggle />
               <Button onClick={handleExport} variant="outline" size="icon" title="Export Backup" className="bg-green-600 hover:bg-green-700 text-white border-green-600">
                 <Download className="h-4 w-4" />
@@ -333,8 +328,7 @@ const Index = () => {
             <AddJobForm onAdd={addJob} departments={adminSettings.departments} />
 
             {activeJobs.length === 0 ? <div className="text-center py-12 text-muted-foreground">No active jobs. Add a job to get started.</div> : <div className="space-y-0.5">
-                <div className="grid grid-cols-[20px_180px_140px_1fr_100px_100px_50px] gap-2 px-1.5 py-1 text-xs font-medium text-muted-foreground">
-                  <div></div>
+                <div className="grid grid-cols-[180px_140px_1fr_100px_100px_50px] gap-2 px-1.5 py-1 text-xs font-medium text-muted-foreground">
                   <div>Date</div>
                   <div>Department</div>
                   <div>Description</div>
@@ -346,7 +340,7 @@ const Index = () => {
                     amber: adminSettings.statusColorAmber,
                     lightGreen: adminSettings.statusColorLightGreen,
                     darkGreen: adminSettings.statusColorDarkGreen
-                  }} expandPopupSize={adminSettings.expandPopupSize} flagPresets={flagPresets} />)}
+                  }} expandPopupSize={adminSettings.expandPopupSize} />)}
               </div>}
 
             {activeJobs.some(job => job.jobComplete && job.sapComplete) && <div className="flex justify-center pt-4">
@@ -457,13 +451,6 @@ const Index = () => {
             </div>
           </DialogContent>
         </Dialog>
-
-        <FlagPresetsDialog 
-          open={showFlagPresetsDialog}
-          onOpenChange={setShowFlagPresetsDialog}
-          presets={flagPresets}
-          onPresetsChange={setFlagPresets}
-        />
       </div>
     </div>;
 };

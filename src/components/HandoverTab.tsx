@@ -61,9 +61,7 @@ export const HandoverTab = ({
       department: cJob.department,
       description: cJob.description,
       jobComplete: true,
-      sapComplete: true,
-      flag: cJob.flag,
-      flagDetails: cJob.flagDetails
+      sapComplete: true
     }));
     return [...activeJobs, ...convertedCompletedJobs];
   }, [activeJobs, completedJobs]);

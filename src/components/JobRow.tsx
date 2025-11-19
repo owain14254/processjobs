@@ -28,8 +28,6 @@ import { CalendarIcon, Trash2, Expand } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useRef, useEffect, useState } from "react";
-import { FlagSelector } from "./FlagSelector";
-import { FlagPreset } from "./FlagPresetsDialog";
 
 interface JobRowProps {
   job: Job;
@@ -45,7 +43,6 @@ interface JobRowProps {
     darkGreen: string;
   };
   expandPopupSize?: number;
-  flagPresets?: FlagPreset[];
 }
 
 const getStatusColor = (jobComplete: boolean, sapComplete: boolean, colors: { amber: string; lightGreen: string; darkGreen: string }) => {
@@ -63,8 +60,7 @@ export const JobRow = ({
   textBold = false,
   departments = ["Process", "Fruit", "Filling", "Warehouse", "Services", "Other"],
   statusColors = { amber: "#FFA500", lightGreen: "#90EE90", darkGreen: "#006400" },
-  expandPopupSize = 1,
-  flagPresets = []
+  expandPopupSize = 1
 }: JobRowProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isOverflowing, setIsOverflowing] = useState(false);
@@ -98,21 +94,12 @@ export const JobRow = ({
   return (
     <div
       className={cn(
-        "grid grid-cols-[20px_180px_140px_1fr_100px_100px_50px] items-center rounded-sm transition-colors relative group",
+        "grid grid-cols-[180px_140px_1fr_100px_100px_50px] items-center rounded-sm transition-colors relative",
         sizeClasses.padding,
         sizeClasses.gap
       )}
       style={{ backgroundColor: statusColor }}
     >
-      {/* Flag Selector */}
-      <div className="flex justify-center items-center">
-        <FlagSelector
-          selectedPresetId={job.flagPresetId}
-          presets={flagPresets}
-          onSelect={(presetId) => onUpdate(job.id, { flagPresetId: presetId })}
-          onRemove={() => onUpdate(job.id, { flagPresetId: undefined })}
-        />
-      </div>
       <Popover>
         <PopoverTrigger asChild>
           <Button
@@ -176,7 +163,7 @@ export const JobRow = ({
           onChange={(e) => onUpdate(job.id, { description: e.target.value })}
           placeholder="Job description..."
           className={cn(
-            "text-black border",
+            "text-black border break-words",
             sizeClasses.height,
             textWeightClass,
             isOverflowing && "pr-8"
@@ -184,7 +171,10 @@ export const JobRow = ({
           style={{
             backgroundColor: statusColor,
             borderColor: statusColor,
-            fontSize: `${[12, 14, 16, 18, 20][textSize]}px`
+            fontSize: `${[12, 14, 16, 18, 20][textSize]}px`,
+            wordWrap: "break-word",
+            overflowWrap: "break-word",
+            whiteSpace: "normal"
           }}
         />
         {isOverflowing && (
@@ -202,7 +192,7 @@ export const JobRow = ({
               <DialogHeader>
                 <DialogTitle className="text-black">Full Description</DialogTitle>
               </DialogHeader>
-              <p className={cn(popupTextClass, "text-black break-all whitespace-normal overflow-wrap-anywhere")}>{job.description}</p>
+              <p className={cn(popupTextClass, "text-black break-words whitespace-normal")} style={{ wordWrap: "break-word", overflowWrap: "break-word" }}>{job.description}</p>
             </DialogContent>
           </Dialog>
         )}
