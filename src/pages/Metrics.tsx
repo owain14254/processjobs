@@ -262,6 +262,54 @@ const Metrics = () => {
     setKeywords(keywords.filter(k => k !== keyword));
   };
 
+  const autoFindKeywords = () => {
+    // Extract all words from descriptions
+    const wordFrequency = new Map<string, number>();
+    
+    // Common words to exclude
+    const stopWords = new Set(['THE', 'A', 'AN', 'AND', 'OR', 'BUT', 'IN', 'ON', 'AT', 'TO', 'FOR', 'OF', 'WITH', 'IS', 'WAS', 'BE', 'BEEN', 'HAVE', 'HAS', 'HAD', 'DO', 'DOES', 'DID', 'WILL', 'WOULD', 'COULD', 'SHOULD', 'MAY', 'MIGHT', 'CAN']);
+    
+    filteredJobsByTimespan.forEach((job) => {
+      if (!selectedDepartments.has(job.department)) return;
+      
+      // Split description into words, filter out short and common words
+      const words = job.description.toUpperCase()
+        .split(/\s+/)
+        .filter(word => {
+          // Remove non-alphanumeric characters
+          const cleaned = word.replace(/[^A-Z0-9]/g, '');
+          // Keep words 2-10 characters that aren't stop words
+          return cleaned.length >= 2 && cleaned.length <= 10 && !stopWords.has(cleaned);
+        })
+        .map(word => word.replace(/[^A-Z0-9]/g, ''));
+      
+      words.forEach(word => {
+        wordFrequency.set(word, (wordFrequency.get(word) || 0) + 1);
+      });
+    });
+    
+    // Get top 15 most common words
+    const topWords = Array.from(wordFrequency.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 15)
+      .map(([word]) => word);
+    
+    // Add new words that aren't already in keywords
+    const newKeywords = topWords.filter(word => !keywords.includes(word));
+    if (newKeywords.length > 0) {
+      setKeywords([...keywords, ...newKeywords]);
+      toast({
+        title: "Keywords added",
+        description: `Found ${newKeywords.length} new common words`
+      });
+    } else {
+      toast({
+        title: "No new keywords",
+        description: "All common words are already in the list"
+      });
+    }
+  };
+
   const chartData = viewMode === "keywords" ? keywordData : (viewMode === "monthly" ? monthlyData : dailyData);
 
   const { toast } = useToast();
@@ -424,31 +472,36 @@ const Metrics = () => {
               </div>
             ) : viewMode === "keywords" ? (
               <div className="space-y-4">
-                <div className="flex gap-2 items-center flex-wrap pb-4 border-b">
-                  <span className="text-sm font-medium">Keywords:</span>
-                  {keywords.map((keyword) => (
-                    <div key={keyword} className="flex items-center gap-1 bg-muted px-2 py-1 rounded">
-                      <span className="text-sm">{keyword}</span>
-                      <button
-                        onClick={() => removeKeyword(keyword)}
-                        className="text-muted-foreground hover:text-foreground"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
+                <div className="flex gap-2 items-center justify-between pb-4 border-b">
+                  <div className="flex gap-2 items-center flex-wrap">
+                    <span className="text-sm font-medium">Keywords:</span>
+                    {keywords.map((keyword) => (
+                      <div key={keyword} className="flex items-center gap-1 bg-muted px-2 py-1 rounded">
+                        <span className="text-sm">{keyword}</span>
+                        <button
+                          onClick={() => removeKeyword(keyword)}
+                          className="text-muted-foreground hover:text-foreground"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                    <div className="flex gap-1">
+                      <Input
+                        placeholder="Add keyword"
+                        value={newKeyword}
+                        onChange={(e) => setNewKeyword(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && addKeyword()}
+                        className="w-32 h-8 text-sm"
+                      />
+                      <Button size="sm" onClick={addKeyword} className="h-8">
+                        <Plus className="h-4 w-4" />
+                      </Button>
                     </div>
-                  ))}
-                  <div className="flex gap-1">
-                    <Input
-                      placeholder="Add keyword"
-                      value={newKeyword}
-                      onChange={(e) => setNewKeyword(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && addKeyword()}
-                      className="w-32 h-8 text-sm"
-                    />
-                    <Button size="sm" onClick={addKeyword} className="h-8">
-                      <Plus className="h-4 w-4" />
-                    </Button>
                   </div>
+                  <Button size="sm" variant="outline" onClick={autoFindKeywords}>
+                    Auto-Find Keywords
+                  </Button>
                 </div>
                 <ChartContainer
                   config={keywordData.reduce((acc, item) => ({
