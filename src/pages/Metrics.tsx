@@ -225,7 +225,7 @@ const Metrics = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="w-full space-y-3 p-4">
+      <div className="w-full space-y-3 p-4 pr-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
@@ -318,13 +318,13 @@ const Metrics = () => {
           </div>
         </div>
 
-        <Card className="w-full">
-          <CardHeader className="pb-3">
+        <Card className="w-full mr-0 border-r-0 rounded-r-none">
+          <CardHeader className="pb-3 pr-4">
             <CardTitle className="text-base">
               Jobs Completed by Department
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-0 pr-2">
+          <CardContent className="pt-0 pr-0 pl-6">
             {chartData.length === 0 ? (
               <div className="flex items-center justify-center h-[600px] text-muted-foreground">
                 No completed jobs to display for selected timespan
