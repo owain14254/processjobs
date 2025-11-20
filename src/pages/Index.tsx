@@ -326,7 +326,14 @@ const Index = () => {
   };
   return <div className="min-h-screen bg-background p-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="max-w-[1600px] mx-auto space-y-6">
+        <div className="max-w-[1600px] mx-auto space-y-3">
+          {/* Clock at top center */}
+          <div className="flex justify-center py-1">
+            <div className="text-2xl font-bold font-mono tabular-nums">
+              {currentTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+            </div>
+          </div>
+
           {/* Header */}
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
@@ -367,9 +374,6 @@ const Index = () => {
               <div>
                 <h1 className="text-3xl font-bold">Job Log</h1>
                 <p className="text-muted-foreground">{adminSettings.appName}</p>
-              </div>
-              <div className="text-2xl font-bold font-mono tabular-nums">
-                {currentTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
               </div>
             </div>
 
