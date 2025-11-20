@@ -28,6 +28,7 @@ import { CalendarIcon, Trash2, Expand } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useRef, useEffect, useState } from "react";
+import { ResolutionDialog } from "./ResolutionDialog";
 
 interface JobRowProps {
   job: Job;
@@ -43,6 +44,7 @@ interface JobRowProps {
     darkGreen: string;
   };
   expandPopupSize?: number;
+  onResolutionSave?: (jobId: string, resolution: string) => void;
 }
 
 const getStatusColor = (jobComplete: boolean, sapComplete: boolean, colors: { amber: string; lightGreen: string; darkGreen: string }) => {
@@ -60,10 +62,12 @@ export const JobRow = ({
   textBold = false,
   departments = ["Process", "Fruit", "Filling", "Warehouse", "Services", "Other"],
   statusColors = { amber: "#FFA500", lightGreen: "#90EE90", darkGreen: "#006400" },
-  expandPopupSize = 1
+  expandPopupSize = 1,
+  onResolutionSave
 }: JobRowProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isOverflowing, setIsOverflowing] = useState(false);
+  const [showResolutionDialog, setShowResolutionDialog] = useState(false);
 
   const sizeClasses = {
     padding: ["p-0.5", "p-1", "p-1.5", "p-2", "p-3"][rowHeight],
@@ -201,13 +205,32 @@ export const JobRow = ({
       <div className="flex items-center gap-1.5 justify-center">
         <Checkbox
           checked={job.jobComplete}
-          onCheckedChange={(checked) =>
-            onUpdate(job.id, { jobComplete: checked as boolean })
-          }
+          onCheckedChange={(checked) => {
+            const isChecked = checked as boolean;
+            // If checking the box (not unchecking), show resolution dialog
+            if (isChecked && !job.jobComplete) {
+              setShowResolutionDialog(true);
+            }
+            onUpdate(job.id, { jobComplete: isChecked });
+          }}
           className="dark:border-black dark:data-[state=checked]:bg-black dark:data-[state=checked]:border-black"
         />
         <span className="text-xs font-medium dark:text-black">Complete</span>
       </div>
+
+      <ResolutionDialog
+        open={showResolutionDialog}
+        onOpenChange={setShowResolutionDialog}
+        jobDescription={job.description}
+        onSave={(resolution) => {
+          if (onResolutionSave) {
+            onResolutionSave(job.id, resolution);
+          }
+        }}
+        onSkip={() => {
+          // Just close the dialog, checkbox stays ticked
+        }}
+      />
 
       <div className="flex items-center gap-1.5 justify-center">
         <Checkbox

@@ -190,6 +190,51 @@ const Index = () => {
     const interval = setInterval(checkBackupReminder, 60 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Auto theme switching
+  useEffect(() => {
+    const checkAndSwitchTheme = () => {
+      const savedSettings = localStorage.getItem("adminSettings");
+      if (!savedSettings) return;
+      
+      try {
+        const parsed = JSON.parse(savedSettings);
+        if (!parsed.autoThemeEnabled) return;
+
+        const now = new Date();
+        const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        
+        const lightTime = parsed.autoThemeLightTime || "06:00";
+        const darkTime = parsed.autoThemeDarkTime || "18:00";
+
+        // Compare times
+        let shouldBeDark = false;
+        
+        if (darkTime < lightTime) {
+          // Dark mode spans midnight (e.g., 18:00 to 06:00)
+          shouldBeDark = currentTime >= darkTime || currentTime < lightTime;
+        } else {
+          // Normal case (e.g., 06:00 to 18:00 is light)
+          shouldBeDark = currentTime >= darkTime && currentTime < lightTime;
+        }
+
+        // Apply theme
+        const root = document.documentElement;
+        if (shouldBeDark) {
+          root.classList.add('dark');
+        } else {
+          root.classList.remove('dark');
+        }
+      } catch (e) {
+        console.error("Failed to auto-switch theme", e);
+      }
+    };
+
+    checkAndSwitchTheme();
+    // Check every minute
+    const interval = setInterval(checkAndSwitchTheme, 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
   useEffect(() => {
     const savedLastSave = localStorage.getItem("lastSaveTime");
     if (savedLastSave) {
@@ -359,7 +404,14 @@ const Index = () => {
                     amber: adminSettings.statusColorAmber,
                     lightGreen: adminSettings.statusColorLightGreen,
                     darkGreen: adminSettings.statusColorDarkGreen
-                  }} expandPopupSize={adminSettings.expandPopupSize} />)}
+                  }} expandPopupSize={adminSettings.expandPopupSize} onResolutionSave={(jobId, resolution) => {
+                    // Append resolution to the job description in Active tab only
+                    const job = activeJobs.find(j => j.id === jobId);
+                    if (job) {
+                      const updatedDescription = `${job.description} – Resolution: ${resolution}`;
+                      updateJob(jobId, { description: updatedDescription });
+                    }
+                  }} />)}
               </div>}
 
             {activeJobs.some(job => job.jobComplete && job.sapComplete) && <div className="flex justify-center pt-4">
