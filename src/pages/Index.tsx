@@ -211,11 +211,11 @@ const Index = () => {
         // Compare times
         let shouldBeDark = false;
         
-        if (darkTime < lightTime) {
+        if (darkTime > lightTime) {
           // Dark mode spans midnight (e.g., 18:00 to 06:00)
           shouldBeDark = currentTimeStr >= darkTime || currentTimeStr < lightTime;
         } else {
-          // Normal case (e.g., 06:00 to 18:00 is light)
+          // Unusual case: dark mode during day (e.g., 06:00 to 18:00 is dark)
           shouldBeDark = currentTimeStr >= darkTime && currentTimeStr < lightTime;
         }
 
@@ -328,7 +328,7 @@ const Index = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="max-w-[1600px] mx-auto space-y-6">
           {/* Header */}
-          <div className="flex items-center justify-between gap-4">
+          <div className="grid grid-cols-3 items-center gap-4">
             <div className="flex items-center gap-4">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -370,12 +370,13 @@ const Index = () => {
               </div>
             </div>
 
-            <div className="text-2xl font-bold font-mono tabular-nums">
-              {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
+            <div className="flex justify-center">
+              <div className="text-2xl font-bold font-mono tabular-nums">
+                {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
+              </div>
             </div>
 
-
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 justify-end">
               <div className="hidden">
                 <AdminSettingsDialog onSettingsChange={handleSettingsChange} onTestSavePrompt={testBackupReminder} />
               </div>
@@ -394,10 +395,10 @@ const Index = () => {
             </div>
           </div>
 
-          <TabsList className="grid w-full max-w-[500px] grid-cols-3 mx-auto">
-            <TabsTrigger value="active">{adminSettings.tabNameActive} ({activeJobs.length})</TabsTrigger>
-            <TabsTrigger value="completed">{adminSettings.tabNameCompleted} ({completedJobs.length})</TabsTrigger>
-            <TabsTrigger value="handover">{adminSettings.tabNameHandover}</TabsTrigger>
+          <TabsList className="grid w-full max-w-[500px] grid-cols-3 mx-auto h-9">
+            <TabsTrigger value="active" className="py-1">{adminSettings.tabNameActive} ({activeJobs.length})</TabsTrigger>
+            <TabsTrigger value="completed" className="py-1">{adminSettings.tabNameCompleted} ({completedJobs.length})</TabsTrigger>
+            <TabsTrigger value="handover" className="py-1">{adminSettings.tabNameHandover}</TabsTrigger>
           </TabsList>
 
           {/* Tab Content */}
