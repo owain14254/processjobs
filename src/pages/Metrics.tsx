@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer, Cell } from "recharts";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Filter, Download, Calendar, CalendarDays, X, Plus } from "lucide-react";
+import { ArrowLeft, Filter, Download, Calendar, CalendarDays, X, Plus, Tags } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
@@ -473,35 +473,58 @@ const Metrics = () => {
             ) : viewMode === "keywords" ? (
               <div className="space-y-4">
                 <div className="flex gap-2 items-center justify-between pb-4 border-b">
-                  <div className="flex gap-2 items-center flex-wrap">
-                    <span className="text-sm font-medium">Keywords:</span>
-                    {keywords.map((keyword) => (
-                      <div key={keyword} className="flex items-center gap-1 bg-muted px-2 py-1 rounded">
-                        <span className="text-sm">{keyword}</span>
-                        <button
-                          onClick={() => removeKeyword(keyword)}
-                          className="text-muted-foreground hover:text-foreground"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
-                    ))}
-                    <div className="flex gap-1">
-                      <Input
-                        placeholder="Add keyword"
-                        value={newKeyword}
-                        onChange={(e) => setNewKeyword(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && addKeyword()}
-                        className="w-32 h-8 text-sm"
-                      />
-                      <Button size="sm" onClick={addKeyword} className="h-8">
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
+                  <div className="flex gap-2 items-center">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <Tags className="h-4 w-4 mr-2" />
+                          Manage Keywords ({keywords.length})
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="w-64 bg-background z-50 max-h-96 overflow-y-auto">
+                        <DropdownMenuLabel>Active Keywords</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {keywords.length === 0 ? (
+                          <div className="px-2 py-3 text-sm text-muted-foreground text-center">
+                            No keywords added yet
+                          </div>
+                        ) : (
+                          <div className="p-2 space-y-1">
+                            {keywords.map((keyword) => (
+                              <div key={keyword} className="flex items-center justify-between gap-2 px-2 py-1.5 rounded hover:bg-muted">
+                                <span className="text-sm font-medium">{keyword}</span>
+                                <button
+                                  onClick={() => removeKeyword(keyword)}
+                                  className="text-muted-foreground hover:text-destructive"
+                                >
+                                  <X className="h-4 w-4" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <DropdownMenuSeparator />
+                        <div className="p-2 space-y-2">
+                          <div className="flex gap-1">
+                            <Input
+                              placeholder="Add keyword"
+                              value={newKeyword}
+                              onChange={(e) => setNewKeyword(e.target.value)}
+                              onKeyDown={(e) => e.key === "Enter" && addKeyword()}
+                              className="h-8 text-sm"
+                            />
+                            <Button size="sm" onClick={addKeyword} className="h-8">
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    
+                    <Button size="sm" variant="outline" onClick={autoFindKeywords}>
+                      Auto-Find Keywords
+                    </Button>
                   </div>
-                  <Button size="sm" variant="outline" onClick={autoFindKeywords}>
-                    Auto-Find Keywords
-                  </Button>
                 </div>
                 <ChartContainer
                   config={keywordData.reduce((acc, item) => ({
