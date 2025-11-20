@@ -26,8 +26,8 @@ type Timespan = "7days" | "30days" | "90days" | "6months" | "1year" | "all";
 const Metrics = () => {
   const navigate = useNavigate();
   const { completedJobs } = useJobStorage();
-  const [viewMode, setViewMode] = useState<"monthly" | "daily">("monthly");
-  const [timespan, setTimespan] = useState<Timespan>("all");
+  const [viewMode, setViewMode] = useState<"monthly" | "daily">("daily");
+  const [timespan, setTimespan] = useState<Timespan>("90days");
 
   const timespanLabels: Record<Timespan, string> = {
     "7days": "Last 7 Days",
@@ -382,56 +382,56 @@ const Metrics = () => {
           </CardContent>
         </Card>
 
-        <div className="w-80 space-y-4">
+        <div className="w-80 space-y-4 h-[600px] overflow-y-auto">
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Summary</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Summary</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3">
               <div>
-                <p className="text-sm text-muted-foreground">Total Jobs</p>
-                <p className="text-2xl font-bold">{totalJobs}</p>
+                <p className="text-xs text-muted-foreground">Total Jobs</p>
+                <p className="text-xl font-bold">{totalJobs}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Avg per {viewMode === "monthly" ? "Month" : "Day"}</p>
-                <p className="text-2xl font-bold">{avgJobsPerPeriod}</p>
+                <p className="text-xs text-muted-foreground">Avg per {viewMode === "monthly" ? "Month" : "Day"}</p>
+                <p className="text-xl font-bold">{avgJobsPerPeriod}</p>
               </div>
               {topDepartment && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Top Department</p>
+                  <p className="text-xs text-muted-foreground">Top Department</p>
                   <div className="flex items-center gap-2 mt-1">
                     <div
                       className="w-3 h-3 rounded"
                       style={{ backgroundColor: departmentColors[topDepartment.department] }}
                     />
-                    <p className="font-semibold">{topDepartment.department}</p>
+                    <p className="text-sm font-semibold">{topDepartment.department}</p>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-1">{topDepartment.count} jobs ({topDepartment.percentage}%)</p>
+                  <p className="text-xs text-muted-foreground mt-1">{topDepartment.count} jobs ({topDepartment.percentage}%)</p>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Department Breakdown</CardTitle>
+          <Card className="flex-1">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Department Breakdown</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-2.5">
               {departmentStats.map((stat) => (
                 <div key={stat.department} className="space-y-1">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div
-                        className="w-3 h-3 rounded"
+                        className="w-2.5 h-2.5 rounded"
                         style={{ backgroundColor: departmentColors[stat.department] }}
                       />
-                      <span className="text-sm font-medium">{stat.department}</span>
+                      <span className="text-xs font-medium">{stat.department}</span>
                     </div>
-                    <span className="text-sm text-muted-foreground">{stat.count}</span>
+                    <span className="text-xs text-muted-foreground">{stat.count}</span>
                   </div>
-                  <div className="w-full bg-muted rounded-full h-2">
+                  <div className="w-full bg-muted rounded-full h-1.5">
                     <div
-                      className="h-2 rounded-full transition-all"
+                      className="h-1.5 rounded-full transition-all"
                       style={{
                         width: `${stat.percentage}%`,
                         backgroundColor: departmentColors[stat.department]
