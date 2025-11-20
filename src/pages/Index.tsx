@@ -370,6 +370,10 @@ const Index = () => {
               </div>
             </div>
 
+            <div className="text-2xl font-bold font-mono tabular-nums">
+              {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
+            </div>
+
 
             <div className="flex items-center gap-2">
               <div className="hidden">
@@ -387,13 +391,6 @@ const Index = () => {
                   </span>
                 </Button>
               </label>
-            </div>
-          </div>
-
-          {/* Clock positioned above tab buttons */}
-          <div className="flex justify-center py-1">
-            <div className="text-2xl font-bold font-mono tabular-nums">
-              {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
             </div>
           </div>
 
