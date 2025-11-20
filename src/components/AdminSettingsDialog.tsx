@@ -46,21 +46,21 @@ interface AdminSettingsData {
 }
 
 const defaultSettings: AdminSettingsData = {
-  rowHeightActive: 2,
+  rowHeightActive: 1,
   rowHeightCompleted: 2,
   rowHeightHandover: 2,
-  textSizeActive: 2,
+  textSizeActive: 3,
   textSizeCompleted: 2,
   textSizeHandover: 2,
   textBoldActive: false,
   textBoldCompleted: false,
   textBoldHandover: false,
-  expandPopupSize: 2,
+  expandPopupSize: 4,
   statusColorAmber: "#ffc252",
   statusColorLightGreen: "#8bea8b",
   statusColorDarkGreen: "#00b300",
   clockVisible: true,
-  clockSize: 2,
+  clockSize: 4,
   tabNameActive: "Active",
   tabNameCompleted: "Completed",
   tabNameHandover: "Handover",
@@ -69,9 +69,9 @@ const defaultSettings: AdminSettingsData = {
   shiftDuration: 12,
   setDuration: 96,
   backupReminderInterval: 24,
-  autoThemeEnabled: false,
-  autoThemeLightTime: "06:00",
-  autoThemeDarkTime: "18:00"
+  autoThemeEnabled: true,
+  autoThemeLightTime: "07:00",
+  autoThemeDarkTime: "19:00"
 };
 
 const ROW_HEIGHT_OPTIONS = ["Extra Compact", "Compact", "Normal", "Comfortable", "Extra Comfortable"];
