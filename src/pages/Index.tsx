@@ -33,6 +33,7 @@ const Index = () => {
   const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
   const [showBackupReminder, setShowBackupReminder] = useState(false);
   const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Admin settings state
@@ -202,7 +203,7 @@ const Index = () => {
         if (!parsed.autoThemeEnabled) return;
 
         const now = new Date();
-        const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
         
         const lightTime = parsed.autoThemeLightTime || "06:00";
         const darkTime = parsed.autoThemeDarkTime || "18:00";
@@ -212,10 +213,10 @@ const Index = () => {
         
         if (darkTime < lightTime) {
           // Dark mode spans midnight (e.g., 18:00 to 06:00)
-          shouldBeDark = currentTime >= darkTime || currentTime < lightTime;
+          shouldBeDark = currentTimeStr >= darkTime || currentTimeStr < lightTime;
         } else {
           // Normal case (e.g., 06:00 to 18:00 is light)
-          shouldBeDark = currentTime >= darkTime && currentTime < lightTime;
+          shouldBeDark = currentTimeStr >= darkTime && currentTimeStr < lightTime;
         }
 
         // Apply theme
@@ -233,6 +234,14 @@ const Index = () => {
     checkAndSwitchTheme();
     // Check every minute
     const interval = setInterval(checkAndSwitchTheme, 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Update current time display
+  useEffect(() => {
+    const updateTime = () => setCurrentTime(new Date());
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
   }, []);
   useEffect(() => {
@@ -318,6 +327,13 @@ const Index = () => {
   return <div className="min-h-screen bg-background p-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="max-w-[1600px] mx-auto space-y-6">
+          {/* Current Time Display */}
+          <div className="flex justify-center">
+            <div className="text-4xl font-bold font-mono tabular-nums">
+              {currentTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            </div>
+          </div>
+
           {/* Header */}
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
@@ -405,10 +421,10 @@ const Index = () => {
                     lightGreen: adminSettings.statusColorLightGreen,
                     darkGreen: adminSettings.statusColorDarkGreen
                   }} expandPopupSize={adminSettings.expandPopupSize} onResolutionSave={(jobId, resolution) => {
-                    // Append resolution to the job description in Active tab only
+                    // Append resolution to the job description in Active tab only with brackets format
                     const job = activeJobs.find(j => j.id === jobId);
                     if (job) {
-                      const updatedDescription = `${job.description} – Resolution: ${resolution}`;
+                      const updatedDescription = `${job.description} (- Resolution: ${resolution})`;
                       updateJob(jobId, { description: updatedDescription });
                     }
                   }} />)}
