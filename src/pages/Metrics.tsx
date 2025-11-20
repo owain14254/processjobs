@@ -15,20 +15,61 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuSeparator,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+type Timespan = "7days" | "30days" | "90days" | "6months" | "1year" | "all";
 
 const Metrics = () => {
   const navigate = useNavigate();
   const { completedJobs } = useJobStorage();
   const [viewMode, setViewMode] = useState<"monthly" | "daily">("monthly");
+  const [timespan, setTimespan] = useState<Timespan>("all");
+
+  const timespanLabels: Record<Timespan, string> = {
+    "7days": "Last 7 Days",
+    "30days": "Last 30 Days",
+    "90days": "Last 90 Days",
+    "6months": "Last 6 Months",
+    "1year": "Last Year",
+    "all": "All Time"
+  };
+
+  const filteredJobsByTimespan = useMemo(() => {
+    if (timespan === "all") return completedJobs;
+    
+    const now = new Date();
+    const cutoffDate = new Date();
+    
+    switch (timespan) {
+      case "7days":
+        cutoffDate.setDate(now.getDate() - 7);
+        break;
+      case "30days":
+        cutoffDate.setDate(now.getDate() - 30);
+        break;
+      case "90days":
+        cutoffDate.setDate(now.getDate() - 90);
+        break;
+      case "6months":
+        cutoffDate.setMonth(now.getMonth() - 6);
+        break;
+      case "1year":
+        cutoffDate.setFullYear(now.getFullYear() - 1);
+        break;
+    }
+    
+    return completedJobs.filter(job => new Date(job.completedAt) >= cutoffDate);
+  }, [completedJobs, timespan]);
 
   const allDepartments = useMemo(() => {
     const depts = new Set<string>();
-    completedJobs.forEach(job => depts.add(job.department));
+    filteredJobsByTimespan.forEach(job => depts.add(job.department));
     return Array.from(depts).sort();
-  }, [completedJobs]);
+  }, [filteredJobsByTimespan]);
 
   const [selectedDepartments, setSelectedDepartments] = useState<Set<string>>(
     new Set(allDepartments)
@@ -73,7 +114,7 @@ const Metrics = () => {
   const monthlyData = useMemo(() => {
     const dataMap = new Map<string, Map<string, number>>();
     
-    completedJobs.forEach((job) => {
+    filteredJobsByTimespan.forEach((job) => {
       if (!selectedDepartments.has(job.department)) return;
       
       const date = new Date(job.completedAt);
@@ -104,12 +145,12 @@ const Metrics = () => {
       
       return result;
     });
-  }, [completedJobs, selectedDepartments]);
+  }, [filteredJobsByTimespan, selectedDepartments]);
 
   const dailyData = useMemo(() => {
     const dataMap = new Map<string, Map<string, number>>();
     
-    completedJobs.forEach((job) => {
+    filteredJobsByTimespan.forEach((job) => {
       if (!selectedDepartments.has(job.department)) return;
       
       const date = new Date(job.completedAt);
@@ -126,10 +167,11 @@ const Metrics = () => {
 
     const sortedDays = Array.from(dataMap.keys()).sort();
     
-    // Limit to last 30 days for better visibility
-    const last30Days = sortedDays.slice(-30);
+    // Show appropriate number of days based on timespan
+    const daysToShow = timespan === "7days" ? 7 : timespan === "30days" ? 30 : sortedDays.length;
+    const limitedDays = sortedDays.slice(-daysToShow);
     
-    return last30Days.map((dayKey) => {
+    return limitedDays.map((dayKey) => {
       const [year, month, day] = dayKey.split('-');
       const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
       const dayName = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -143,18 +185,11 @@ const Metrics = () => {
       
       return result;
     });
-  }, [completedJobs, selectedDepartments]);
+  }, [filteredJobsByTimespan, selectedDepartments, timespan]);
 
   const chartData = viewMode === "monthly" ? monthlyData : dailyData;
 
   const { toast } = useToast();
-
-  const totalJobs = completedJobs.filter(job => selectedDepartments.has(job.department)).length;
-
-  const avgJobsPerMonth = useMemo(() => {
-    if (monthlyData.length === 0) return 0;
-    return Math.round(totalJobs / monthlyData.length);
-  }, [totalJobs, monthlyData]);
 
   const handleExportMetrics = () => {
     const csvData = [
@@ -170,7 +205,7 @@ const Metrics = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `metrics-${viewMode}-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `metrics-${viewMode}-${timespan}-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     
@@ -190,7 +225,7 @@ const Metrics = () => {
 
   return (
     <div className="min-h-screen bg-background p-4">
-      <div className="max-w-7xl mx-auto space-y-3">
+      <div className="max-w-full mx-auto space-y-3 px-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
@@ -207,6 +242,27 @@ const Metrics = () => {
           </div>
           
           <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  {timespanLabels[timespan]}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 bg-background z-50">
+                <DropdownMenuLabel>Select Timespan</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup value={timespan} onValueChange={(v) => setTimespan(v as Timespan)}>
+                  <DropdownMenuRadioItem value="7days">Last 7 Days</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="30days">Last 30 Days</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="90days">Last 90 Days</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="6months">Last 6 Months</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="1year">Last Year</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="all">All Time</DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "monthly" | "daily")}>
               <TabsList>
                 <TabsTrigger value="monthly" className="gap-1">
@@ -262,36 +318,16 @@ const Metrics = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Jobs</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalJobs}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Avg Per Month</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{avgJobsPerMonth}</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card className="flex-1">
+        <Card className="w-full">
           <CardHeader className="pb-3">
             <CardTitle className="text-base">
-              Jobs Completed by Department {viewMode === "daily" ? "(Last 30 Days)" : ""}
+              Jobs Completed by Department
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             {chartData.length === 0 ? (
-              <div className="flex items-center justify-center h-[500px] text-muted-foreground">
-                No completed jobs to display
+              <div className="flex items-center justify-center h-[600px] text-muted-foreground">
+                No completed jobs to display for selected timespan
               </div>
             ) : (
               <ChartContainer
@@ -302,7 +338,7 @@ const Metrics = () => {
                     color: departmentColors[dept],
                   }
                 }), {})}
-                className="h-[500px]"
+                className="h-[600px]"
               >
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData}>
