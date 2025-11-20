@@ -26,6 +26,8 @@ interface AdminSettingsData {
   statusColorAmber: string;
   statusColorLightGreen: string;
   statusColorDarkGreen: string;
+  clockVisible: boolean;
+  clockSize: number;
 
   // General
   tabNameActive: string;
@@ -57,6 +59,8 @@ const defaultSettings: AdminSettingsData = {
   statusColorAmber: "#ffc252",
   statusColorLightGreen: "#8bea8b",
   statusColorDarkGreen: "#00b300",
+  clockVisible: true,
+  clockSize: 2,
   tabNameActive: "Active",
   tabNameCompleted: "Completed",
   tabNameHandover: "Handover",
@@ -73,6 +77,7 @@ const defaultSettings: AdminSettingsData = {
 const ROW_HEIGHT_OPTIONS = ["Extra Compact", "Compact", "Normal", "Comfortable", "Extra Comfortable"];
 const TEXT_SIZE_OPTIONS = ["Extra Small", "Small", "Normal", "Large", "Extra Large"];
 const POPUP_SIZE_OPTIONS = ["Small", "Normal", "Large", "Extra Large", "Huge"];
+const CLOCK_SIZE_OPTIONS = ["Extra Small", "Small", "Normal", "Large", "Extra Large"];
 
 interface AdminSettingsDialogProps {
   onSettingsChange?: (settings: AdminSettingsData) => void;
@@ -457,6 +462,32 @@ export function AdminSettingsDialog({ onSettingsChange, onTestSavePrompt }: Admi
                     className="flex-1"
                   />
                   <span className="text-[10px] text-muted-foreground w-24">{POPUP_SIZE_OPTIONS[settings.expandPopupSize]}</span>
+                </div>
+              </div>
+
+              {/* Clock Settings */}
+              <div className="space-y-1">
+                <Label className="text-[11px] font-semibold">Clock Settings</Label>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[10px] text-muted-foreground">Show Clock</Label>
+                    <Switch 
+                      checked={settings.clockVisible} 
+                      onCheckedChange={(checked) => updateSetting("clockVisible", checked)}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] text-muted-foreground">Clock Size</Label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Slider 
+                        value={[settings.clockSize]} 
+                        onValueChange={value => updateSetting("clockSize", value[0])} 
+                        min={0} max={4} step={1} 
+                        className="flex-1"
+                      />
+                      <span className="text-[10px] text-muted-foreground w-24">{CLOCK_SIZE_OPTIONS[settings.clockSize]}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </CardContent>

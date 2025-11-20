@@ -57,7 +57,9 @@ const Index = () => {
     expandPopupSize: 2,
     statusColorAmber: "#ffc252",
     statusColorLightGreen: "#8bea8b",
-    statusColorDarkGreen: "#00b300"
+    statusColorDarkGreen: "#00b300",
+    clockVisible: true,
+    clockSize: 2
   });
   const {
     activeJobs,
@@ -208,23 +210,20 @@ const Index = () => {
         const lightTime = parsed.autoThemeLightTime || "06:00";
         const darkTime = parsed.autoThemeDarkTime || "18:00";
 
-        // Compare times
-        let shouldBeDark = false;
+        // Check if we've hit one of the scheduled times
+        const lastAutoSwitch = localStorage.getItem("lastAutoThemeSwitch");
+        const isLightTime = currentTimeStr === lightTime;
+        const isDarkTime = currentTimeStr === darkTime;
         
-        if (darkTime > lightTime) {
-          // Dark mode spans midnight (e.g., 18:00 to 06:00)
-          shouldBeDark = currentTimeStr >= darkTime || currentTimeStr < lightTime;
-        } else {
-          // Unusual case: dark mode during day (e.g., 06:00 to 18:00 is dark)
-          shouldBeDark = currentTimeStr >= darkTime && currentTimeStr < lightTime;
-        }
-
-        // Apply theme
-        const root = document.documentElement;
-        if (shouldBeDark) {
-          root.classList.add('dark');
-        } else {
-          root.classList.remove('dark');
+        // Only auto-switch at exact scheduled times, and not if we've already switched this minute
+        if ((isLightTime || isDarkTime) && lastAutoSwitch !== currentTimeStr) {
+          const root = document.documentElement;
+          if (isDarkTime) {
+            root.classList.add('dark');
+          } else if (isLightTime) {
+            root.classList.remove('dark');
+          }
+          localStorage.setItem("lastAutoThemeSwitch", currentTimeStr);
         }
       } catch (e) {
         console.error("Failed to auto-switch theme", e);
@@ -279,7 +278,9 @@ const Index = () => {
           expandPopupSize: parsed.expandPopupSize ?? 2,
           statusColorAmber: parsed.statusColorAmber || "#ffc252",
           statusColorLightGreen: parsed.statusColorLightGreen || "#8bea8b",
-          statusColorDarkGreen: parsed.statusColorDarkGreen || "#00b300"
+          statusColorDarkGreen: parsed.statusColorDarkGreen || "#00b300",
+          clockVisible: parsed.clockVisible ?? true,
+          clockSize: parsed.clockSize ?? 2
         });
       } catch (e) {
         console.error("Failed to parse admin settings", e);
@@ -317,7 +318,9 @@ const Index = () => {
           expandPopupSize: parsed.expandPopupSize ?? 2,
           statusColorAmber: parsed.statusColorAmber || "#ffc252",
           statusColorLightGreen: parsed.statusColorLightGreen || "#8bea8b",
-          statusColorDarkGreen: parsed.statusColorDarkGreen || "#00b300"
+          statusColorDarkGreen: parsed.statusColorDarkGreen || "#00b300",
+          clockVisible: parsed.clockVisible ?? true,
+          clockSize: parsed.clockSize ?? 2
         });
       } catch (e) {
         console.error("Failed to parse admin settings", e);
@@ -370,11 +373,18 @@ const Index = () => {
               </div>
             </div>
 
-            <div className="flex justify-center">
-              <div className="text-2xl font-bold font-mono tabular-nums">
-                {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
+            {adminSettings.clockVisible && (
+              <div className="flex justify-center">
+                <div 
+                  className="font-bold font-mono tabular-nums"
+                  style={{ 
+                    fontSize: ['1rem', '1.25rem', '1.5rem', '1.75rem', '2rem'][adminSettings.clockSize] 
+                  }}
+                >
+                  {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="flex items-center gap-2 justify-end">
               <div className="hidden">
@@ -395,10 +405,10 @@ const Index = () => {
             </div>
           </div>
 
-          <TabsList className="grid w-full max-w-[500px] grid-cols-3 mx-auto h-9">
-            <TabsTrigger value="active" className="py-1">{adminSettings.tabNameActive} ({activeJobs.length})</TabsTrigger>
-            <TabsTrigger value="completed" className="py-1">{adminSettings.tabNameCompleted} ({completedJobs.length})</TabsTrigger>
-            <TabsTrigger value="handover" className="py-1">{adminSettings.tabNameHandover}</TabsTrigger>
+          <TabsList className="grid w-full max-w-[500px] grid-cols-3 mx-auto h-8">
+            <TabsTrigger value="active" className="py-0.5">{adminSettings.tabNameActive} ({activeJobs.length})</TabsTrigger>
+            <TabsTrigger value="completed" className="py-0.5">{adminSettings.tabNameCompleted} ({completedJobs.length})</TabsTrigger>
+            <TabsTrigger value="handover" className="py-0.5">{adminSettings.tabNameHandover}</TabsTrigger>
           </TabsList>
 
           {/* Tab Content */}
