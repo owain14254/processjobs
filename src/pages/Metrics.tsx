@@ -382,7 +382,7 @@ const Metrics = () => {
           </CardContent>
         </Card>
 
-        <div className="w-80 space-y-4 h-[600px] overflow-y-auto">
+        <div className="w-80 space-y-2 h-[600px] overflow-y-auto">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm">Summary</CardTitle>
