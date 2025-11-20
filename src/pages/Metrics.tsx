@@ -22,11 +22,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Timespan = "7days" | "30days" | "90days" | "6months" | "1year" | "all";
+type ViewMode = "monthly" | "daily" | "keywords";
 
 const Metrics = () => {
   const navigate = useNavigate();
   const { completedJobs } = useJobStorage();
-  const [viewMode, setViewMode] = useState<"monthly" | "daily">("daily");
+  const [viewMode, setViewMode] = useState<ViewMode>("daily");
   const [timespan, setTimespan] = useState<Timespan>("90days");
 
   const timespanLabels: Record<Timespan, string> = {
@@ -187,7 +188,46 @@ const Metrics = () => {
     });
   }, [filteredJobsByTimespan, selectedDepartments, timespan]);
 
-  const chartData = viewMode === "monthly" ? monthlyData : dailyData;
+  // Keyword analysis data
+  const keywordData = useMemo(() => {
+    const keywordMap = new Map<string, { count: number; totalHours: number; jobs: typeof filteredJobsByTimespan }>();
+    
+    // Common keywords to look for
+    const keywords = ["VA", "BT", "IT", "HE", "PU", "AG", "FI", "PI", "TK"];
+    
+    filteredJobsByTimespan.forEach((job) => {
+      if (!selectedDepartments.has(job.department)) return;
+      
+      const description = job.description.toUpperCase();
+      const createdAt = new Date(job.date);
+      const completedAt = new Date(job.completedAt);
+      const durationHours = (completedAt.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+      
+      // Find keywords in description
+      keywords.forEach((keyword) => {
+        if (description.includes(keyword)) {
+          if (!keywordMap.has(keyword)) {
+            keywordMap.set(keyword, { count: 0, totalHours: 0, jobs: [] });
+          }
+          const data = keywordMap.get(keyword)!;
+          data.count += 1;
+          data.totalHours += durationHours;
+          data.jobs.push(job);
+        }
+      });
+    });
+    
+    return Array.from(keywordMap.entries())
+      .map(([keyword, data]) => ({
+        keyword,
+        count: data.count,
+        totalHours: Math.round(data.totalHours * 10) / 10,
+        avgHours: Math.round((data.totalHours / data.count) * 10) / 10,
+      }))
+      .sort((a, b) => b.totalHours - a.totalHours);
+  }, [filteredJobsByTimespan, selectedDepartments]);
+
+  const chartData = viewMode === "keywords" ? keywordData : (viewMode === "monthly" ? monthlyData : dailyData);
 
   const { toast } = useToast();
 
@@ -276,7 +316,7 @@ const Metrics = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "monthly" | "daily")}>
+            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
               <TabsList>
                 <TabsTrigger value="monthly" className="gap-1">
                   <Calendar className="h-4 w-4" />
@@ -285,6 +325,10 @@ const Metrics = () => {
                 <TabsTrigger value="daily" className="gap-1">
                   <CalendarDays className="h-4 w-4" />
                   Daily
+                </TabsTrigger>
+                <TabsTrigger value="keywords" className="gap-1">
+                  <Filter className="h-4 w-4" />
+                  Keywords
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -335,7 +379,7 @@ const Metrics = () => {
           <Card className="flex-1 border-0 rounded-none shadow-none">
             <CardHeader className="pb-3 px-0">
               <CardTitle className="text-base">
-                Jobs Completed by Department
+                {viewMode === "keywords" ? "Job Time by Keyword" : "Jobs Completed by Department"}
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0 px-0">
@@ -343,6 +387,42 @@ const Metrics = () => {
               <div className="flex items-center justify-center h-[600px] text-muted-foreground">
                 No completed jobs to display for selected timespan
               </div>
+            ) : viewMode === "keywords" ? (
+              <ChartContainer
+                config={keywordData.reduce((acc, item) => ({
+                  ...acc,
+                  [item.keyword]: {
+                    label: item.keyword,
+                    color: `hsl(${(keywordData.indexOf(item) * 360) / keywordData.length}, 70%, 50%)`,
+                  }
+                }), {})}
+                className="h-[600px]"
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={keywordData} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" style={{ fontSize: '12px' }} label={{ value: 'Total Hours', position: 'bottom' }} />
+                    <YAxis dataKey="keyword" type="category" style={{ fontSize: '12px' }} width={60} />
+                    <ChartTooltip 
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <div className="bg-background border rounded-lg p-3 shadow-lg">
+                              <p className="font-semibold">{data.keyword}</p>
+                              <p className="text-sm text-muted-foreground">Jobs: {data.count}</p>
+                              <p className="text-sm text-muted-foreground">Total: {data.totalHours}h</p>
+                              <p className="text-sm text-muted-foreground">Avg: {data.avgHours}h per job</p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Bar dataKey="totalHours" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
             ) : (
               <ChartContainer
                 config={allDepartments.reduce((acc, dept) => ({
