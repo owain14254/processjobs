@@ -205,15 +205,15 @@ export const CompletedJobsLog = ({
       </div>
 
       <div className="rounded-lg border overflow-hidden">
-        <ScrollArea className="h-[calc(100vh-280px)]">
-          <Table className="table-fixed w-full">
+        <ScrollArea className="h-[calc(100vh-240px)]">
+          <Table className="w-full">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[90px]">Date</TableHead>
-                <TableHead className="w-[100px]">Department</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead className="w-[90px]">Completed</TableHead>
-                {isAdminMode && <TableHead className="w-[80px]">Actions</TableHead>}
+                <TableHead className="w-[110px]">Date</TableHead>
+                <TableHead className="w-[130px]">Department</TableHead>
+                <TableHead className="min-w-[200px]">Description</TableHead>
+                <TableHead className="w-[110px]">Completed</TableHead>
+                {isAdminMode && <TableHead className="w-[100px]">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
