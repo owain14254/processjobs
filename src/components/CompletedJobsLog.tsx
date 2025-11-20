@@ -210,11 +210,11 @@ export const CompletedJobsLog = ({
             <Table className="w-full">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[110px]">Date</TableHead>
-                  <TableHead className="w-[130px]">Department</TableHead>
-                  <TableHead className="w-[300px] max-w-[300px]">Description</TableHead>
-                  <TableHead className="w-[110px]">Completed</TableHead>
-                  {isAdminMode && <TableHead className="w-[100px]">Actions</TableHead>}
+                  <TableHead className="whitespace-nowrap">Date</TableHead>
+                  <TableHead className="whitespace-nowrap">Department</TableHead>
+                  <TableHead className="w-full">Description</TableHead>
+                  <TableHead className="whitespace-nowrap">Completed</TableHead>
+                  {isAdminMode && <TableHead className="whitespace-nowrap">Actions</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -229,7 +229,7 @@ export const CompletedJobsLog = ({
                     <TableRow key={job.id} className="h-7">
                       <TableCell className={cn("whitespace-nowrap py-1", textSizeClass, textWeightClass)}>{format(job.date, "dd/MM/yyyy")}</TableCell>
                       <TableCell className={cn("whitespace-nowrap py-1", textSizeClass, textWeightClass)}>{job.department}</TableCell>
-                      <TableCell className={cn("py-1 break-words max-w-[300px]", textSizeClass, textWeightClass)}>{job.description}</TableCell>
+                      <TableCell className={cn("py-1 break-words", textSizeClass, textWeightClass)}>{job.description}</TableCell>
                       <TableCell className={cn("whitespace-nowrap py-1", textSizeClass, textWeightClass)}>{format(job.completedAt, "dd/MM/yyyy")}</TableCell>
                       {isAdminMode && (
                         <TableCell className="py-1">
