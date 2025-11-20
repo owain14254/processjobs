@@ -327,13 +327,6 @@ const Index = () => {
   return <div className="min-h-screen bg-background p-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="max-w-[1600px] mx-auto space-y-6">
-          {/* Current Time Display */}
-          <div className="flex justify-center">
-            <div className="text-4xl font-bold font-mono tabular-nums">
-              {currentTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-            </div>
-          </div>
-
           {/* Header */}
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
@@ -374,6 +367,9 @@ const Index = () => {
               <div>
                 <h1 className="text-3xl font-bold">Job Log</h1>
                 <p className="text-muted-foreground">{adminSettings.appName}</p>
+              </div>
+              <div className="text-2xl font-bold font-mono tabular-nums">
+                {currentTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
               </div>
             </div>
 
@@ -424,7 +420,7 @@ const Index = () => {
                     // Append resolution to the job description in Active tab only with brackets format
                     const job = activeJobs.find(j => j.id === jobId);
                     if (job) {
-                      const updatedDescription = `${job.description} (- Resolution: ${resolution})`;
+                      const updatedDescription = `${job.description} (Resolution: ${resolution})`;
                       updateJob(jobId, { description: updatedDescription });
                     }
                   }} />)}
