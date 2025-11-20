@@ -385,18 +385,16 @@ const Index = () => {
               </div>
             </div>
 
-            {adminSettings.clockVisible && (
-              <div className="flex justify-center">
-                <div 
-                  className="font-bold font-mono tabular-nums"
-                  style={{ 
-                    fontSize: ['1rem', '1.25rem', '1.5rem', '1.75rem', '2rem'][adminSettings.clockSize] 
-                  }}
-                >
-                  {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
-                </div>
+            <div className="flex justify-center" style={{ visibility: adminSettings.clockVisible ? 'visible' : 'hidden' }}>
+              <div 
+                className="font-bold font-mono tabular-nums"
+                style={{ 
+                  fontSize: ['1rem', '1.25rem', '1.5rem', '1.75rem', '2rem'][adminSettings.clockSize] 
+                }}
+              >
+                {currentTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
               </div>
-            )}
+            </div>
 
             <div className="flex items-center gap-2 justify-end">
               <div className="hidden">
