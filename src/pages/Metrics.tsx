@@ -223,6 +223,19 @@ const Metrics = () => {
     }
   };
 
+  const totalJobs = filteredJobsByTimespan.filter(job => selectedDepartments.has(job.department)).length;
+  
+  const departmentStats = useMemo(() => {
+    const stats = Array.from(selectedDepartments).map(dept => {
+      const count = filteredJobsByTimespan.filter(job => job.department === dept).length;
+      return { department: dept, count, percentage: (count / totalJobs * 100).toFixed(1) };
+    }).sort((a, b) => b.count - a.count);
+    return stats;
+  }, [filteredJobsByTimespan, selectedDepartments, totalJobs]);
+
+  const topDepartment = departmentStats[0];
+  const avgJobsPerPeriod = chartData.length > 0 ? (totalJobs / chartData.length).toFixed(1) : '0';
+
   return (
     <div className="min-h-screen bg-background">
       <div className="w-full space-y-3 py-4 px-4">
@@ -318,13 +331,14 @@ const Metrics = () => {
           </div>
         </div>
 
-        <Card className="w-full border-0 rounded-none shadow-none">
-          <CardHeader className="pb-3 px-0">
-            <CardTitle className="text-base">
-              Jobs Completed by Department
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0 px-0">
+        <div className="flex gap-4">
+          <Card className="flex-1 border-0 rounded-none shadow-none">
+            <CardHeader className="pb-3 px-0">
+              <CardTitle className="text-base">
+                Jobs Completed by Department
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0 px-0">
             {chartData.length === 0 ? (
               <div className="flex items-center justify-center h-[600px] text-muted-foreground">
                 No completed jobs to display for selected timespan
@@ -367,6 +381,70 @@ const Metrics = () => {
             )}
           </CardContent>
         </Card>
+
+        <div className="w-80 space-y-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Summary</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Jobs</p>
+                <p className="text-2xl font-bold">{totalJobs}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Avg per {viewMode === "monthly" ? "Month" : "Day"}</p>
+                <p className="text-2xl font-bold">{avgJobsPerPeriod}</p>
+              </div>
+              {topDepartment && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Top Department</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <div
+                      className="w-3 h-3 rounded"
+                      style={{ backgroundColor: departmentColors[topDepartment.department] }}
+                    />
+                    <p className="font-semibold">{topDepartment.department}</p>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">{topDepartment.count} jobs ({topDepartment.percentage}%)</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Department Breakdown</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {departmentStats.map((stat) => (
+                <div key={stat.department} className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-3 h-3 rounded"
+                        style={{ backgroundColor: departmentColors[stat.department] }}
+                      />
+                      <span className="text-sm font-medium">{stat.department}</span>
+                    </div>
+                    <span className="text-sm text-muted-foreground">{stat.count}</span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div
+                      className="h-2 rounded-full transition-all"
+                      style={{
+                        width: `${stat.percentage}%`,
+                        backgroundColor: departmentColors[stat.department]
+                      }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">{stat.percentage}% of total</p>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
       </div>
     </div>
   );
