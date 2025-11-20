@@ -225,7 +225,7 @@ const Metrics = () => {
 
   return (
     <div className="min-h-screen bg-background p-4">
-      <div className="max-w-full mx-auto space-y-3 px-4">
+      <div className="w-full mx-auto space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
