@@ -466,7 +466,14 @@ const Metrics = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0 px-0">
-            {chartData.length === 0 ? (
+            {viewMode === "keywords" && keywords.length === 0 ? (
+              <div className="flex items-center justify-center h-[600px] text-muted-foreground">
+                <div className="text-center space-y-2">
+                  <p>No keywords added yet</p>
+                  <p className="text-sm">Click "Manage Keywords" to add keywords or use "Auto-Find Keywords"</p>
+                </div>
+              </div>
+            ) : chartData.length === 0 ? (
               <div className="flex items-center justify-center h-[600px] text-muted-foreground">
                 No completed jobs to display for selected timespan
               </div>
