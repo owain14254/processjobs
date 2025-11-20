@@ -230,10 +230,22 @@ const Index = () => {
       }
     };
 
+    // Calculate milliseconds until the next full minute
+    const now = new Date();
+    const msUntilNextMinute = (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
+
+    // Check immediately
     checkAndSwitchTheme();
-    // Check every minute
-    const interval = setInterval(checkAndSwitchTheme, 60 * 1000);
-    return () => clearInterval(interval);
+    
+    // Schedule first check at the start of next minute
+    const initialTimeout = setTimeout(() => {
+      checkAndSwitchTheme();
+      // Then check every minute exactly
+      const interval = setInterval(checkAndSwitchTheme, 60 * 1000);
+      return () => clearInterval(interval);
+    }, msUntilNextMinute);
+
+    return () => clearTimeout(initialTimeout);
   }, []);
 
   // Update current time display
@@ -329,7 +341,7 @@ const Index = () => {
   };
   return <div className="min-h-screen bg-background p-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="max-w-[1600px] mx-auto space-y-6">
+        <div className="max-w-[1600px] mx-auto space-y-2">
           {/* Header */}
           <div className="grid grid-cols-3 items-center gap-4">
             <div className="flex items-center gap-4">
