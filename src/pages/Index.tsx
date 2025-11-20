@@ -12,7 +12,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { AdminSettingsDialog } from "@/components/AdminSettingsDialog";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Archive, Download, Upload } from "lucide-react";
+import { Archive, Download, Upload, BarChart3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import mullerLogo from "@/assets/muller-logo.png";
 import { formatDistanceToNow } from "date-fns";
@@ -291,6 +291,10 @@ const Index = () => {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
+                  <DropdownMenuItem onClick={() => navigate("/metrics")}>
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    Metrics
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={toggleAdminMode}>
                     <KeyRound className="h-4 w-4 mr-2" />
                     {isAdminMode ? "Exit Admin Mode" : "Enter Admin Mode"}
