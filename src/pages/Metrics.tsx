@@ -466,18 +466,7 @@ const Metrics = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0 px-0">
-            {viewMode === "keywords" && keywords.length === 0 ? (
-              <div className="flex items-center justify-center h-[600px] text-muted-foreground">
-                <div className="text-center space-y-2">
-                  <p>No keywords added yet</p>
-                  <p className="text-sm">Click "Manage Keywords" to add keywords or use "Auto-Find Keywords"</p>
-                </div>
-              </div>
-            ) : chartData.length === 0 ? (
-              <div className="flex items-center justify-center h-[600px] text-muted-foreground">
-                No completed jobs to display for selected timespan
-              </div>
-            ) : viewMode === "keywords" ? (
+            {viewMode === "keywords" ? (
               <div className="space-y-4">
                 <div className="flex gap-2 items-center justify-between pb-4 border-b">
                   <div className="flex gap-2 items-center">
@@ -533,43 +522,61 @@ const Metrics = () => {
                     </Button>
                   </div>
                 </div>
-                <ChartContainer
-                  config={keywordData.reduce((acc, item) => ({
-                    ...acc,
-                    [item.keyword]: {
-                      label: item.keyword,
-                      color: keywordColors[item.keyword],
-                    }
-                  }), {})}
-                  className="h-[520px]"
-                >
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={keywordData} layout="vertical">
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" style={{ fontSize: '12px' }} label={{ value: 'Number of Jobs', position: 'bottom' }} />
-                      <YAxis dataKey="keyword" type="category" style={{ fontSize: '12px' }} width={60} />
-                      <ChartTooltip 
-                        content={({ active, payload }) => {
-                          if (active && payload && payload.length) {
-                            const data = payload[0].payload;
-                            return (
-                              <div className="bg-background border rounded-lg p-3 shadow-lg">
-                                <p className="font-semibold">{data.keyword}</p>
-                                <p className="text-sm text-muted-foreground">Jobs: {data.count}</p>
-                              </div>
-                            );
-                          }
-                          return null;
-                        }}
-                      />
-                      <Bar dataKey="count" radius={[0, 4, 4, 0]}>
-                        {keywordData.map((entry) => (
-                          <Cell key={`cell-${entry.keyword}`} fill={keywordColors[entry.keyword]} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </ChartContainer>
+                
+                {keywords.length === 0 ? (
+                  <div className="flex items-center justify-center h-[520px] text-muted-foreground">
+                    <div className="text-center space-y-2">
+                      <p>No keywords added yet</p>
+                      <p className="text-sm">Use the buttons above to add keywords</p>
+                    </div>
+                  </div>
+                ) : keywordData.length === 0 ? (
+                  <div className="flex items-center justify-center h-[520px] text-muted-foreground">
+                    No jobs found with selected keywords
+                  </div>
+                ) : (
+                  <ChartContainer
+                    config={keywordData.reduce((acc, item) => ({
+                      ...acc,
+                      [item.keyword]: {
+                        label: item.keyword,
+                        color: keywordColors[item.keyword],
+                      }
+                    }), {})}
+                    className="h-[520px]"
+                  >
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={keywordData} layout="vertical">
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis type="number" style={{ fontSize: '12px' }} label={{ value: 'Number of Jobs', position: 'bottom' }} />
+                        <YAxis dataKey="keyword" type="category" style={{ fontSize: '12px' }} width={60} />
+                        <ChartTooltip 
+                          content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                              const data = payload[0].payload;
+                              return (
+                                <div className="bg-background border rounded-lg p-3 shadow-lg">
+                                  <p className="font-semibold">{data.keyword}</p>
+                                  <p className="text-sm text-muted-foreground">Jobs: {data.count}</p>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                        <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+                          {keywordData.map((entry) => (
+                            <Cell key={`cell-${entry.keyword}`} fill={keywordColors[entry.keyword]} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                )}
+              </div>
+            ) : chartData.length === 0 ? (
+              <div className="flex items-center justify-center h-[600px] text-muted-foreground">
+                No completed jobs to display for selected timespan
               </div>
             ) : (
               <ChartContainer
