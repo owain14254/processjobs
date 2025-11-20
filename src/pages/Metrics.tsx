@@ -387,7 +387,7 @@ const Metrics = () => {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm">Summary</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-2">
               <div className="flex gap-4">
                 <div className="flex-1">
                   <p className="text-xs text-muted-foreground">Total Jobs</p>
