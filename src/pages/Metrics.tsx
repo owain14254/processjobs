@@ -1,7 +1,7 @@
 import { useJobStorage } from "@/hooks/useJobStorage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer, Cell } from "recharts";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Filter, Download, Calendar, CalendarDays, X, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -228,6 +228,28 @@ const Metrics = () => {
       .sort((a, b) => b.count - a.count);
   }, [filteredJobsByTimespan, selectedDepartments, keywords]);
 
+  const keywordColors = useMemo(() => {
+    const colors = [
+      "hsl(221, 83%, 53%)",  // Blue
+      "hsl(142, 71%, 45%)",  // Green
+      "hsl(262, 83%, 58%)",  // Purple
+      "hsl(346, 77%, 50%)",  // Red
+      "hsl(38, 92%, 50%)",   // Orange
+      "hsl(173, 58%, 39%)",  // Teal
+      "hsl(280, 65%, 60%)",  // Pink
+      "hsl(198, 93%, 60%)",  // Cyan
+      "hsl(48, 96%, 53%)",   // Yellow
+      "hsl(340, 82%, 52%)",  // Rose
+    ];
+    
+    const colorMap: Record<string, string> = {};
+    keywords.forEach((keyword, idx) => {
+      colorMap[keyword] = colors[idx % colors.length];
+    });
+    return colorMap;
+  }, [keywords]);
+
+
 
   const addKeyword = () => {
     if (newKeyword.trim() && !keywords.includes(newKeyword.trim().toUpperCase())) {
@@ -433,7 +455,7 @@ const Metrics = () => {
                     ...acc,
                     [item.keyword]: {
                       label: item.keyword,
-                      color: `hsl(${(keywordData.indexOf(item) * 360) / keywordData.length}, 70%, 50%)`,
+                      color: keywordColors[item.keyword],
                     }
                   }), {})}
                   className="h-[520px]"
@@ -457,7 +479,11 @@ const Metrics = () => {
                           return null;
                         }}
                       />
-                      <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                      <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+                        {keywordData.map((entry) => (
+                          <Cell key={`cell-${entry.keyword}`} fill={keywordColors[entry.keyword]} />
+                        ))}
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </ChartContainer>
@@ -566,7 +592,7 @@ const Metrics = () => {
           </Card>
         </div>
       </div>
-      </div>
+    </div>
     </div>
   );
 };
