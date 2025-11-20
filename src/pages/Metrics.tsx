@@ -388,13 +388,15 @@ const Metrics = () => {
               <CardTitle className="text-sm">Summary</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div>
-                <p className="text-xs text-muted-foreground">Total Jobs</p>
-                <p className="text-xl font-bold">{totalJobs}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Avg per {viewMode === "monthly" ? "Month" : "Day"}</p>
-                <p className="text-xl font-bold">{avgJobsPerPeriod}</p>
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <p className="text-xs text-muted-foreground">Total Jobs</p>
+                  <p className="text-xl font-bold">{totalJobs}</p>
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-muted-foreground">Avg per {viewMode === "monthly" ? "Month" : "Day"}</p>
+                  <p className="text-xl font-bold">{avgJobsPerPeriod}</p>
+                </div>
               </div>
               {topDepartment && (
                 <div>
