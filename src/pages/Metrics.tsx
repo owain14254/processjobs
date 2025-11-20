@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer } from "recharts";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Filter, Download, TrendingUp } from "lucide-react";
+import { ArrowLeft, Filter, Download, Calendar, CalendarDays } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -17,10 +17,12 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Metrics = () => {
   const navigate = useNavigate();
   const { completedJobs } = useJobStorage();
+  const [viewMode, setViewMode] = useState<"monthly" | "daily">("monthly");
 
   const allDepartments = useMemo(() => {
     const depts = new Set<string>();
@@ -104,6 +106,47 @@ const Metrics = () => {
     });
   }, [completedJobs, selectedDepartments]);
 
+  const dailyData = useMemo(() => {
+    const dataMap = new Map<string, Map<string, number>>();
+    
+    completedJobs.forEach((job) => {
+      if (!selectedDepartments.has(job.department)) return;
+      
+      const date = new Date(job.completedAt);
+      const dayKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      
+      if (!dataMap.has(dayKey)) {
+        dataMap.set(dayKey, new Map());
+      }
+      
+      const dayData = dataMap.get(dayKey)!;
+      const currentCount = dayData.get(job.department) || 0;
+      dayData.set(job.department, currentCount + 1);
+    });
+
+    const sortedDays = Array.from(dataMap.keys()).sort();
+    
+    // Limit to last 30 days for better visibility
+    const last30Days = sortedDays.slice(-30);
+    
+    return last30Days.map((dayKey) => {
+      const [year, month, day] = dayKey.split('-');
+      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      const dayName = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      
+      const departments = dataMap.get(dayKey)!;
+      const result: any = { month: dayName };
+      
+      departments.forEach((count, dept) => {
+        result[dept] = count;
+      });
+      
+      return result;
+    });
+  }, [completedJobs, selectedDepartments]);
+
+  const chartData = viewMode === "monthly" ? monthlyData : dailyData;
+
   const { toast } = useToast();
 
   const totalJobs = completedJobs.filter(job => selectedDepartments.has(job.department)).length;
@@ -113,30 +156,10 @@ const Metrics = () => {
     return Math.round(totalJobs / monthlyData.length);
   }, [totalJobs, monthlyData]);
 
-  const topDepartment = useMemo(() => {
-    const deptCounts = new Map<string, number>();
-    completedJobs.forEach(job => {
-      if (selectedDepartments.has(job.department)) {
-        deptCounts.set(job.department, (deptCounts.get(job.department) || 0) + 1);
-      }
-    });
-    
-    let max = 0;
-    let topDept = "";
-    deptCounts.forEach((count, dept) => {
-      if (count > max) {
-        max = count;
-        topDept = dept;
-      }
-    });
-    
-    return { name: topDept, count: max };
-  }, [completedJobs, selectedDepartments]);
-
   const handleExportMetrics = () => {
     const csvData = [
-      ["Month", ...Array.from(selectedDepartments)],
-      ...monthlyData.map(row => [
+      ["Period", ...Array.from(selectedDepartments)],
+      ...chartData.map(row => [
         row.month,
         ...Array.from(selectedDepartments).map(dept => row[dept] || 0)
       ])
@@ -147,7 +170,7 @@ const Metrics = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `metrics-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `metrics-${viewMode}-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     
@@ -179,11 +202,24 @@ const Metrics = () => {
             </Button>
             <div>
               <h1 className="text-2xl font-bold">Metrics Dashboard</h1>
-              <p className="text-sm text-muted-foreground">Jobs completed per month by department</p>
+              <p className="text-sm text-muted-foreground">Jobs completed by department</p>
             </div>
           </div>
           
           <div className="flex items-center gap-2">
+            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "monthly" | "daily")}>
+              <TabsList>
+                <TabsTrigger value="monthly" className="gap-1">
+                  <Calendar className="h-4 w-4" />
+                  Monthly
+                </TabsTrigger>
+                <TabsTrigger value="daily" className="gap-1">
+                  <CalendarDays className="h-4 w-4" />
+                  Daily
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">
@@ -226,7 +262,7 @@ const Metrics = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Jobs</CardTitle>
@@ -244,28 +280,17 @@ const Metrics = () => {
               <div className="text-2xl font-bold">{avgJobsPerMonth}</div>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-                <TrendingUp className="h-4 w-4" />
-                Top Department
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{topDepartment.name || "N/A"}</div>
-              <p className="text-xs text-muted-foreground mt-1">{topDepartment.count} jobs</p>
-            </CardContent>
-          </Card>
         </div>
 
-        <Card>
+        <Card className="flex-1">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Jobs Completed by Department</CardTitle>
+            <CardTitle className="text-base">
+              Jobs Completed by Department {viewMode === "daily" ? "(Last 30 Days)" : ""}
+            </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
-            {monthlyData.length === 0 ? (
-              <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+            {chartData.length === 0 ? (
+              <div className="flex items-center justify-center h-[500px] text-muted-foreground">
                 No completed jobs to display
               </div>
             ) : (
@@ -277,12 +302,18 @@ const Metrics = () => {
                     color: departmentColors[dept],
                   }
                 }), {})}
-                className="h-[300px]"
+                className="h-[500px]"
               >
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={monthlyData}>
+                  <BarChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" style={{ fontSize: '12px' }} />
+                    <XAxis 
+                      dataKey="month" 
+                      style={{ fontSize: '11px' }}
+                      angle={viewMode === "daily" ? -45 : 0}
+                      textAnchor={viewMode === "daily" ? "end" : "middle"}
+                      height={viewMode === "daily" ? 80 : 30}
+                    />
                     <YAxis style={{ fontSize: '12px' }} />
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Legend wrapperStyle={{ fontSize: '12px' }} />
