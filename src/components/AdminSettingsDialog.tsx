@@ -36,9 +36,11 @@ interface AdminSettingsData {
   shiftDuration: number;
   setDuration: number;
 
-  // Save
-  autoSaveInterval: number;
+  // Save & Theme
   backupReminderInterval: number;
+  autoThemeEnabled: boolean;
+  autoThemeLightTime: string;
+  autoThemeDarkTime: string;
 }
 
 const defaultSettings: AdminSettingsData = {
@@ -62,8 +64,10 @@ const defaultSettings: AdminSettingsData = {
   departments: "Process, Fruit, Filling, Warehouse, Services, Other",
   shiftDuration: 12,
   setDuration: 96,
-  autoSaveInterval: 5,
-  backupReminderInterval: 24
+  backupReminderInterval: 24,
+  autoThemeEnabled: false,
+  autoThemeLightTime: "06:00",
+  autoThemeDarkTime: "18:00"
 };
 
 const ROW_HEIGHT_OPTIONS = ["Extra Compact", "Compact", "Normal", "Comfortable", "Extra Comfortable"];
@@ -87,25 +91,25 @@ export function AdminSettingsDialog({ onSettingsChange, onTestSavePrompt }: Admi
       setSettings({ ...defaultSettings, ...JSON.parse(savedSettings) });
     }
     
-    // Initialize lastAutoSave if it doesn't exist
-    if (!localStorage.getItem("lastAutoSave")) {
-      localStorage.setItem("lastAutoSave", new Date().toISOString());
+    // Initialize lastBackupReminder if it doesn't exist
+    if (!localStorage.getItem("lastBackupReminder")) {
+      localStorage.setItem("lastBackupReminder", new Date().toISOString());
     }
   }, []);
 
   useEffect(() => {
     const updateCountdown = () => {
-      const lastSave = localStorage.getItem("lastAutoSave");
-      if (lastSave) {
-        const lastSaveTime = new Date(lastSave).getTime();
+      const lastReminder = localStorage.getItem("lastBackupReminder");
+      if (lastReminder) {
+        const lastReminderTime = new Date(lastReminder).getTime();
         const now = Date.now();
-        const intervalMs = settings.autoSaveInterval * 60 * 1000;
-        const nextSave = lastSaveTime + intervalMs;
-        const remaining = Math.max(0, nextSave - now);
+        const intervalMs = settings.backupReminderInterval * 60 * 60 * 1000;
+        const nextReminder = lastReminderTime + intervalMs;
+        const remaining = Math.max(0, nextReminder - now);
         
-        const minutes = Math.floor(remaining / 60000);
-        const seconds = Math.floor((remaining % 60000) / 1000);
-        setCountdown(`${minutes}m ${seconds}s`);
+        const hours = Math.floor(remaining / 3600000);
+        const minutes = Math.floor((remaining % 3600000) / 60000);
+        setCountdown(`${hours}h ${minutes}m`);
       } else {
         setCountdown("Not started");
       }
@@ -114,7 +118,7 @@ export function AdminSettingsDialog({ onSettingsChange, onTestSavePrompt }: Admi
     updateCountdown();
     const interval = setInterval(updateCountdown, 1000);
     return () => clearInterval(interval);
-  }, [settings.autoSaveInterval, open]);
+  }, [settings.backupReminderInterval, open]);
 
   const updateSetting = <K extends keyof AdminSettingsData>(key: K, value: AdminSettingsData[K]) => {
     const newSettings = { ...settings, [key]: value };
@@ -459,33 +463,13 @@ export function AdminSettingsDialog({ onSettingsChange, onTestSavePrompt }: Admi
           </Card>
           </div>
 
-          {/* Right Column - Save Settings */}
-          <div className="overflow-y-auto">
+          {/* Right Column - Save & Theme Settings */}
+          <div className="overflow-y-auto space-y-3">
             <Card className="h-fit">
               <CardHeader className="pb-2 pt-3 px-3 space-y-0">
-                <CardTitle className="text-sm">Save Settings</CardTitle>
+                <CardTitle className="text-sm">Backup Settings</CardTitle>
               </CardHeader>
               <CardContent className="px-3 pb-3 space-y-3">
-              {/* Auto-Save */}
-              <div className="space-y-1">
-                <Label className="text-[11px] font-semibold">Auto-Save</Label>
-                <Label className="text-[10px] text-muted-foreground">Interval (minutes)</Label>
-                <Input 
-                  type="number" 
-                  value={settings.autoSaveInterval} 
-                  onChange={e => updateSetting("autoSaveInterval", parseInt(e.target.value) || 5)} 
-                  min={1} max={60} 
-                  className="h-7 text-xs mt-0.5" 
-                />
-                <p className="text-[10px] text-muted-foreground">
-                  Auto-saves every {settings.autoSaveInterval} min
-                </p>
-                <div className="mt-2 p-2 bg-muted rounded-md">
-                  <p className="text-[10px] font-semibold text-muted-foreground mb-0.5">Next auto-save in:</p>
-                  <p className="text-sm font-mono font-bold">{countdown}</p>
-                </div>
-              </div>
-
               {/* Backup Reminder */}
               <div className="space-y-1">
                 <Label className="text-[11px] font-semibold">Backup Reminder</Label>
@@ -500,14 +484,69 @@ export function AdminSettingsDialog({ onSettingsChange, onTestSavePrompt }: Admi
                 <p className="text-[10px] text-muted-foreground">
                   Reminder every {settings.backupReminderInterval} hrs
                 </p>
+                <div className="mt-2 p-2 bg-muted rounded-md">
+                  <p className="text-[10px] font-semibold text-muted-foreground mb-0.5">Next reminder in:</p>
+                  <p className="text-sm font-mono font-bold">{countdown}</p>
+                </div>
               </div>
 
               {/* Test Save Popup */}
               <div className="space-y-1">
-                <Label className="text-[11px] font-semibold">Test Save Popup</Label>
+                <Label className="text-[11px] font-semibold">Test Backup Popup</Label>
                 <Button onClick={() => onTestSavePrompt?.()} className="w-full h-7 text-xs">
-                  Test save popup
+                  Test backup popup
                 </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+            <Card className="h-fit">
+              <CardHeader className="pb-2 pt-3 px-3 space-y-0">
+                <CardTitle className="text-sm">Auto Theme Switching</CardTitle>
+              </CardHeader>
+              <CardContent className="px-3 pb-3 space-y-3">
+              {/* Enable Auto Theme */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-[11px] font-semibold">Enable Auto Theme</Label>
+                  <p className="text-[10px] text-muted-foreground">
+                    Auto switch between light/dark mode
+                  </p>
+                </div>
+                <Switch 
+                  checked={settings.autoThemeEnabled} 
+                  onCheckedChange={(checked) => updateSetting("autoThemeEnabled", checked)}
+                />
+              </div>
+
+              {/* Light Mode Time */}
+              <div className="space-y-1">
+                <Label className="text-[11px] font-semibold">Light Mode Time</Label>
+                <Input 
+                  type="time" 
+                  value={settings.autoThemeLightTime} 
+                  onChange={e => updateSetting("autoThemeLightTime", e.target.value)} 
+                  className="h-7 text-xs mt-0.5" 
+                  disabled={!settings.autoThemeEnabled}
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  Switch to light mode at this time
+                </p>
+              </div>
+
+              {/* Dark Mode Time */}
+              <div className="space-y-1">
+                <Label className="text-[11px] font-semibold">Dark Mode Time</Label>
+                <Input 
+                  type="time" 
+                  value={settings.autoThemeDarkTime} 
+                  onChange={e => updateSetting("autoThemeDarkTime", e.target.value)} 
+                  className="h-7 text-xs mt-0.5" 
+                  disabled={!settings.autoThemeEnabled}
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  Switch to dark mode at this time
+                </p>
               </div>
             </CardContent>
           </Card>
