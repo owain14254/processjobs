@@ -370,11 +370,6 @@ const Index = () => {
               </div>
             </div>
 
-            <TabsList className="grid w-full max-w-[500px] grid-cols-3">
-              <TabsTrigger value="active">{adminSettings.tabNameActive} ({activeJobs.length})</TabsTrigger>
-              <TabsTrigger value="completed">{adminSettings.tabNameCompleted} ({completedJobs.length})</TabsTrigger>
-              <TabsTrigger value="handover">{adminSettings.tabNameHandover}</TabsTrigger>
-            </TabsList>
 
             <div className="flex items-center gap-2">
               <div className="hidden">
@@ -395,12 +390,18 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Clock positioned above tab content */}
-          <div className="flex justify-center -mb-2">
+          {/* Clock positioned above tab buttons */}
+          <div className="flex justify-center py-1">
             <div className="text-2xl font-bold font-mono tabular-nums">
-              {currentTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+              {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
             </div>
           </div>
+
+          <TabsList className="grid w-full max-w-[500px] grid-cols-3 mx-auto">
+            <TabsTrigger value="active">{adminSettings.tabNameActive} ({activeJobs.length})</TabsTrigger>
+            <TabsTrigger value="completed">{adminSettings.tabNameCompleted} ({completedJobs.length})</TabsTrigger>
+            <TabsTrigger value="handover">{adminSettings.tabNameHandover}</TabsTrigger>
+          </TabsList>
 
           {/* Tab Content */}
 
