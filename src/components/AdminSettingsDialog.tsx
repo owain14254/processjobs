@@ -79,6 +79,7 @@ export function AdminSettingsDialog({ onSettingsChange, onTestSavePrompt }: Admi
   const { toast } = useToast();
   const [settings, setSettings] = useState<AdminSettingsData>(defaultSettings);
   const [open, setOpen] = useState(false);
+  const [countdown, setCountdown] = useState<string>("");
 
   useEffect(() => {
     const savedSettings = localStorage.getItem("adminSettings");
@@ -86,6 +87,29 @@ export function AdminSettingsDialog({ onSettingsChange, onTestSavePrompt }: Admi
       setSettings({ ...defaultSettings, ...JSON.parse(savedSettings) });
     }
   }, []);
+
+  useEffect(() => {
+    const updateCountdown = () => {
+      const lastSave = localStorage.getItem("lastAutoSave");
+      if (lastSave) {
+        const lastSaveTime = new Date(lastSave).getTime();
+        const now = Date.now();
+        const intervalMs = settings.autoSaveInterval * 60 * 1000;
+        const nextSave = lastSaveTime + intervalMs;
+        const remaining = Math.max(0, nextSave - now);
+        
+        const minutes = Math.floor(remaining / 60000);
+        const seconds = Math.floor((remaining % 60000) / 1000);
+        setCountdown(`${minutes}m ${seconds}s`);
+      } else {
+        setCountdown("Not started");
+      }
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [settings.autoSaveInterval, open]);
 
   const updateSetting = <K extends keyof AdminSettingsData>(key: K, value: AdminSettingsData[K]) => {
     const newSettings = { ...settings, [key]: value };
@@ -111,7 +135,7 @@ export function AdminSettingsDialog({ onSettingsChange, onTestSavePrompt }: Admi
           <Settings className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-[90vw] max-h-[95vh] flex flex-col">
+      <DialogContent className="max-w-[90vw] max-h-[90vh] flex flex-col">
         <DialogHeader className="flex-shrink-0 pb-1 space-y-0">
           <div className="flex items-center justify-between">
             <div>
@@ -124,13 +148,14 @@ export function AdminSettingsDialog({ onSettingsChange, onTestSavePrompt }: Admi
           </div>
         </DialogHeader>
 
-        <div className="grid grid-cols-2 gap-4 flex-1 min-h-0 overflow-y-auto pr-2">
+        <div className="grid grid-cols-2 gap-4 flex-1 min-h-0 overflow-hidden pr-2">
           {/* Left Column - General Settings */}
-          <Card className="h-fit">
-            <CardHeader className="pb-2 pt-3 px-3 space-y-0">
-              <CardTitle className="text-sm">General Settings</CardTitle>
-            </CardHeader>
-            <CardContent className="px-3 pb-3 space-y-3">
+          <div className="overflow-y-auto">
+            <Card className="h-fit">
+              <CardHeader className="pb-2 pt-3 px-3 space-y-0">
+                <CardTitle className="text-sm">General Settings</CardTitle>
+              </CardHeader>
+              <CardContent className="px-3 pb-3 space-y-3">
               {/* App Identity */}
               <div className="space-y-1">
                 <Label className="text-[11px] font-semibold">App Identity</Label>
@@ -427,13 +452,15 @@ export function AdminSettingsDialog({ onSettingsChange, onTestSavePrompt }: Admi
               </div>
             </CardContent>
           </Card>
+          </div>
 
           {/* Right Column - Save Settings */}
-          <Card className="h-fit">
-            <CardHeader className="pb-2 pt-3 px-3 space-y-0">
-              <CardTitle className="text-sm">Save Settings</CardTitle>
-            </CardHeader>
-            <CardContent className="px-3 pb-3 space-y-3">
+          <div className="overflow-y-auto">
+            <Card className="h-fit">
+              <CardHeader className="pb-2 pt-3 px-3 space-y-0">
+                <CardTitle className="text-sm">Save Settings</CardTitle>
+              </CardHeader>
+              <CardContent className="px-3 pb-3 space-y-3">
               {/* Auto-Save */}
               <div className="space-y-1">
                 <Label className="text-[11px] font-semibold">Auto-Save</Label>
@@ -448,6 +475,10 @@ export function AdminSettingsDialog({ onSettingsChange, onTestSavePrompt }: Admi
                 <p className="text-[10px] text-muted-foreground">
                   Auto-saves every {settings.autoSaveInterval} min
                 </p>
+                <div className="mt-2 p-2 bg-muted rounded-md">
+                  <p className="text-[10px] font-semibold text-muted-foreground mb-0.5">Next auto-save in:</p>
+                  <p className="text-sm font-mono font-bold">{countdown}</p>
+                </div>
               </div>
 
               {/* Backup Reminder */}
@@ -475,6 +506,7 @@ export function AdminSettingsDialog({ onSettingsChange, onTestSavePrompt }: Admi
               </div>
             </CardContent>
           </Card>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
