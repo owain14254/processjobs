@@ -204,49 +204,51 @@ export const CompletedJobsLog = ({
         )}
       </div>
 
-      <div className="rounded-lg border overflow-hidden">
-        <ScrollArea className="h-[calc(100vh-240px)]">
-          <Table className="w-full">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[110px]">Date</TableHead>
-                <TableHead className="w-[130px]">Department</TableHead>
-                <TableHead className="min-w-[200px]">Description</TableHead>
-                <TableHead className="w-[110px]">Completed</TableHead>
-                {isAdminMode && <TableHead className="w-[100px]">Actions</TableHead>}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredJobs.length === 0 ? (
+      <div className="rounded-lg border overflow-auto">
+        <ScrollArea className="h-[calc(100vh-240px)] w-full">
+          <div className="min-w-full inline-block">
+            <Table className="w-full">
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={isAdminMode ? 5 : 4} className="text-center text-muted-foreground py-8">
-                    No completed jobs found
-                  </TableCell>
+                  <TableHead className="w-[110px]">Date</TableHead>
+                  <TableHead className="w-[130px]">Department</TableHead>
+                  <TableHead className="min-w-[200px]">Description</TableHead>
+                  <TableHead className="w-[110px]">Completed</TableHead>
+                  {isAdminMode && <TableHead className="w-[100px]">Actions</TableHead>}
                 </TableRow>
-              ) : (
-                filteredJobs.map((job) => (
-                  <TableRow key={job.id} className="h-7">
-                    <TableCell className={cn("whitespace-nowrap py-1", textSizeClass, textWeightClass)}>{format(job.date, "dd/MM/yyyy")}</TableCell>
-                    <TableCell className={cn("whitespace-nowrap py-1", textSizeClass, textWeightClass)}>{job.department}</TableCell>
-                    <TableCell className={cn("py-1 break-words", textSizeClass, textWeightClass)}>{job.description}</TableCell>
-                    <TableCell className={cn("whitespace-nowrap py-1", textSizeClass, textWeightClass)}>{format(job.completedAt, "dd/MM/yyyy")}</TableCell>
-                    {isAdminMode && (
-                      <TableCell className="py-1">
-                        <div className="flex gap-1">
-                          <Button size="icon" variant="ghost" onClick={() => handleEdit(job)} className="h-6 w-6">
-                            <Pencil className="h-3 w-3" />
-                          </Button>
-                          <Button size="icon" variant="ghost" onClick={() => setDeleteJobId(job.id)} className="h-6 w-6">
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    )}
+              </TableHeader>
+              <TableBody>
+                {filteredJobs.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={isAdminMode ? 5 : 4} className="text-center text-muted-foreground py-8">
+                      No completed jobs found
+                    </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  filteredJobs.map((job) => (
+                    <TableRow key={job.id} className="h-7">
+                      <TableCell className={cn("whitespace-nowrap py-1", textSizeClass, textWeightClass)}>{format(job.date, "dd/MM/yyyy")}</TableCell>
+                      <TableCell className={cn("whitespace-nowrap py-1", textSizeClass, textWeightClass)}>{job.department}</TableCell>
+                      <TableCell className={cn("py-1 break-words", textSizeClass, textWeightClass)}>{job.description}</TableCell>
+                      <TableCell className={cn("whitespace-nowrap py-1", textSizeClass, textWeightClass)}>{format(job.completedAt, "dd/MM/yyyy")}</TableCell>
+                      {isAdminMode && (
+                        <TableCell className="py-1">
+                          <div className="flex gap-1">
+                            <Button size="icon" variant="ghost" onClick={() => handleEdit(job)} className="h-6 w-6">
+                              <Pencil className="h-3 w-3" />
+                            </Button>
+                            <Button size="icon" variant="ghost" onClick={() => setDeleteJobId(job.id)} className="h-6 w-6">
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </ScrollArea>
       </div>
 
