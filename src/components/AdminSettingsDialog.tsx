@@ -86,6 +86,11 @@ export function AdminSettingsDialog({ onSettingsChange, onTestSavePrompt }: Admi
     if (savedSettings) {
       setSettings({ ...defaultSettings, ...JSON.parse(savedSettings) });
     }
+    
+    // Initialize lastAutoSave if it doesn't exist
+    if (!localStorage.getItem("lastAutoSave")) {
+      localStorage.setItem("lastAutoSave", new Date().toISOString());
+    }
   }, []);
 
   useEffect(() => {
