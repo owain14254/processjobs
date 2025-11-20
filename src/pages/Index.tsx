@@ -370,16 +370,19 @@ const Index = () => {
               </div>
             </div>
 
-            <TabsList className="grid w-full max-w-[500px] grid-cols-3">
-              <TabsTrigger value="active">{adminSettings.tabNameActive} ({activeJobs.length})</TabsTrigger>
-              <TabsTrigger value="completed">{adminSettings.tabNameCompleted} ({completedJobs.length})</TabsTrigger>
-              <TabsTrigger value="handover">{adminSettings.tabNameHandover}</TabsTrigger>
-            </TabsList>
+            <div className="flex items-center gap-4">
+              <TabsList className="grid w-full max-w-[500px] grid-cols-3">
+                <TabsTrigger value="active">{adminSettings.tabNameActive} ({activeJobs.length})</TabsTrigger>
+                <TabsTrigger value="completed">{adminSettings.tabNameCompleted} ({completedJobs.length})</TabsTrigger>
+                <TabsTrigger value="handover">{adminSettings.tabNameHandover}</TabsTrigger>
+              </TabsList>
 
-            <div className="flex items-center gap-2">
               <div className="text-2xl font-bold font-mono tabular-nums">
                 {currentTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
               </div>
+            </div>
+
+            <div className="flex items-center gap-2">
               <div className="hidden">
                 <AdminSettingsDialog onSettingsChange={handleSettingsChange} onTestSavePrompt={testBackupReminder} />
               </div>
