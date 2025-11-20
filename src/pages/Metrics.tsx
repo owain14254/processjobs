@@ -357,7 +357,8 @@ const Metrics = () => {
   }, [filteredJobsByTimespan, selectedDepartments, totalJobs]);
 
   const topDepartment = departmentStats[0];
-  const avgJobsPerPeriod = chartData.length > 0 ? (totalJobs / chartData.length).toFixed(1) : '0';
+  const timeBasedData = viewMode === "monthly" ? monthlyData : dailyData;
+  const avgJobsPerPeriod = timeBasedData.length > 0 ? (totalJobs / timeBasedData.length).toFixed(1) : '0';
 
   return (
     <div className="min-h-screen bg-background">
