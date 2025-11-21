@@ -9,17 +9,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from "@/hooks/use-toast";
 import mullerLogo from "@/assets/muller-logo.png";
 
-interface SAPItem {
+interface SAPEntry {
   id: string;
+  sapNumber: string;
+  storeLocation: string;
   description: string;
 }
 
 interface SAPJob {
   id: string;
-  sapNumber: string;
-  location: string;
-  description: string;
-  items: SAPItem[];
+  jobName: string;
+  entries: SAPEntry[];
   expanded?: boolean;
 }
 
@@ -34,11 +34,11 @@ const SAP = () => {
   const [editingJob, setEditingJob] = useState<SAPJob | null>(null);
   
   // Form state
-  const [sapNumber, setSapNumber] = useState("");
-  const [location, setLocation] = useState("");
-  const [description, setDescription] = useState("");
-  const [newItemDescription, setNewItemDescription] = useState("");
-  const [editingItems, setEditingItems] = useState<SAPItem[]>([]);
+  const [jobName, setJobName] = useState("");
+  const [entrySapNumber, setEntrySapNumber] = useState("");
+  const [entryLocation, setEntryLocation] = useState("");
+  const [entryDescription, setEntryDescription] = useState("");
+  const [editingEntries, setEditingEntries] = useState<SAPEntry[]>([]);
 
   useEffect(() => {
     const saved = localStorage.getItem(SAP_STORAGE_KEY);
@@ -57,10 +57,10 @@ const SAP = () => {
   };
 
   const handleAddJob = () => {
-    if (!sapNumber.trim() || !location.trim() || !description.trim()) {
+    if (!jobName.trim()) {
       toast({
         title: "Missing information",
-        description: "Please fill in all fields",
+        description: "Please enter a job name",
         variant: "destructive"
       });
       return;
@@ -68,10 +68,8 @@ const SAP = () => {
 
     const newJob: SAPJob = {
       id: Date.now().toString(),
-      sapNumber: sapNumber.trim(),
-      location: location.trim(),
-      description: description.trim(),
-      items: editingItems,
+      jobName: jobName.trim(),
+      entries: editingEntries,
       expanded: false
     };
 
@@ -79,7 +77,7 @@ const SAP = () => {
     
     toast({
       title: "Job added",
-      description: `SAP ${sapNumber} has been added`
+      description: `${jobName} has been added`
     });
 
     resetForm();
@@ -87,10 +85,10 @@ const SAP = () => {
   };
 
   const handleEditJob = () => {
-    if (!editingJob || !sapNumber.trim() || !location.trim() || !description.trim()) {
+    if (!editingJob || !jobName.trim()) {
       toast({
         title: "Missing information",
-        description: "Please fill in all fields",
+        description: "Please enter a job name",
         variant: "destructive"
       });
       return;
@@ -98,7 +96,7 @@ const SAP = () => {
 
     const updatedJobs = jobs.map(job => 
       job.id === editingJob.id 
-        ? { ...job, sapNumber: sapNumber.trim(), location: location.trim(), description: description.trim(), items: editingItems }
+        ? { ...job, jobName: jobName.trim(), entries: editingEntries }
         : job
     );
 
@@ -106,7 +104,7 @@ const SAP = () => {
     
     toast({
       title: "Job updated",
-      description: `SAP ${sapNumber} has been updated`
+      description: `${jobName} has been updated`
     });
 
     resetForm();
@@ -130,43 +128,54 @@ const SAP = () => {
     saveJobs(updatedJobs);
   };
 
-  const addItem = () => {
-    if (!newItemDescription.trim()) return;
+  const addEntry = () => {
+    if (!entrySapNumber.trim() || !entryLocation.trim() || !entryDescription.trim()) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all entry fields",
+        variant: "destructive"
+      });
+      return;
+    }
     
-    const newItem: SAPItem = {
+    const newEntry: SAPEntry = {
       id: Date.now().toString(),
-      description: newItemDescription.trim()
+      sapNumber: entrySapNumber.trim(),
+      storeLocation: entryLocation.trim(),
+      description: entryDescription.trim()
     };
     
-    setEditingItems([...editingItems, newItem]);
-    setNewItemDescription("");
+    setEditingEntries([...editingEntries, newEntry]);
+    setEntrySapNumber("");
+    setEntryLocation("");
+    setEntryDescription("");
   };
 
-  const removeItem = (itemId: string) => {
-    setEditingItems(editingItems.filter(item => item.id !== itemId));
+  const removeEntry = (entryId: string) => {
+    setEditingEntries(editingEntries.filter(entry => entry.id !== entryId));
   };
 
   const resetForm = () => {
-    setSapNumber("");
-    setLocation("");
-    setDescription("");
-    setNewItemDescription("");
-    setEditingItems([]);
+    setJobName("");
+    setEntrySapNumber("");
+    setEntryLocation("");
+    setEntryDescription("");
+    setEditingEntries([]);
   };
 
   const openEditDialog = (job: SAPJob) => {
     setEditingJob(job);
-    setSapNumber(job.sapNumber);
-    setLocation(job.location);
-    setDescription(job.description);
-    setEditingItems([...job.items]);
+    setJobName(job.jobName);
+    setEditingEntries([...job.entries]);
   };
 
   const filteredJobs = jobs.filter(job =>
-    job.sapNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    job.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    job.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    job.items.some(item => item.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    job.jobName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    job.entries.some(entry => 
+      entry.sapNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      entry.storeLocation.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      entry.description.toLowerCase().includes(searchQuery.toLowerCase())
+    )
   );
 
   return (
@@ -209,45 +218,34 @@ const SAP = () => {
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium">SAP Number</label>
+                  <label className="text-sm font-medium">Job Name</label>
                   <Input
-                    value={sapNumber}
-                    onChange={(e) => setSapNumber(e.target.value)}
-                    placeholder="e.g., 12345678"
-                  />
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium">Location</label>
-                  <Input
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="e.g., Warehouse A"
+                    value={jobName}
+                    onChange={(e) => setJobName(e.target.value)}
+                    placeholder="e.g., Common Maintenance Tasks"
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium">Description</label>
-                  <Textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Main job description"
-                    rows={3}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium">Items</label>
+                  <label className="text-sm font-medium">SAP Entries</label>
                   <div className="space-y-2 mt-2">
-                    {editingItems.map((item) => (
-                      <div key={item.id} className="flex items-start gap-2">
-                        <div className="flex-1 p-2 bg-muted rounded-md text-sm">
-                          {item.description}
+                    {editingEntries.map((entry) => (
+                      <div key={entry.id} className="flex items-start gap-2 p-3 bg-muted rounded-md">
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-semibold text-muted-foreground">SAP:</span>
+                            <span className="text-sm font-medium">{entry.sapNumber}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-semibold text-muted-foreground">Location:</span>
+                            <span className="text-sm">{entry.storeLocation}</span>
+                          </div>
+                          <div className="text-sm text-muted-foreground">{entry.description}</div>
                         </div>
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => removeItem(item.id)}
+                          onClick={() => removeEntry(entry.id)}
                           className="h-8 w-8 text-destructive hover:text-destructive"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -255,15 +253,29 @@ const SAP = () => {
                       </div>
                     ))}
                     
-                    <div className="flex gap-2">
+                    <div className="space-y-2 p-3 border rounded-md">
+                      <p className="text-xs font-medium text-muted-foreground">Add New SAP Entry</p>
                       <Input
-                        value={newItemDescription}
-                        onChange={(e) => setNewItemDescription(e.target.value)}
-                        placeholder="Add item description"
-                        onKeyDown={(e) => e.key === "Enter" && addItem()}
+                        value={entrySapNumber}
+                        onChange={(e) => setEntrySapNumber(e.target.value)}
+                        placeholder="SAP Number"
+                        className="h-9"
                       />
-                      <Button onClick={addItem} size="icon">
-                        <Plus className="h-4 w-4" />
+                      <Input
+                        value={entryLocation}
+                        onChange={(e) => setEntryLocation(e.target.value)}
+                        placeholder="Store Location"
+                        className="h-9"
+                      />
+                      <Textarea
+                        value={entryDescription}
+                        onChange={(e) => setEntryDescription(e.target.value)}
+                        placeholder="Description"
+                        rows={2}
+                      />
+                      <Button onClick={addEntry} size="sm" className="w-full">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Entry
                       </Button>
                     </div>
                   </div>
@@ -292,7 +304,7 @@ const SAP = () => {
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by SAP number, location, description, or items..."
+            placeholder="Search by job name, SAP number, location, or description..."
             className="pl-10"
           />
         </div>
@@ -327,17 +339,14 @@ const SAP = () => {
                       </Button>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-3 flex-wrap">
-                          <CardTitle className="text-lg">SAP: {job.sapNumber}</CardTitle>
-                          <span className="text-sm text-muted-foreground">•</span>
-                          <span className="text-sm font-medium text-muted-foreground">{job.location}</span>
-                          {job.items.length > 0 && (
+                          <CardTitle className="text-lg">{job.jobName}</CardTitle>
+                          {job.entries.length > 0 && (
                             <>
                               <span className="text-sm text-muted-foreground">•</span>
-                              <span className="text-xs text-muted-foreground">{job.items.length} item{job.items.length !== 1 ? 's' : ''}</span>
+                              <span className="text-xs text-muted-foreground">{job.entries.length} SAP entr{job.entries.length !== 1 ? 'ies' : 'y'}</span>
                             </>
                           )}
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">{job.description}</p>
                       </div>
                     </div>
                     <div className="flex gap-1">
@@ -361,13 +370,20 @@ const SAP = () => {
                   </div>
                 </CardHeader>
                 
-                {job.expanded && job.items.length > 0 && (
+                {job.expanded && job.entries.length > 0 && (
                   <CardContent className="py-2 px-4 border-t">
-                    <div className="space-y-1 ml-8">
-                      {job.items.map((item, index) => (
-                        <div key={item.id} className="text-sm py-1.5 px-3 bg-muted/50 rounded">
-                          <span className="font-medium text-muted-foreground mr-2">{index + 1}.</span>
-                          {item.description}
+                    <div className="space-y-2 ml-8">
+                      {job.entries.map((entry, index) => (
+                        <div key={entry.id} className="text-sm py-2 px-3 bg-muted/50 rounded space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-muted-foreground">{index + 1}.</span>
+                            <span className="text-xs font-semibold text-muted-foreground">SAP:</span>
+                            <span className="font-medium">{entry.sapNumber}</span>
+                            <span className="text-muted-foreground">|</span>
+                            <span className="text-xs font-semibold text-muted-foreground">Location:</span>
+                            <span>{entry.storeLocation}</span>
+                          </div>
+                          <div className="ml-4 text-muted-foreground">{entry.description}</div>
                         </div>
                       ))}
                     </div>
