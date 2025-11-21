@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { KeyRound } from "lucide-react";
+import { KeyRound, FileText } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useJobStorage } from "@/hooks/useJobStorage";
@@ -360,6 +360,10 @@ const Index = () => {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
+                  <DropdownMenuItem onClick={() => navigate("/sap")}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    SAP
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/metrics")}>
                     <BarChart3 className="h-4 w-4 mr-2" />
                     Metrics
