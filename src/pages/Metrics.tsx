@@ -459,14 +459,14 @@ const Metrics = () => {
           </div>
         </div>
 
-        <div className="flex gap-6">
-          <Card className="flex-1 border-0 rounded-none shadow-none min-w-0">
-            <CardHeader className="pb-3 px-0">
+        <div className="flex gap-6 h-[calc(100vh-220px)] min-h-[600px]">
+          <Card className="flex-1 border-0 rounded-none shadow-none min-w-0 flex flex-col">
+            <CardHeader className="pb-3 px-0 flex-shrink-0">
               <CardTitle className="text-base">
                 {viewMode === "keywords" ? "Job Time by Keyword" : "Jobs Completed by Department"}
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-0 px-0">
+            <CardContent className="pt-0 px-0 flex-1 min-h-0">
             {viewMode === "keywords" ? (
               <div className="space-y-4">
                 <div className="flex gap-2 items-center justify-between pb-4 border-b">
@@ -525,14 +525,14 @@ const Metrics = () => {
                 </div>
                 
                 {keywords.length === 0 ? (
-                  <div className="flex items-center justify-center h-[520px] text-muted-foreground">
+                  <div className="flex items-center justify-center h-full text-muted-foreground">
                     <div className="text-center space-y-2">
                       <p>No keywords added yet</p>
                       <p className="text-sm">Use the buttons above to add keywords</p>
                     </div>
                   </div>
                 ) : keywordData.length === 0 ? (
-                  <div className="flex items-center justify-center h-[520px] text-muted-foreground">
+                  <div className="flex items-center justify-center h-full text-muted-foreground">
                     No jobs found with selected keywords
                   </div>
                 ) : (
@@ -544,7 +544,7 @@ const Metrics = () => {
                         color: keywordColors[item.keyword],
                       }
                     }), {})}
-                    className="h-[520px]"
+                    className="h-full w-full"
                   >
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={keywordData} layout="vertical">
@@ -576,7 +576,7 @@ const Metrics = () => {
                 )}
               </div>
             ) : chartData.length === 0 ? (
-              <div className="flex items-center justify-center h-[600px] text-muted-foreground">
+              <div className="flex items-center justify-center h-full text-muted-foreground">
                 No completed jobs to display for selected timespan
               </div>
             ) : (
@@ -588,7 +588,7 @@ const Metrics = () => {
                     color: departmentColors[dept],
                   }
                 }), {})}
-                className="h-[600px]"
+                className="h-full w-full"
               >
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData}>
@@ -618,7 +618,7 @@ const Metrics = () => {
           </CardContent>
         </Card>
 
-        <div className="w-80 xl:w-96 flex-shrink-0 space-y-2">
+        <div className="w-80 xl:w-96 flex-shrink-0 space-y-2 overflow-y-auto h-[calc(100vh-220px)] min-h-[600px]">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm">Summary</CardTitle>
