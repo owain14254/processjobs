@@ -27,7 +27,7 @@ import { Job } from "@/hooks/useJobStorage";
 import { CalendarIcon, Trash2, Expand } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, memo, useCallback, useMemo } from "react";
 import { ResolutionDialog } from "./ResolutionDialog";
 
 interface JobRowProps {
@@ -53,7 +53,7 @@ const getStatusColor = (jobComplete: boolean, sapComplete: boolean, colors: { am
   return colors.amber;
 };
 
-export const JobRow = ({ 
+const JobRowComponent = ({ 
   job, 
   onUpdate, 
   onDelete, 
@@ -69,20 +69,20 @@ export const JobRow = ({
   const [isOverflowing, setIsOverflowing] = useState(false);
   const [showResolutionDialog, setShowResolutionDialog] = useState(false);
 
-  const sizeClasses = {
+  const sizeClasses = useMemo(() => ({
     padding: ["p-0.5", "p-1", "p-1.5", "p-2", "p-3"][rowHeight],
     gap: ["gap-0.5", "gap-1", "gap-1.5", "gap-2", "gap-3"][rowHeight],
     height: ["h-6", "h-7", "h-8", "h-9", "h-10"][rowHeight],
     text: ["text-xs", "text-xs", "text-sm", "text-sm", "text-base"][rowHeight],
-  };
+  }), [rowHeight]);
 
-  const textSizeClass = ["text-xs", "text-sm", "text-base", "text-lg", "text-xl"][textSize];
-  const textWeightClass = textBold ? "font-bold" : "font-normal";
+  const textSizeClass = useMemo(() => ["text-xs", "text-sm", "text-base", "text-lg", "text-xl"][textSize], [textSize]);
+  const textWeightClass = useMemo(() => textBold ? "font-bold" : "font-normal", [textBold]);
   
-  const statusColor = getStatusColor(job.jobComplete, job.sapComplete, statusColors);
-  const popupSizeClass = ["max-w-md", "max-w-2xl", "max-w-4xl", "max-w-6xl", "max-w-7xl"][expandPopupSize];
-  const popupHeightClass = ["max-h-[300px]", "max-h-[400px]", "max-h-[500px]", "max-h-[600px]", "max-h-[700px]"][expandPopupSize];
-  const popupTextClass = ["text-sm", "text-base", "text-lg", "text-xl", "text-2xl"][expandPopupSize];
+  const statusColor = useMemo(() => getStatusColor(job.jobComplete, job.sapComplete, statusColors), [job.jobComplete, job.sapComplete, statusColors]);
+  const popupSizeClass = useMemo(() => ["max-w-md", "max-w-2xl", "max-w-4xl", "max-w-6xl", "max-w-7xl"][expandPopupSize], [expandPopupSize]);
+  const popupHeightClass = useMemo(() => ["max-h-[300px]", "max-h-[400px]", "max-h-[500px]", "max-h-[600px]", "max-h-[700px]"][expandPopupSize], [expandPopupSize]);
+  const popupTextClass = useMemo(() => ["text-sm", "text-base", "text-lg", "text-xl", "text-2xl"][expandPopupSize], [expandPopupSize]);
 
   useEffect(() => {
     const checkOverflow = () => {
@@ -94,6 +94,39 @@ export const JobRow = ({
     window.addEventListener('resize', checkOverflow);
     return () => window.removeEventListener('resize', checkOverflow);
   }, [job.description]);
+
+  const handleDateChange = useCallback((date: Date | undefined) => {
+    if (date) onUpdate(job.id, { date });
+  }, [job.id, onUpdate]);
+
+  const handleDepartmentChange = useCallback((value: string) => {
+    onUpdate(job.id, { department: value });
+  }, [job.id, onUpdate]);
+
+  const handleDescriptionChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    onUpdate(job.id, { description: e.target.value });
+  }, [job.id, onUpdate]);
+
+  const handleJobCompleteChange = useCallback((checked: boolean) => {
+    if (checked && !job.jobComplete) {
+      setShowResolutionDialog(true);
+    }
+    onUpdate(job.id, { jobComplete: checked });
+  }, [job.id, job.jobComplete, onUpdate]);
+
+  const handleSapCompleteChange = useCallback((checked: boolean) => {
+    onUpdate(job.id, { sapComplete: checked });
+  }, [job.id, onUpdate]);
+
+  const handleDeleteClick = useCallback(() => {
+    onDelete(job.id);
+  }, [job.id, onDelete]);
+
+  const handleResolutionSave = useCallback((resolution: string) => {
+    if (onResolutionSave) {
+      onResolutionSave(job.id, resolution);
+    }
+  }, [job.id, onResolutionSave]);
 
   return (
     <div
@@ -127,7 +160,7 @@ export const JobRow = ({
           <Calendar
             mode="single"
             selected={job.date}
-            onSelect={(date) => date && onUpdate(job.id, { date })}
+            onSelect={handleDateChange}
             initialFocus
           />
         </PopoverContent>
@@ -135,7 +168,7 @@ export const JobRow = ({
 
       <Select
         value={job.department}
-        onValueChange={(value) => onUpdate(job.id, { department: value })}
+        onValueChange={handleDepartmentChange}
       >
         <SelectTrigger 
           className={cn(
@@ -164,7 +197,7 @@ export const JobRow = ({
         <Input
           ref={inputRef}
           value={job.description}
-          onChange={(e) => onUpdate(job.id, { description: e.target.value })}
+          onChange={handleDescriptionChange}
           placeholder="Job description..."
           className={cn(
             "text-black border break-words",
@@ -205,14 +238,7 @@ export const JobRow = ({
       <div className="flex items-center gap-1.5 justify-center">
         <Checkbox
           checked={job.jobComplete}
-          onCheckedChange={(checked) => {
-            const isChecked = checked as boolean;
-            // If checking the box (not unchecking), show resolution dialog
-            if (isChecked && !job.jobComplete) {
-              setShowResolutionDialog(true);
-            }
-            onUpdate(job.id, { jobComplete: isChecked });
-          }}
+          onCheckedChange={handleJobCompleteChange}
           className="dark:border-black dark:data-[state=checked]:bg-black dark:data-[state=checked]:border-black"
         />
         <span className="text-xs font-medium dark:text-black">Complete</span>
@@ -222,11 +248,7 @@ export const JobRow = ({
         open={showResolutionDialog}
         onOpenChange={setShowResolutionDialog}
         jobDescription={job.description}
-        onSave={(resolution) => {
-          if (onResolutionSave) {
-            onResolutionSave(job.id, resolution);
-          }
-        }}
+        onSave={handleResolutionSave}
         onSkip={() => {
           // Just close the dialog, checkbox stays ticked
         }}
@@ -235,9 +257,7 @@ export const JobRow = ({
       <div className="flex items-center gap-1.5 justify-center">
         <Checkbox
           checked={job.sapComplete}
-          onCheckedChange={(checked) =>
-            onUpdate(job.id, { sapComplete: checked as boolean })
-          }
+          onCheckedChange={handleSapCompleteChange}
           className="dark:border-black dark:data-[state=checked]:bg-black dark:data-[state=checked]:border-black"
         />
         <span className="text-xs font-medium dark:text-black">SAP</span>
@@ -246,7 +266,7 @@ export const JobRow = ({
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => onDelete(job.id)}
+        onClick={handleDeleteClick}
         className={cn(
           "hover:bg-destructive hover:text-destructive-foreground dark:text-black dark:hover:text-black",
           sizeClasses.height,
@@ -258,3 +278,5 @@ export const JobRow = ({
     </div>
   );
 };
+
+export const JobRow = memo(JobRowComponent);
