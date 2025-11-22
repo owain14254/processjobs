@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, memo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Upload, Download, Trash2, Search, Loader2, KeyRound, Filter } from "lucide-react";
+import { ArrowLeft, Upload, Download, Trash2, Search, Loader2, KeyRound, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useStoresStorage, StoreItem } from "@/hooks/useStoresStorage";
@@ -59,11 +59,12 @@ const StoresSnapshot = () => {
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
   
-  // Result page filters
-  const [resultSapFilter, setResultSapFilter] = useState("");
-  const [resultLocationFilter, setResultLocationFilter] = useState("");
-  const [resultDescriptionFilter, setResultDescriptionFilter] = useState("");
-  const [resultVendorFilter, setResultVendorFilter] = useState("");
+  // Result page filter - single search box
+  const [resultSearchQuery, setResultSearchQuery] = useState("");
+  
+  // Sorting state
+  const [sortColumn, setSortColumn] = useState<keyof StoreItem | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
   // Load admin mode from localStorage
   useEffect(() => {
@@ -164,6 +165,29 @@ const StoresSnapshot = () => {
     }, 300);
   }, []);
 
+  const handleSort = useCallback((column: keyof StoreItem) => {
+    if (sortColumn === column) {
+      if (sortDirection === "asc") {
+        setSortDirection("desc");
+      } else {
+        setSortColumn(null);
+        setSortDirection("asc");
+      }
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  }, [sortColumn, sortDirection]);
+
+  const getSortIcon = (column: keyof StoreItem) => {
+    if (sortColumn !== column) {
+      return <ArrowUpDown className="h-3 w-3 ml-1 inline opacity-40" />;
+    }
+    return sortDirection === "asc" 
+      ? <ArrowUp className="h-3 w-3 ml-1 inline" />
+      : <ArrowDown className="h-3 w-3 ml-1 inline" />;
+  };
+
   // Performance-optimized filtering with wildcard support
   const filteredData = useMemo(() => {
     if (!showResults) return [];
@@ -196,21 +220,34 @@ const StoresSnapshot = () => {
       return matchesSap && matchesLoc && matchesDesc && matchesVendor;
     });
 
-    // Then apply result page filters
-    results = results.filter((item) => {
-      const matchesResultSap = matchesWildcard(item.material, resultSapFilter);
-      const matchesResultLoc = matchesWildcard(item.storageBin, resultLocationFilter);
-      const matchesResultDesc = matchesWildcard(
-        `${item.materialDescription} ${item.materialAdditionalDescription}`,
-        resultDescriptionFilter
+    // Then apply result page search query (searches across all fields)
+    if (resultSearchQuery.trim()) {
+      const query = resultSearchQuery.toLowerCase();
+      results = results.filter((item) => 
+        item.material.toLowerCase().includes(query) ||
+        item.storageBin.toLowerCase().includes(query) ||
+        item.materialDescription.toLowerCase().includes(query) ||
+        item.materialAdditionalDescription.toLowerCase().includes(query) ||
+        item.vendorNumber.toLowerCase().includes(query)
       );
-      const matchesResultVendor = matchesWildcard(item.vendorNumber, resultVendorFilter);
+    }
 
-      return matchesResultSap && matchesResultLoc && matchesResultDesc && matchesResultVendor;
-    });
+    // Apply sorting
+    if (sortColumn) {
+      results.sort((a, b) => {
+        const aVal = a[sortColumn].toLowerCase();
+        const bVal = b[sortColumn].toLowerCase();
+        
+        if (sortDirection === "asc") {
+          return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+        } else {
+          return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
+        }
+      });
+    }
 
     return results;
-  }, [storesData, sapNumber, location, description, vendorNumber, showResults, resultSapFilter, resultLocationFilter, resultDescriptionFilter, resultVendorFilter]);
+  }, [storesData, sapNumber, location, description, vendorNumber, showResults, resultSearchQuery, sortColumn, sortDirection]);
 
   if (isLoading) {
     return (
@@ -337,83 +374,42 @@ const StoresSnapshot = () => {
         {/* Controls - Only show when results are displayed */}
         {showResults && (
           <>
-            <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
               <Button 
                 onClick={() => {
                   setShowResults(false);
-                  setResultSapFilter("");
-                  setResultLocationFilter("");
-                  setResultDescriptionFilter("");
-                  setResultVendorFilter("");
+                  setResultSearchQuery("");
+                  setSortColumn(null);
+                  setSortDirection("asc");
                 }} 
                 variant="outline"
+                size="sm"
               >
-                <ArrowLeft className="h-4 w-4 mr-2" />
+                <ArrowLeft className="h-3 w-3 mr-1" />
                 New Search
               </Button>
-              <div className="flex-1" />
+              <div className="flex-1">
+                <Input
+                  placeholder="Find on page..."
+                  value={resultSearchQuery}
+                  onChange={(e) => setResultSearchQuery(e.target.value)}
+                  className="h-8 max-w-xs"
+                />
+              </div>
+              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                {filteredData.length} of {storesData.length}
+              </span>
               {isAdminMode && (
                 <Button 
                   onClick={() => setShowClearDialog(true)} 
                   variant="destructive"
+                  size="sm"
                   disabled={storesData.length === 0}
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
+                  <Trash2 className="h-3 w-3 mr-1" />
                   Clear All
                 </Button>
               )}
-            </div>
-
-            {/* Additional Filters in Results */}
-            <div className="border rounded-lg p-4 bg-muted/30">
-              <div className="flex items-center gap-2 mb-3">
-                <Filter className="h-4 w-4" />
-                <h3 className="text-sm font-medium">Refine Results</h3>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-medium">SAP Number</label>
-                  <Input
-                    placeholder="Filter..."
-                    value={resultSapFilter}
-                    onChange={(e) => setResultSapFilter(e.target.value)}
-                    className="h-8 text-sm"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-medium">Location</label>
-                  <Input
-                    placeholder="Filter..."
-                    value={resultLocationFilter}
-                    onChange={(e) => setResultLocationFilter(e.target.value)}
-                    className="h-8 text-sm"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-medium">Description</label>
-                  <Input
-                    placeholder="Filter..."
-                    value={resultDescriptionFilter}
-                    onChange={(e) => setResultDescriptionFilter(e.target.value)}
-                    className="h-8 text-sm"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-medium">Vendor Number</label>
-                  <Input
-                    placeholder="Filter..."
-                    value={resultVendorFilter}
-                    onChange={(e) => setResultVendorFilter(e.target.value)}
-                    className="h-8 text-sm"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Stats */}
-            <div className="flex gap-4 text-sm text-muted-foreground">
-              <span>Total Items: {storesData.length}</span>
-              <span>Results: {filteredData.length}</span>
             </div>
           </>
         )}
@@ -425,11 +421,41 @@ const StoresSnapshot = () => {
               <Table>
                 <TableHeader className="sticky top-0 bg-background z-10">
                   <TableRow>
-                    <TableHead>SAP Number</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Additional Description</TableHead>
-                    <TableHead>Vendor Number</TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort("material")}
+                    >
+                      SAP Number
+                      {getSortIcon("material")}
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort("storageBin")}
+                    >
+                      Location
+                      {getSortIcon("storageBin")}
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort("materialDescription")}
+                    >
+                      Description
+                      {getSortIcon("materialDescription")}
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort("materialAdditionalDescription")}
+                    >
+                      Additional Description
+                      {getSortIcon("materialAdditionalDescription")}
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort("vendorNumber")}
+                    >
+                      Vendor Number
+                      {getSortIcon("vendorNumber")}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
