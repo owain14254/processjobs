@@ -341,7 +341,7 @@ const Index = () => {
   };
   return <div className="min-h-screen bg-background p-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="max-w-[1600px] mx-auto space-y-2">
+        <div className="w-full mx-auto space-y-2 px-4">
           {/* Header */}
           <div className="grid grid-cols-3 items-center gap-4">
             <div className="flex items-center gap-4">
@@ -419,7 +419,7 @@ const Index = () => {
             </div>
           </div>
 
-          <TabsList className="grid w-full max-w-[500px] grid-cols-3 mx-auto h-8">
+          <TabsList className="grid w-full max-w-[800px] grid-cols-3 mx-auto h-8">
             <TabsTrigger value="active" className="py-0.5">{adminSettings.tabNameActive} ({activeJobs.length})</TabsTrigger>
             <TabsTrigger value="completed" className="py-0.5">{adminSettings.tabNameCompleted} ({completedJobs.length})</TabsTrigger>
             <TabsTrigger value="handover" className="py-0.5">{adminSettings.tabNameHandover}</TabsTrigger>
@@ -499,7 +499,7 @@ const Index = () => {
         </div>
       </Tabs>
 
-      <div className="max-w-[1600px] mx-auto">
+      <div className="w-full mx-auto px-4">
         <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
           <DialogContent>
             <DialogHeader>

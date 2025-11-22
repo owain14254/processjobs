@@ -362,7 +362,7 @@ const Metrics = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="w-full space-y-3 py-4 px-4">
+      <div className="w-full space-y-3 py-4 px-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
@@ -459,8 +459,8 @@ const Metrics = () => {
           </div>
         </div>
 
-        <div className="flex gap-4">
-          <Card className="flex-1 border-0 rounded-none shadow-none">
+        <div className="flex gap-6">
+          <Card className="flex-1 border-0 rounded-none shadow-none min-w-0">
             <CardHeader className="pb-3 px-0">
               <CardTitle className="text-base">
                 {viewMode === "keywords" ? "Job Time by Keyword" : "Jobs Completed by Department"}
@@ -618,7 +618,7 @@ const Metrics = () => {
           </CardContent>
         </Card>
 
-        <div className="w-96 space-y-2">
+        <div className="w-80 xl:w-96 flex-shrink-0 space-y-2">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm">Summary</CardTitle>

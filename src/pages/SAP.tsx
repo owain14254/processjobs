@@ -462,7 +462,7 @@ const SAP = () => {
 
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="max-w-[1200px] mx-auto space-y-6">
+      <div className="w-full mx-auto space-y-6 px-4">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
