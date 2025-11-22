@@ -220,16 +220,33 @@ const StoresSnapshot = () => {
       return matchesSap && matchesLoc && matchesDesc && matchesVendor;
     });
 
-    // Then apply result page search query (searches across all fields)
+    // Then apply result page search query (searches across all fields with wildcard support)
     if (resultSearchQuery.trim()) {
-      const query = resultSearchQuery.toLowerCase();
-      results = results.filter((item) => 
-        item.material.toLowerCase().includes(query) ||
-        item.storageBin.toLowerCase().includes(query) ||
-        item.materialDescription.toLowerCase().includes(query) ||
-        item.materialAdditionalDescription.toLowerCase().includes(query) ||
-        item.vendorNumber.toLowerCase().includes(query)
-      );
+      const query = resultSearchQuery.trim();
+      const isWildcard = query.includes("*");
+      
+      if (isWildcard) {
+        const escaped = query.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
+        const regexPattern = escaped.replace(/\*/g, ".*");
+        const regex = new RegExp(regexPattern, "i");
+        
+        results = results.filter((item) => 
+          regex.test(item.material) ||
+          regex.test(item.storageBin) ||
+          regex.test(item.materialDescription) ||
+          regex.test(item.materialAdditionalDescription) ||
+          regex.test(item.vendorNumber)
+        );
+      } else {
+        const lowerQuery = query.toLowerCase();
+        results = results.filter((item) => 
+          item.material.toLowerCase().includes(lowerQuery) ||
+          item.storageBin.toLowerCase().includes(lowerQuery) ||
+          item.materialDescription.toLowerCase().includes(lowerQuery) ||
+          item.materialAdditionalDescription.toLowerCase().includes(lowerQuery) ||
+          item.vendorNumber.toLowerCase().includes(lowerQuery)
+        );
+      }
     }
 
     // Apply sorting
@@ -389,12 +406,15 @@ const StoresSnapshot = () => {
                 New Search
               </Button>
               <div className="flex-1">
-                <Input
-                  placeholder="Find on page..."
-                  value={resultSearchQuery}
-                  onChange={(e) => setResultSearchQuery(e.target.value)}
-                  className="h-8 max-w-xs"
-                />
+                <div className="relative max-w-xs">
+                  <Search className="absolute left-2 top-2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Find on page (use * for wildcard)..."
+                    value={resultSearchQuery}
+                    onChange={(e) => setResultSearchQuery(e.target.value)}
+                    className="h-8 pl-8"
+                  />
+                </div>
               </div>
               <span className="text-xs text-muted-foreground whitespace-nowrap">
                 {filteredData.length} of {storesData.length}
