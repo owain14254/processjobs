@@ -145,13 +145,21 @@ const StoresSnapshot = () => {
   }, [isAdminMode, toast]);
 
   const handleSearch = useCallback(() => {
+    if (storesData.length === 0) return;
     setIsSearching(true);
     // Simulate search processing
     setTimeout(() => {
       setShowResults(true);
       setIsSearching(false);
     }, 300);
-  }, []);
+  }, [storesData.length]);
+
+  const handleSearchKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !isSearching && storesData.length > 0) {
+      e.preventDefault();
+      handleSearch();
+    }
+  }, [handleSearch, isSearching, storesData.length]);
 
   const handleViewAll = useCallback(() => {
     setSapNumber("");
@@ -290,6 +298,28 @@ const StoresSnapshot = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <label>
+              <Button variant="outline" size="icon" asChild title="Import Data">
+                <span>
+                  <Upload className="h-4 w-4" />
+                  <input
+                    type="file"
+                    accept=".json"
+                    onChange={handleImport}
+                    className="hidden"
+                  />
+                </span>
+              </Button>
+            </label>
+            <Button 
+              onClick={handleExport} 
+              variant="outline" 
+              size="icon"
+              title="Export Data"
+              disabled={storesData.length === 0}
+            >
+              <Download className="h-4 w-4" />
+            </Button>
             <ThemeToggle />
             <Button 
               onClick={toggleAdminMode} 
@@ -304,64 +334,48 @@ const StoresSnapshot = () => {
 
         {/* Search Section */}
         {!showResults && (
-          <div className="flex flex-col items-center justify-center min-h-[400px] gap-6">
-            <div className="w-full max-w-2xl space-y-4">
+          <div className="flex flex-col items-center justify-center min-h-[400px] gap-6 px-4">
+            <div className="w-full max-w-2xl mx-auto space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">SAP Number</label>
+                <label className="text-sm font-medium block text-center">SAP Number</label>
                 <Input
                   placeholder="Search SAP Number..."
                   value={sapNumber}
                   onChange={(e) => setSapNumber(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Location</label>
+                <label className="text-sm font-medium block text-center">Location</label>
                 <Input
                   placeholder="Search Location..."
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Description</label>
+                <label className="text-sm font-medium block text-center">Description</label>
                 <Input
                   placeholder="Search Description..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Vendor Number</label>
+                <label className="text-sm font-medium block text-center">Vendor Number</label>
                 <Input
                   placeholder="Search Vendor Number..."
                   value={vendorNumber}
                   onChange={(e) => setVendorNumber(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
                 />
               </div>
-              <div className="flex gap-3 pt-4">
-                <label className="flex-1">
-                  <Button variant="outline" className="w-full" asChild>
-                    <span>
-                      <Upload className="h-4 w-4 mr-2" />
-                      Import
-                      <input
-                        type="file"
-                        accept=".json"
-                        onChange={handleImport}
-                        className="hidden"
-                      />
-                    </span>
-                  </Button>
-                </label>
-                <Button onClick={handleExport} variant="outline" className="flex-1">
-                  <Download className="h-4 w-4 mr-2" />
-                  Export
-                </Button>
-              </div>
-              <div className="flex gap-3">
+              <div className="flex gap-3 pt-4 justify-center">
                 <Button 
                   onClick={handleSearch} 
-                  className="flex-1"
+                  className="min-w-[140px]"
                   disabled={isSearching || storesData.length === 0}
                 >
                   {isSearching ? (
@@ -379,6 +393,7 @@ const StoresSnapshot = () => {
                 <Button 
                   onClick={handleViewAll} 
                   variant="outline"
+                  className="min-w-[140px]"
                   disabled={isSearching || storesData.length === 0}
                 >
                   View All
