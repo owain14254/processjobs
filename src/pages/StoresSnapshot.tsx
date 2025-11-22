@@ -180,12 +180,12 @@ const StoresSnapshot = () => {
         // Normalize spaces in both value and pattern
         const normalizedValue = value.replace(/\s+/g, " ").trim().toLowerCase();
         const normalizedPattern = pattern.replace(/\s+/g, " ").trim().toLowerCase();
-        
+
         // Escape special regex characters except *
         const escaped = normalizedPattern.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
-        // Replace * with regex pattern that matches any characters including spaces
+        // Replace * with regex pattern that matches any characters including spaces (substring match)
         const regexPattern = escaped.replace(/\*/g, ".*");
-        const regex = new RegExp(`^${regexPattern}$`, "i");
+        const regex = new RegExp(regexPattern, "i");
         return regex.test(normalizedValue);
       }
       return value.toLowerCase().includes(pattern.toLowerCase());
