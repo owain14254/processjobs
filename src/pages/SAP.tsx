@@ -170,11 +170,11 @@ const SAP = () => {
   };
 
   const filteredJobs = jobs.filter(job =>
-    job.jobName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    job.entries.some(entry => 
-      entry.sapNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      entry.storeLocation.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      entry.description.toLowerCase().includes(searchQuery.toLowerCase())
+    (job.jobName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (job.entries || []).some(entry => 
+      (entry.sapNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (entry.storeLocation || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (entry.description || '').toLowerCase().includes(searchQuery.toLowerCase())
     )
   );
 
