@@ -8,21 +8,77 @@ export interface StoreItem {
   vendorNumber: string;
 }
 
-const STORES_KEY = "stores_snapshot_data";
+const DB_NAME = "stores_snapshot_db";
+const STORE_NAME = "stores_data";
+const DB_VERSION = 1;
+
+// Initialize IndexedDB
+const initDB = (): Promise<IDBDatabase> => {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+
+    request.onupgradeneeded = (event) => {
+      const db = (event.target as IDBOpenDBRequest).result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME);
+      }
+    };
+  });
+};
+
+// Get data from IndexedDB
+const getDBData = async (): Promise<StoreItem[]> => {
+  const db = await initDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORE_NAME, "readonly");
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.get("data");
+
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result || []);
+  });
+};
+
+// Save data to IndexedDB
+const setDBData = async (data: StoreItem[]): Promise<void> => {
+  const db = await initDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORE_NAME, "readwrite");
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.put(data, "data");
+
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve();
+  });
+};
+
+// Clear data from IndexedDB
+const clearDBData = async (): Promise<void> => {
+  const db = await initDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORE_NAME, "readwrite");
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.delete("data");
+
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve();
+  });
+};
 
 export const useStoresStorage = () => {
   const [storesData, setStoresData] = useState<StoreItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load from localStorage on mount
+  // Load from IndexedDB on mount
   useEffect(() => {
-    const loadData = () => {
+    const loadData = async () => {
       try {
-        const stored = localStorage.getItem(STORES_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          setStoresData(parsed);
-        }
+        const data = await getDBData();
+        setStoresData(data);
+        console.log("✓ Loaded", data.length, "items from IndexedDB");
       } catch (error) {
         console.error("Error loading stores data:", error);
       } finally {
@@ -32,14 +88,17 @@ export const useStoresStorage = () => {
     loadData();
   }, []);
 
-  // Save to localStorage when data changes
+  // Save to IndexedDB when data changes
   useEffect(() => {
-    if (!isLoading) {
-      try {
-        localStorage.setItem(STORES_KEY, JSON.stringify(storesData));
-      } catch (error) {
-        console.error("Error saving stores data:", error);
-      }
+    if (!isLoading && storesData.length > 0) {
+      setDBData(storesData)
+        .then(() => {
+          const sizeKB = Math.round(JSON.stringify(storesData).length / 1024);
+          console.log(`✓ Saved ${storesData.length} items (${sizeKB} KB) to IndexedDB`);
+        })
+        .catch((error) => {
+          console.error("Error saving stores data:", error);
+        });
     }
   }, [storesData, isLoading]);
 
@@ -70,11 +129,16 @@ export const useStoresStorage = () => {
         };
       }
 
+      // Calculate size
+      const sizeKB = Math.round(JSON.stringify(data).length / 1024);
+      console.log(`Importing ${data.length} items (${sizeKB} KB)`);
+
+      // Save to IndexedDB
+      await setDBData(data);
       setStoresData(data);
-      // Immediately save to localStorage
-      localStorage.setItem(STORES_KEY, JSON.stringify(data));
-      console.log("✓ Successfully imported and saved", data.length, "items to localStorage");
-      return { success: true, message: `Successfully imported ${data.length} items` };
+      
+      console.log(`✓ Successfully imported and saved ${data.length} items to IndexedDB`);
+      return { success: true, message: `Successfully imported ${data.length} items (${sizeKB} KB)` };
     } catch (error) {
       console.error("Import error:", error);
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -95,10 +159,14 @@ export const useStoresStorage = () => {
     URL.revokeObjectURL(url);
   };
 
-  const clearData = () => {
-    setStoresData([]);
-    localStorage.removeItem(STORES_KEY);
-    console.log("Cleared all stores data from localStorage");
+  const clearData = async () => {
+    try {
+      await clearDBData();
+      setStoresData([]);
+      console.log("✓ Cleared all stores data from IndexedDB");
+    } catch (error) {
+      console.error("Error clearing data:", error);
+    }
   };
 
   return {
