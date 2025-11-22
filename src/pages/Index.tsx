@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { KeyRound, FileText } from "lucide-react";
+import { KeyRound, FileText, Database } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useJobStorage } from "@/hooks/useJobStorage";
@@ -342,6 +342,10 @@ const Index = () => {
                   <DropdownMenuItem onClick={() => navigate("/metrics")}>
                     <BarChart3 className="h-4 w-4 mr-2" />
                     Metrics
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/stores-snapshot")}>
+                    <Database className="h-4 w-4 mr-2" />
+                    Stores Snapshot
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={toggleAdminMode}>
                     <KeyRound className="h-4 w-4 mr-2" />
