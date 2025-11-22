@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Plus, Trash2, Edit, ChevronDown, ChevronRight, ArrowLeft } from "lucide-react";
+import { Search, Plus, Trash2, Edit, ChevronDown, ChevronRight, ArrowLeft, Tag, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import mullerLogo from "@/assets/muller-logo.png";
 
@@ -14,6 +16,7 @@ interface SAPEntry {
   sapNumber: string;
   storeLocation: string;
   description: string;
+  locationTags: string[];
 }
 
 interface SAPJob {
@@ -32,6 +35,8 @@ const SAP = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<SAPJob | null>(null);
+  const [addingTagToEntry, setAddingTagToEntry] = useState<string | null>(null);
+  const [newLocationTag, setNewLocationTag] = useState("");
   
   // Form state
   const [jobName, setJobName] = useState("");
@@ -142,7 +147,8 @@ const SAP = () => {
       id: Date.now().toString(),
       sapNumber: entrySapNumber.trim(),
       storeLocation: entryLocation.trim(),
-      description: entryDescription.trim()
+      description: entryDescription.trim(),
+      locationTags: []
     };
     
     setEditingEntries([...editingEntries, newEntry]);
@@ -174,9 +180,67 @@ const SAP = () => {
     (job.entries || []).some(entry => 
       (entry.sapNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (entry.storeLocation || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (entry.description || '').toLowerCase().includes(searchQuery.toLowerCase())
+      (entry.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (entry.locationTags || []).some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
     )
   );
+
+  const addLocationTag = (jobId: string, entryId: string, tag: string) => {
+    if (!tag.trim()) return;
+    
+    const updatedJobs = jobs.map(job => {
+      if (job.id === jobId) {
+        return {
+          ...job,
+          entries: (job.entries || []).map(entry => {
+            if (entry.id === entryId) {
+              const currentTags = entry.locationTags || [];
+              if (!currentTags.includes(tag.trim())) {
+                return { ...entry, locationTags: [...currentTags, tag.trim()] };
+              }
+            }
+            return entry;
+          })
+        };
+      }
+      return job;
+    });
+    
+    saveJobs(updatedJobs);
+    setNewLocationTag("");
+    setAddingTagToEntry(null);
+    
+    toast({
+      title: "Location tag added",
+      description: `Tagged with "${tag.trim()}"`
+    });
+  };
+
+  const removeLocationTag = (jobId: string, entryId: string, tagToRemove: string) => {
+    const updatedJobs = jobs.map(job => {
+      if (job.id === jobId) {
+        return {
+          ...job,
+          entries: (job.entries || []).map(entry => {
+            if (entry.id === entryId) {
+              return {
+                ...entry,
+                locationTags: (entry.locationTags || []).filter(tag => tag !== tagToRemove)
+              };
+            }
+            return entry;
+          })
+        };
+      }
+      return job;
+    });
+    
+    saveJobs(updatedJobs);
+    
+    toast({
+      title: "Location tag removed"
+    });
+  };
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -304,7 +368,7 @@ const SAP = () => {
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by job name, SAP number, location, or description..."
+            placeholder="Search by job name, SAP number, location, description, or location tags..."
             className="pl-10"
           />
         </div>
@@ -374,7 +438,7 @@ const SAP = () => {
                   <CardContent className="py-2 px-4 border-t">
                     <div className="space-y-2 ml-8">
                       {(job.entries || []).map((entry, index) => (
-                        <div key={entry.id} className="text-sm py-2 px-3 bg-muted/50 rounded space-y-1">
+                        <div key={entry.id} className="text-sm py-2 px-3 bg-muted/50 rounded space-y-2">
                           <div className="flex items-center gap-2">
                             <span className="font-bold text-muted-foreground">{index + 1}.</span>
                             <span className="text-xs font-semibold text-muted-foreground">SAP:</span>
@@ -384,6 +448,63 @@ const SAP = () => {
                             <span>{entry.storeLocation}</span>
                           </div>
                           <div className="ml-4 text-muted-foreground">{entry.description}</div>
+                          
+                          {/* Location Tags */}
+                          <div className="ml-4 flex flex-wrap items-center gap-2">
+                            {(entry.locationTags || []).map((tag) => (
+                              <Badge key={tag} variant="secondary" className="gap-1">
+                                <Tag className="h-3 w-3" />
+                                {tag}
+                                <button
+                                  onClick={() => removeLocationTag(job.id, entry.id, tag)}
+                                  className="ml-1 hover:text-destructive"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </Badge>
+                            ))}
+                            <Popover open={addingTagToEntry === entry.id} onOpenChange={(open) => {
+                              setAddingTagToEntry(open ? entry.id : null);
+                              if (!open) setNewLocationTag("");
+                            }}>
+                              <PopoverTrigger asChild>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-6 px-2 text-xs"
+                                  onClick={() => setAddingTagToEntry(entry.id)}
+                                >
+                                  <Plus className="h-3 w-3 mr-1" />
+                                  Tag Location
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-64 bg-background" align="start">
+                                <div className="space-y-2">
+                                  <label className="text-sm font-medium">Add Location Tag</label>
+                                  <div className="flex gap-2">
+                                    <Input
+                                      value={newLocationTag}
+                                      onChange={(e) => setNewLocationTag(e.target.value)}
+                                      placeholder="e.g., Building A"
+                                      className="h-8"
+                                      onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                          addLocationTag(job.id, entry.id, newLocationTag);
+                                        }
+                                      }}
+                                    />
+                                    <Button 
+                                      size="sm" 
+                                      className="h-8"
+                                      onClick={() => addLocationTag(job.id, entry.id, newLocationTag)}
+                                    >
+                                      Add
+                                    </Button>
+                                  </div>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
+                          </div>
                         </div>
                       ))}
                     </div>
