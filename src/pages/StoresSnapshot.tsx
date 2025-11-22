@@ -244,7 +244,7 @@ const StoresSnapshot = () => {
       </div>;
   }
   return <div className="h-screen bg-background flex flex-col">
-      <div className="container mx-auto px-4 py-6 space-y-6 flex flex-col flex-1 overflow-hidden">
+      <div className="w-full px-4 py-6 space-y-6 flex flex-col flex-1 overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
