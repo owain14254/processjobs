@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { KeyRound, FileText } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -82,7 +82,7 @@ const Index = () => {
   const {
     toast
   } = useToast();
-  const handleArchive = () => {
+  const handleArchive = useCallback(() => {
     const count = activeJobs.filter(job => job.jobComplete && job.sapComplete).length;
     if (count === 0) {
       toast({
@@ -96,8 +96,9 @@ const Index = () => {
       title: "Jobs archived",
       description: `${count} completed job(s) moved to Completed Jobs Log.`
     });
-  };
-  const handleExport = () => {
+  }, [activeJobs, archiveCompletedJobs, toast]);
+  
+  const handleExport = useCallback(() => {
     exportData();
     const now = new Date();
     setLastSaveTime(now);
@@ -106,8 +107,9 @@ const Index = () => {
       title: "Backup created",
       description: "Job data exported successfully. Save the file to your USB stick."
     });
-  };
-  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+  }, [exportData, toast]);
+  
+  const handleImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setPendingImportFile(file);
@@ -115,8 +117,9 @@ const Index = () => {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-  };
-  const handleImportConfirm = (merge: boolean) => {
+  }, []);
+  
+  const handleImportConfirm = useCallback((merge: boolean) => {
     if (!pendingImportFile) return;
     importData(pendingImportFile, merge).then(() => {
       toast({
@@ -132,8 +135,9 @@ const Index = () => {
         variant: "destructive"
       });
     });
-  };
-  const handlePasswordSubmit = (e: React.FormEvent) => {
+  }, [pendingImportFile, importData, toast]);
+  
+  const handlePasswordSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (passwordInput === "Process3116") {
       setIsAdminMode(true);
@@ -151,8 +155,9 @@ const Index = () => {
       });
       setPasswordInput("");
     }
-  };
-  const toggleAdminMode = () => {
+  }, [passwordInput, toast]);
+  
+  const toggleAdminMode = useCallback(() => {
     if (isAdminMode) {
       setIsAdminMode(false);
       toast({
@@ -161,7 +166,7 @@ const Index = () => {
     } else {
       setShowPasswordDialog(true);
     }
-  };
+  }, [isAdminMode, toast]);
   const checkBackupReminder = () => {
     const lastBackupReminder = localStorage.getItem("lastBackupReminder");
     if (!lastBackupReminder) {
@@ -187,6 +192,50 @@ const Index = () => {
   const testBackupReminder = () => {
     setShowBackupReminder(true);
   };
+
+  const loadAdminSettings = useCallback(() => {
+    const savedSettings = localStorage.getItem("adminSettings");
+    if (savedSettings) {
+      try {
+        const parsed = JSON.parse(savedSettings);
+        const deptArray = parsed.departments 
+          ? parsed.departments.split(',').map((d: string) => d.trim()).filter((d: string) => d)
+          : ["Process", "Fruit", "Filling", "Warehouse", "Services", "Other"];
+        
+        setAdminSettings({
+          tabNameActive: parsed.tabNameActive || "Active",
+          tabNameCompleted: parsed.tabNameCompleted || "Completed",
+          tabNameHandover: parsed.tabNameHandover || "Handover",
+          appName: parsed.appName || "Process Tracker",
+          departments: deptArray,
+          shiftDuration: parsed.shiftDuration || 12,
+          setDuration: parsed.setDuration || 96,
+          rowHeightActive: parsed.rowHeightActive ?? 2,
+          rowHeightCompleted: parsed.rowHeightCompleted ?? 2,
+          rowHeightHandover: parsed.rowHeightHandover ?? 2,
+          textSizeActive: parsed.textSizeActive ?? 2,
+          textSizeCompleted: parsed.textSizeCompleted ?? 2,
+          textSizeHandover: parsed.textSizeHandover ?? 2,
+          textBoldActive: parsed.textBoldActive ?? false,
+          textBoldCompleted: parsed.textBoldCompleted ?? false,
+          textBoldHandover: parsed.textBoldHandover ?? false,
+          expandPopupSize: parsed.expandPopupSize ?? 2,
+          statusColorAmber: parsed.statusColorAmber || "#ffc252",
+          statusColorLightGreen: parsed.statusColorLightGreen || "#8bea8b",
+          statusColorDarkGreen: parsed.statusColorDarkGreen || "#00b300",
+          clockVisible: parsed.clockVisible ?? true,
+          clockSize: parsed.clockSize ?? 2
+        });
+      } catch (e) {
+        console.error("Failed to parse admin settings", e);
+      }
+    }
+  }, []);
+
+  const handleSettingsChange = useCallback(() => {
+    loadAdminSettings();
+  }, [loadAdminSettings]);
+  
   useEffect(() => {
     checkBackupReminder();
     // Check every hour if 24 hours have passed
@@ -260,85 +309,9 @@ const Index = () => {
     if (savedLastSave) {
       setLastSaveTime(new Date(savedLastSave));
     }
-    
-    // Load admin settings
-    const savedSettings = localStorage.getItem("adminSettings");
-    if (savedSettings) {
-      try {
-        const parsed = JSON.parse(savedSettings);
-        const deptArray = parsed.departments 
-          ? parsed.departments.split(',').map((d: string) => d.trim()).filter((d: string) => d)
-          : ["Process", "Fruit", "Filling", "Warehouse", "Services", "Other"];
-        
-        setAdminSettings({
-          tabNameActive: parsed.tabNameActive || "Active",
-          tabNameCompleted: parsed.tabNameCompleted || "Completed",
-          tabNameHandover: parsed.tabNameHandover || "Handover",
-          appName: parsed.appName || "Process Tracker",
-          departments: deptArray,
-          shiftDuration: parsed.shiftDuration || 12,
-          setDuration: parsed.setDuration || 96,
-          rowHeightActive: parsed.rowHeightActive ?? 2,
-          rowHeightCompleted: parsed.rowHeightCompleted ?? 2,
-          rowHeightHandover: parsed.rowHeightHandover ?? 2,
-          textSizeActive: parsed.textSizeActive ?? 2,
-          textSizeCompleted: parsed.textSizeCompleted ?? 2,
-          textSizeHandover: parsed.textSizeHandover ?? 2,
-          textBoldActive: parsed.textBoldActive ?? false,
-          textBoldCompleted: parsed.textBoldCompleted ?? false,
-          textBoldHandover: parsed.textBoldHandover ?? false,
-          expandPopupSize: parsed.expandPopupSize ?? 2,
-          statusColorAmber: parsed.statusColorAmber || "#ffc252",
-          statusColorLightGreen: parsed.statusColorLightGreen || "#8bea8b",
-          statusColorDarkGreen: parsed.statusColorDarkGreen || "#00b300",
-          clockVisible: parsed.clockVisible ?? true,
-          clockSize: parsed.clockSize ?? 2
-        });
-      } catch (e) {
-        console.error("Failed to parse admin settings", e);
-      }
-    }
-  }, []);
+    loadAdminSettings();
+  }, [loadAdminSettings]);
   
-  const handleSettingsChange = () => {
-    // Reload settings when they change
-    const savedSettings = localStorage.getItem("adminSettings");
-    if (savedSettings) {
-      try {
-        const parsed = JSON.parse(savedSettings);
-        const deptArray = parsed.departments 
-          ? parsed.departments.split(',').map((d: string) => d.trim()).filter((d: string) => d)
-          : ["Process", "Fruit", "Filling", "Warehouse", "Services", "Other"];
-        
-        setAdminSettings({
-          tabNameActive: parsed.tabNameActive || "Active",
-          tabNameCompleted: parsed.tabNameCompleted || "Completed",
-          tabNameHandover: parsed.tabNameHandover || "Handover",
-          appName: parsed.appName || "Process Tracker",
-          departments: deptArray,
-          shiftDuration: parsed.shiftDuration || 12,
-          setDuration: parsed.setDuration || 96,
-          rowHeightActive: parsed.rowHeightActive ?? 2,
-          rowHeightCompleted: parsed.rowHeightCompleted ?? 2,
-          rowHeightHandover: parsed.rowHeightHandover ?? 2,
-          textSizeActive: parsed.textSizeActive ?? 2,
-          textSizeCompleted: parsed.textSizeCompleted ?? 2,
-          textSizeHandover: parsed.textSizeHandover ?? 2,
-          textBoldActive: parsed.textBoldActive ?? false,
-          textBoldCompleted: parsed.textBoldCompleted ?? false,
-          textBoldHandover: parsed.textBoldHandover ?? false,
-          expandPopupSize: parsed.expandPopupSize ?? 2,
-          statusColorAmber: parsed.statusColorAmber || "#ffc252",
-          statusColorLightGreen: parsed.statusColorLightGreen || "#8bea8b",
-          statusColorDarkGreen: parsed.statusColorDarkGreen || "#00b300",
-          clockVisible: parsed.clockVisible ?? true,
-          clockSize: parsed.clockSize ?? 2
-        });
-      } catch (e) {
-        console.error("Failed to parse admin settings", e);
-      }
-    }
-  };
   return <div className="min-h-screen bg-background p-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="w-full mx-auto space-y-2 px-4">

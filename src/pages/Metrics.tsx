@@ -5,7 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Filter, Download, Calendar, CalendarDays, X, Plus, Tags } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -46,7 +46,7 @@ const Metrics = () => {
   };
 
   // Save keywords to localStorage
-  useMemo(() => {
+  useEffect(() => {
     localStorage.setItem("metricsKeywords", JSON.stringify(keywords));
   }, [keywords]);
 
@@ -88,7 +88,7 @@ const Metrics = () => {
   );
 
   // Update selected departments when all departments change
-  useMemo(() => {
+  useEffect(() => {
     setSelectedDepartments(new Set(allDepartments));
   }, [allDepartments]);
 
@@ -111,7 +111,7 @@ const Metrics = () => {
     return colorMap;
   }, [allDepartments]);
 
-  const toggleDepartment = (dept: string) => {
+  const toggleDepartment = useCallback((dept: string) => {
     setSelectedDepartments(prev => {
       const newSet = new Set(prev);
       if (newSet.has(dept)) {
@@ -121,7 +121,7 @@ const Metrics = () => {
       }
       return newSet;
     });
-  };
+  }, []);
 
   const monthlyData = useMemo(() => {
     const dataMap = new Map<string, Map<string, number>>();
@@ -249,20 +249,22 @@ const Metrics = () => {
     return colorMap;
   }, [keywords]);
 
+  const { toast } = useToast();
 
 
-  const addKeyword = () => {
+
+  const addKeyword = useCallback(() => {
     if (newKeyword.trim() && !keywords.includes(newKeyword.trim().toUpperCase())) {
       setKeywords([...keywords, newKeyword.trim().toUpperCase()]);
       setNewKeyword("");
     }
-  };
+  }, [newKeyword, keywords]);
 
-  const removeKeyword = (keyword: string) => {
+  const removeKeyword = useCallback((keyword: string) => {
     setKeywords(keywords.filter(k => k !== keyword));
-  };
+  }, [keywords]);
 
-  const autoFindKeywords = () => {
+  const autoFindKeywords = useCallback(() => {
     // Extract all words from descriptions
     const wordFrequency = new Map<string, number>();
     
@@ -308,13 +310,11 @@ const Metrics = () => {
         description: "All common words are already in the list"
       });
     }
-  };
+  }, [filteredJobsByTimespan, selectedDepartments, keywords, toast]);
 
   const chartData = viewMode === "keywords" ? keywordData : (viewMode === "monthly" ? monthlyData : dailyData);
 
-  const { toast } = useToast();
-
-  const handleExportMetrics = () => {
+  const handleExportMetrics = useCallback(() => {
     const csvData = [
       ["Period", ...Array.from(selectedDepartments)],
       ...chartData.map(row => [
@@ -336,15 +336,15 @@ const Metrics = () => {
       title: "Metrics exported",
       description: "CSV file downloaded successfully"
     });
-  };
+  }, [chartData, selectedDepartments, viewMode, timespan, toast]);
 
-  const toggleSelectAll = () => {
+  const toggleSelectAll = useCallback(() => {
     if (selectedDepartments.size === allDepartments.length) {
       setSelectedDepartments(new Set());
     } else {
       setSelectedDepartments(new Set(allDepartments));
     }
-  };
+  }, [selectedDepartments.size, allDepartments]);
 
   const totalJobs = filteredJobsByTimespan.filter(job => selectedDepartments.has(job.department)).length;
   

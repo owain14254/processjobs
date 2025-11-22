@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Plus, Trash2, Edit, ChevronDown, ChevronRight, ArrowLeft, Tag, X, Download, Upload, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -397,7 +397,7 @@ const SAP = () => {
     }
   };
 
-  const filteredJobs = jobs.filter(job => {
+  const filteredJobs = useMemo(() => jobs.filter(job => {
     // Search filter
     const matchesSearch = 
       (job.jobName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -418,7 +418,7 @@ const SAP = () => {
       (job.locationTags || []).includes(selectedLocationFilter);
     
     return matchesSearch && matchesJobType && matchesLocation;
-  });
+  }), [jobs, searchQuery, selectedJobTypeFilter, selectedLocationFilter]);
 
   const addLocationTag = (jobId: string, tag: string) => {
     if (!tag.trim()) return;

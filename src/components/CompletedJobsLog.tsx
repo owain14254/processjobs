@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, memo, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2, CalendarIcon, X } from "lucide-react";
@@ -42,7 +42,7 @@ interface CompletedJobsLogProps {
   expandPopupSize?: number;
 }
 
-export const CompletedJobsLog = ({ 
+const CompletedJobsLogComponent = ({ 
   jobs, 
   isAdminMode = false, 
   onDelete, 
@@ -118,13 +118,14 @@ export const CompletedJobsLog = ({
       return matchesSearch && matchesDepartment && matchesStartDate && matchesEndDate && matchesShift;
     }).sort((a, b) => b.date.getTime() - a.date.getTime());
   }, [jobs, searchTerm, departmentFilter, startDate, endDate, shiftFilter]);
-  const handleEdit = (job: CompletedJob) => {
+  const handleEdit = useCallback((job: CompletedJob) => {
     setEditingJob(job);
     setEditDescription(job.description);
     setEditDate(job.date);
     setEditDepartment(job.department);
-  };
-  const handleSaveEdit = () => {
+  }, []);
+  
+  const handleSaveEdit = useCallback(() => {
     if (editingJob && onUpdate) {
       onUpdate(editingJob.id, {
         description: editDescription,
@@ -136,13 +137,14 @@ export const CompletedJobsLog = ({
       setEditDate(undefined);
       setEditDepartment("");
     }
-  };
-  const handleDelete = () => {
+  }, [editingJob, onUpdate, editDescription, editDate, editDepartment]);
+  
+  const handleDelete = useCallback(() => {
     if (deleteJobId && onDelete) {
       onDelete(deleteJobId);
       setDeleteJobId(null);
     }
-  };
+  }, [deleteJobId, onDelete]);
   return (
     <div className="space-y-4">
       <div className="flex gap-4 flex-wrap">
@@ -330,3 +332,5 @@ export const CompletedJobsLog = ({
     </div>
   );
 };
+
+export const CompletedJobsLog = memo(CompletedJobsLogComponent);
