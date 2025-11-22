@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Plus, Trash2, Edit, ChevronDown, ChevronRight, ArrowLeft, Tag, X } from "lucide-react";
+import { Search, Plus, Trash2, Edit, ChevronDown, ChevronRight, ArrowLeft, Tag, X, Download, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import mullerLogo from "@/assets/muller-logo.png";
 
@@ -21,25 +22,42 @@ interface SAPEntry {
 interface SAPJob {
   id: string;
   jobName: string;
+  jobType: string;
   entries: SAPEntry[];
   locationTags: string[];
   expanded?: boolean;
 }
 
 const SAP_STORAGE_KEY = "sap_jobs";
+const JOB_TYPES_STORAGE_KEY = "sap_job_types";
+
+const DEFAULT_JOB_TYPES = [
+  "Valve",
+  "Pump",
+  "Motor",
+  "Electrical",
+  "Mechanical",
+  "Solenoid",
+  "Seals"
+];
 
 const SAP = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [jobs, setJobs] = useState<SAPJob[]>([]);
+  const [jobTypes, setJobTypes] = useState<string[]>(DEFAULT_JOB_TYPES);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<SAPJob | null>(null);
   const [addingTagToJob, setAddingTagToJob] = useState<string | null>(null);
   const [newLocationTag, setNewLocationTag] = useState("");
+  const [isAddingJobType, setIsAddingJobType] = useState(false);
+  const [newJobType, setNewJobType] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Form state
   const [jobName, setJobName] = useState("");
+  const [jobType, setJobType] = useState("");
   const [entrySapNumber, setEntrySapNumber] = useState("");
   const [entryLocation, setEntryLocation] = useState("");
   const [entryDescription, setEntryDescription] = useState("");
@@ -54,6 +72,15 @@ const SAP = () => {
         console.error("Failed to parse SAP jobs", e);
       }
     }
+    
+    const savedTypes = localStorage.getItem(JOB_TYPES_STORAGE_KEY);
+    if (savedTypes) {
+      try {
+        setJobTypes(JSON.parse(savedTypes));
+      } catch (e) {
+        console.error("Failed to parse job types", e);
+      }
+    }
   }, []);
 
   const saveJobs = (updatedJobs: SAPJob[]) => {
@@ -61,11 +88,16 @@ const SAP = () => {
     localStorage.setItem(SAP_STORAGE_KEY, JSON.stringify(updatedJobs));
   };
 
+  const saveJobTypes = (types: string[]) => {
+    setJobTypes(types);
+    localStorage.setItem(JOB_TYPES_STORAGE_KEY, JSON.stringify(types));
+  };
+
   const handleAddJob = () => {
-    if (!jobName.trim()) {
+    if (!jobName.trim() || !jobType) {
       toast({
         title: "Missing information",
-        description: "Please enter a job name",
+        description: "Please enter a job name and select a job type",
         variant: "destructive"
       });
       return;
@@ -74,6 +106,7 @@ const SAP = () => {
     const newJob: SAPJob = {
       id: Date.now().toString(),
       jobName: jobName.trim(),
+      jobType: jobType,
       entries: editingEntries,
       locationTags: [],
       expanded: false
@@ -91,10 +124,10 @@ const SAP = () => {
   };
 
   const handleEditJob = () => {
-    if (!editingJob || !jobName.trim()) {
+    if (!editingJob || !jobName.trim() || !jobType) {
       toast({
         title: "Missing information",
-        description: "Please enter a job name",
+        description: "Please enter a job name and select a job type",
         variant: "destructive"
       });
       return;
@@ -102,7 +135,7 @@ const SAP = () => {
 
     const updatedJobs = jobs.map(job => 
       job.id === editingJob.id 
-        ? { ...job, jobName: jobName.trim(), entries: editingEntries }
+        ? { ...job, jobName: jobName.trim(), jobType: jobType, entries: editingEntries }
         : job
     );
 
@@ -163,6 +196,7 @@ const SAP = () => {
 
   const resetForm = () => {
     setJobName("");
+    setJobType("");
     setEntrySapNumber("");
     setEntryLocation("");
     setEntryDescription("");
@@ -172,11 +206,97 @@ const SAP = () => {
   const openEditDialog = (job: SAPJob) => {
     setEditingJob(job);
     setJobName(job.jobName);
+    setJobType(job.jobType || "");
     setEditingEntries([...job.entries]);
+  };
+
+  const addJobType = () => {
+    if (!newJobType.trim()) return;
+    
+    if (jobTypes.includes(newJobType.trim())) {
+      toast({
+        title: "Job type exists",
+        description: "This job type already exists",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const updatedTypes = [...jobTypes, newJobType.trim()];
+    saveJobTypes(updatedTypes);
+    setNewJobType("");
+    setIsAddingJobType(false);
+    
+    toast({
+      title: "Job type added",
+      description: `"${newJobType.trim()}" has been added`
+    });
+  };
+
+  const handleExport = () => {
+    const exportData = {
+      jobs,
+      jobTypes,
+      exportedAt: new Date().toISOString()
+    };
+    
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `sap-jobs-backup-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Backup created",
+      description: "SAP jobs exported successfully"
+    });
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const imported = JSON.parse(event.target?.result as string);
+        
+        if (imported.jobs) {
+          saveJobs(imported.jobs);
+        }
+        
+        if (imported.jobTypes) {
+          saveJobTypes(imported.jobTypes);
+        }
+        
+        toast({
+          title: "Data imported",
+          description: "SAP jobs loaded successfully from backup"
+        });
+      } catch (error) {
+        toast({
+          title: "Import failed",
+          description: "Could not load data from the selected file",
+          variant: "destructive"
+        });
+      }
+    };
+    
+    reader.readAsText(file);
+    
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const filteredJobs = jobs.filter(job =>
     (job.jobName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (job.jobType || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (job.locationTags || []).some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (job.entries || []).some(entry => 
       (entry.sapNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -247,19 +367,32 @@ const SAP = () => {
             </div>
           </div>
 
-          <Dialog open={isAddDialogOpen || editingJob !== null} onOpenChange={(open) => {
-            setIsAddDialogOpen(open);
-            if (!open) {
-              setEditingJob(null);
-              resetForm();
-            }
-          }}>
-            <DialogTrigger asChild>
-              <Button onClick={() => setIsAddDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Job
+          <div className="flex gap-2">
+            <Button onClick={handleExport} variant="outline" size="icon" title="Export Backup">
+              <Download className="h-4 w-4" />
+            </Button>
+            <label>
+              <Button variant="outline" size="icon" asChild title="Import Backup">
+                <span>
+                  <Upload className="h-4 w-4" />
+                  <input ref={fileInputRef} type="file" accept=".json" onChange={handleImport} className="hidden" />
+                </span>
               </Button>
-            </DialogTrigger>
+            </label>
+
+            <Dialog open={isAddDialogOpen || editingJob !== null} onOpenChange={(open) => {
+              setIsAddDialogOpen(open);
+              if (!open) {
+                setEditingJob(null);
+                resetForm();
+              }
+            }}>
+              <DialogTrigger asChild>
+                <Button onClick={() => setIsAddDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Job
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingJob ? "Edit Job" : "Add New Job"}</DialogTitle>
@@ -272,6 +405,53 @@ const SAP = () => {
                     onChange={(e) => setJobName(e.target.value)}
                     placeholder="e.g., Common Maintenance Tasks"
                   />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Job Type</label>
+                  <div className="flex gap-2">
+                    <Select value={jobType} onValueChange={setJobType}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select job type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {jobTypes.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {!isAddingJobType ? (
+                      <Button 
+                        variant="outline" 
+                        size="icon"
+                        onClick={() => setIsAddingJobType(true)}
+                        title="Add new job type"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <div className="flex gap-1">
+                        <Input
+                          value={newJobType}
+                          onChange={(e) => setNewJobType(e.target.value)}
+                          placeholder="New type"
+                          className="h-10 w-32"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") addJobType();
+                            if (e.key === "Escape") {
+                              setIsAddingJobType(false);
+                              setNewJobType("");
+                            }
+                          }}
+                        />
+                        <Button size="icon" onClick={addJobType}>
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div>
@@ -344,6 +524,7 @@ const SAP = () => {
               </div>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         {/* Search */}
@@ -388,6 +569,11 @@ const SAP = () => {
                       <div className="flex-1 min-w-0 space-y-2">
                         <div className="flex items-center gap-3 flex-wrap">
                           <CardTitle className="text-lg">{job.jobName || 'Untitled Job'}</CardTitle>
+                          {job.jobType && (
+                            <Badge variant="outline" className="font-normal">
+                              {job.jobType}
+                            </Badge>
+                          )}
                           {(job.entries || []).length > 0 && (
                             <>
                               <span className="text-sm text-muted-foreground">•</span>
