@@ -124,6 +124,8 @@ const Metrics = () => {
   }, []);
 
   const monthlyData = useMemo(() => {
+    if (viewMode !== "monthly") return [];
+    
     const dataMap = new Map<string, Map<string, number>>();
     
     filteredJobsByTimespan.forEach((job) => {
@@ -137,8 +139,7 @@ const Metrics = () => {
       }
       
       const monthData = dataMap.get(monthKey)!;
-      const currentCount = monthData.get(job.department) || 0;
-      monthData.set(job.department, currentCount + 1);
+      monthData.set(job.department, (monthData.get(job.department) || 0) + 1);
     });
 
     const sortedMonths = Array.from(dataMap.keys()).sort();
@@ -157,9 +158,11 @@ const Metrics = () => {
       
       return result;
     });
-  }, [filteredJobsByTimespan, selectedDepartments]);
+  }, [filteredJobsByTimespan, selectedDepartments, viewMode]);
 
   const dailyData = useMemo(() => {
+    if (viewMode !== "daily") return [];
+    
     const dataMap = new Map<string, Map<string, number>>();
     
     filteredJobsByTimespan.forEach((job) => {
@@ -173,8 +176,7 @@ const Metrics = () => {
       }
       
       const dayData = dataMap.get(dayKey)!;
-      const currentCount = dayData.get(job.department) || 0;
-      dayData.set(job.department, currentCount + 1);
+      dayData.set(job.department, (dayData.get(job.department) || 0) + 1);
     });
 
     const sortedDays = Array.from(dataMap.keys()).sort();
@@ -197,11 +199,14 @@ const Metrics = () => {
       
       return result;
     });
-  }, [filteredJobsByTimespan, selectedDepartments, timespan]);
+  }, [filteredJobsByTimespan, selectedDepartments, timespan, viewMode]);
 
-  // Keyword analysis data
+  // Keyword analysis data - optimized to only run when in keywords view
   const keywordData = useMemo(() => {
-    const keywordMap = new Map<string, { count: number }>();
+    if (viewMode !== "keywords") return [];
+    
+    const keywordMap = new Map<string, number>();
+    const upperKeywords = keywords.map(k => k.toUpperCase());
     
     filteredJobsByTimespan.forEach((job) => {
       if (!selectedDepartments.has(job.department)) return;
@@ -209,24 +214,17 @@ const Metrics = () => {
       const description = job.description.toUpperCase();
       
       // Find keywords in description
-      keywords.forEach((keyword) => {
-        if (description.includes(keyword.toUpperCase())) {
-          if (!keywordMap.has(keyword)) {
-            keywordMap.set(keyword, { count: 0 });
-          }
-          const data = keywordMap.get(keyword)!;
-          data.count += 1;
+      upperKeywords.forEach((keyword, idx) => {
+        if (description.includes(keyword)) {
+          keywordMap.set(keywords[idx], (keywordMap.get(keywords[idx]) || 0) + 1);
         }
       });
     });
     
     return Array.from(keywordMap.entries())
-      .map(([keyword, data]) => ({
-        keyword,
-        count: data.count,
-      }))
+      .map(([keyword, count]) => ({ keyword, count }))
       .sort((a, b) => b.count - a.count);
-  }, [filteredJobsByTimespan, selectedDepartments, keywords]);
+  }, [filteredJobsByTimespan, selectedDepartments, keywords, viewMode]);
 
   const keywordColors = useMemo(() => {
     const colors = [
