@@ -1,20 +1,11 @@
 import { useState, useEffect } from "react";
 
 export interface StoreItem {
-  Material: string;
-  SLoc: string;
-  Bin: string;
-  Old_material_no: string;
-  Unrestr: string;
-  Unr_Cnsgt: string;
-  Material_Description: string;
-  MS: string;
-  Mat_text: string;
-  Pl_usage: string;
-  Vendor_Mat_No: string;
-  Plnt: string;
-  BUn: string;
-  Supplier: string;
+  material: string;
+  storageBin: string;
+  materialDescription: string;
+  materialAdditionalDescription: string;
+  vendorNumber: string;
 }
 
 const STORES_KEY = "stores_snapshot_data";

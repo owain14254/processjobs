@@ -28,20 +28,11 @@ import {
 
 const StoreRow = memo(({ item }: { item: StoreItem }) => (
   <TableRow>
-    <TableCell className="font-medium">{item.Material}</TableCell>
-    <TableCell>{item.SLoc}</TableCell>
-    <TableCell>{item.Bin}</TableCell>
-    <TableCell>{item.Old_material_no}</TableCell>
-    <TableCell>{item.Unrestr}</TableCell>
-    <TableCell>{item.Unr_Cnsgt}</TableCell>
-    <TableCell>{item.Material_Description}</TableCell>
-    <TableCell>{item.MS}</TableCell>
-    <TableCell>{item.Mat_text}</TableCell>
-    <TableCell>{item.Pl_usage}</TableCell>
-    <TableCell>{item.Vendor_Mat_No}</TableCell>
-    <TableCell>{item.Plnt}</TableCell>
-    <TableCell>{item.BUn}</TableCell>
-    <TableCell>{item.Supplier}</TableCell>
+    <TableCell className="font-medium">{item.material}</TableCell>
+    <TableCell>{item.storageBin}</TableCell>
+    <TableCell>{item.materialDescription}</TableCell>
+    <TableCell>{item.materialAdditionalDescription}</TableCell>
+    <TableCell>{item.vendorNumber}</TableCell>
   </TableRow>
 ));
 
@@ -93,9 +84,9 @@ const StoresSnapshot = () => {
     });
   }, [clearData, toast]);
 
-  // Performance-optimized filtering with wildcard support
+  // Performance-optimized filtering with wildcard support - search only mode
   const filteredData = useMemo(() => {
-    if (!searchTerm.trim()) return storesData;
+    if (!searchTerm.trim()) return [];
 
     const searchLower = searchTerm.toLowerCase().trim();
     const isWildcard = searchLower.includes("*");
@@ -111,20 +102,11 @@ const StoresSnapshot = () => {
 
     return storesData.filter((item) => {
       const searchableFields = [
-        item.Material,
-        item.SLoc,
-        item.Bin,
-        item.Old_material_no,
-        item.Unrestr,
-        item.Unr_Cnsgt,
-        item.Material_Description,
-        item.MS,
-        item.Mat_text,
-        item.Pl_usage,
-        item.Vendor_Mat_No,
-        item.Plnt,
-        item.BUn,
-        item.Supplier,
+        item.material,
+        item.storageBin,
+        item.materialDescription,
+        item.materialAdditionalDescription,
+        item.vendorNumber,
       ];
 
       if (isWildcard && regex) {
@@ -172,7 +154,7 @@ const StoresSnapshot = () => {
           <div className="relative flex-1 min-w-[300px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search all fields... (use * for wildcard, e.g., 'ABC*' or '*123')"
+              placeholder="Search SAP Number, Location, Description, or Vendor... (use * for wildcard)"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9"
@@ -209,7 +191,7 @@ const StoresSnapshot = () => {
         {/* Stats */}
         <div className="flex gap-4 text-sm text-muted-foreground">
           <span>Total Items: {storesData.length}</span>
-          {searchTerm && <span>Filtered: {filteredData.length}</span>}
+          {searchTerm && <span>Results: {filteredData.length}</span>}
         </div>
 
         {/* Table */}
@@ -218,34 +200,31 @@ const StoresSnapshot = () => {
             <Table>
               <TableHeader className="sticky top-0 bg-background z-10">
                 <TableRow>
-                  <TableHead>Material</TableHead>
-                  <TableHead>SLoc</TableHead>
-                  <TableHead>Bin</TableHead>
-                  <TableHead>Old Material No.</TableHead>
-                  <TableHead>Unrestr.</TableHead>
-                  <TableHead>Unr. Cnsgt</TableHead>
-                  <TableHead>Material Description</TableHead>
-                  <TableHead>MS</TableHead>
-                  <TableHead>Mat. Text</TableHead>
-                  <TableHead>Pl. Usage</TableHead>
-                  <TableHead>Vendor Mat. No.</TableHead>
-                  <TableHead>Plnt</TableHead>
-                  <TableHead>BUn</TableHead>
-                  <TableHead>Supplier</TableHead>
+                  <TableHead>SAP Number</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Additional Description</TableHead>
+                  <TableHead>Vendor Number</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredData.length === 0 ? (
+                {storesData.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={14} className="text-center py-12 text-muted-foreground">
-                      {storesData.length === 0 
-                        ? "No data available. Import a file to get started."
-                        : "No items match your search criteria"}
+                    <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                      No data available. Import a file to get started.
+                    </TableCell>
+                  </TableRow>
+                ) : filteredData.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                      {searchTerm 
+                        ? "No items match your search criteria"
+                        : "Enter a search term to view results"}
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredData.map((item, index) => (
-                    <StoreRow key={`${item.Material}-${item.Bin}-${index}`} item={item} />
+                    <StoreRow key={`${item.material}-${item.storageBin}-${index}`} item={item} />
                   ))
                 )}
               </TableBody>
