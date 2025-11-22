@@ -243,8 +243,8 @@ const StoresSnapshot = () => {
         <div className="text-lg">Loading...</div>
       </div>;
   }
-  return <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6 space-y-6">
+  return <div className="h-screen bg-background flex flex-col">
+      <div className="container mx-auto px-4 py-6 space-y-6 flex flex-col flex-1 overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -277,7 +277,7 @@ const StoresSnapshot = () => {
         </div>
 
         {/* Search Section */}
-        {!showResults && <div className="flex flex-col items-center justify-center min-h-[400px] gap-6 px-4">
+        {!showResults && <div className="flex flex-col items-center justify-center flex-1 gap-6 px-4">
             <div className="w-full max-w-2xl mx-auto space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium block text-left">SAP Number</label>
@@ -341,8 +341,8 @@ const StoresSnapshot = () => {
           </>}
 
         {/* Table - Only show when results are displayed */}
-        {showResults && <div className="border rounded-lg overflow-hidden">
-            <div className="overflow-x-auto max-h-[calc(100vh-280px)] overflow-y-auto">
+        {showResults && <div className="border rounded-lg overflow-hidden flex-1 flex flex-col min-h-0">
+            <div className="overflow-x-auto overflow-y-auto flex-1">
               <Table>
                 <TableHeader className="sticky top-0 bg-background z-10">
                   <TableRow>
