@@ -339,11 +339,11 @@ const SAP = () => {
                       </Button>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-3 flex-wrap">
-                          <CardTitle className="text-lg">{job.jobName}</CardTitle>
-                          {job.entries.length > 0 && (
+                          <CardTitle className="text-lg">{job.jobName || 'Untitled Job'}</CardTitle>
+                          {(job.entries || []).length > 0 && (
                             <>
                               <span className="text-sm text-muted-foreground">•</span>
-                              <span className="text-xs text-muted-foreground">{job.entries.length} SAP entr{job.entries.length !== 1 ? 'ies' : 'y'}</span>
+                              <span className="text-xs text-muted-foreground">{(job.entries || []).length} SAP entr{(job.entries || []).length !== 1 ? 'ies' : 'y'}</span>
                             </>
                           )}
                         </div>
@@ -370,10 +370,10 @@ const SAP = () => {
                   </div>
                 </CardHeader>
                 
-                {job.expanded && job.entries.length > 0 && (
+                {job.expanded && (job.entries || []).length > 0 && (
                   <CardContent className="py-2 px-4 border-t">
                     <div className="space-y-2 ml-8">
-                      {job.entries.map((entry, index) => (
+                      {(job.entries || []).map((entry, index) => (
                         <div key={entry.id} className="text-sm py-2 px-3 bg-muted/50 rounded space-y-1">
                           <div className="flex items-center gap-2">
                             <span className="font-bold text-muted-foreground">{index + 1}.</span>
