@@ -618,7 +618,7 @@ const Metrics = () => {
           </CardContent>
         </Card>
 
-        <div className="w-80 xl:w-96 flex-shrink-0 space-y-2 overflow-y-auto h-[calc(100vh-220px)] min-h-[600px]">
+        <div className="w-80 xl:w-96 flex-shrink-0 space-y-2">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm">Summary</CardTitle>

@@ -913,7 +913,7 @@ const SAP = () => {
                                 onClick={() => setAddingTagToJob(job.id)}
                               >
                                 <Plus className="h-3 w-3 mr-1" />
-                                Tag Location
+                                Location
                               </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-80 bg-background" align="start">
