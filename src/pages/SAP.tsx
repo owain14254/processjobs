@@ -69,6 +69,7 @@ const SAP = () => {
   const [selectedJobTypeFilter, setSelectedJobTypeFilter] = useState<string>("all");
   const [selectedLocationFilter, setSelectedLocationFilter] = useState<string>("all");
   const [expandedJobTypes, setExpandedJobTypes] = useState<Set<string>>(new Set());
+  const [expandedLocationTags, setExpandedLocationTags] = useState<Set<string>>(new Set());
   
   // Form state
   const [jobName, setJobName] = useState("");
@@ -864,7 +865,7 @@ const SAP = () => {
                         
                         {/* Location Tags at Job Level */}
                         <div className="flex flex-wrap items-center gap-2">
-                          {(job.locationTags || []).map((tag) => (
+                          {(expandedLocationTags.has(job.id) ? (job.locationTags || []) : (job.locationTags || []).slice(0, 5)).map((tag) => (
                             <Badge key={tag} variant="secondary" className="gap-1">
                               <Tag className="h-3 w-3" />
                               {tag}
@@ -876,6 +877,30 @@ const SAP = () => {
                               </button>
                             </Badge>
                           ))}
+                          {!expandedLocationTags.has(job.id) && (job.locationTags || []).length > 5 && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setExpandedLocationTags(prev => new Set(prev).add(job.id))}
+                              className="h-6 px-2 text-xs"
+                            >
+                              +{(job.locationTags || []).length - 5} more
+                            </Button>
+                          )}
+                          {expandedLocationTags.has(job.id) && (job.locationTags || []).length > 5 && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const newSet = new Set(expandedLocationTags);
+                                newSet.delete(job.id);
+                                setExpandedLocationTags(newSet);
+                              }}
+                              className="h-6 px-2 text-xs"
+                            >
+                              Show less
+                            </Button>
+                          )}
                           <Popover open={addingTagToJob === job.id} onOpenChange={(open) => {
                             setAddingTagToJob(open ? job.id : null);
                             if (!open) setNewLocationTag("");
