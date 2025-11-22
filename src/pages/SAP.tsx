@@ -16,13 +16,13 @@ interface SAPEntry {
   sapNumber: string;
   storeLocation: string;
   description: string;
-  locationTags: string[];
 }
 
 interface SAPJob {
   id: string;
   jobName: string;
   entries: SAPEntry[];
+  locationTags: string[];
   expanded?: boolean;
 }
 
@@ -35,7 +35,7 @@ const SAP = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<SAPJob | null>(null);
-  const [addingTagToEntry, setAddingTagToEntry] = useState<string | null>(null);
+  const [addingTagToJob, setAddingTagToJob] = useState<string | null>(null);
   const [newLocationTag, setNewLocationTag] = useState("");
   
   // Form state
@@ -75,6 +75,7 @@ const SAP = () => {
       id: Date.now().toString(),
       jobName: jobName.trim(),
       entries: editingEntries,
+      locationTags: [],
       expanded: false
     };
 
@@ -147,8 +148,7 @@ const SAP = () => {
       id: Date.now().toString(),
       sapNumber: entrySapNumber.trim(),
       storeLocation: entryLocation.trim(),
-      description: entryDescription.trim(),
-      locationTags: []
+      description: entryDescription.trim()
     };
     
     setEditingEntries([...editingEntries, newEntry]);
@@ -177,38 +177,30 @@ const SAP = () => {
 
   const filteredJobs = jobs.filter(job =>
     (job.jobName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (job.locationTags || []).some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (job.entries || []).some(entry => 
       (entry.sapNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (entry.storeLocation || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (entry.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (entry.locationTags || []).some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+      (entry.description || '').toLowerCase().includes(searchQuery.toLowerCase())
     )
   );
 
-  const addLocationTag = (jobId: string, entryId: string, tag: string) => {
+  const addLocationTag = (jobId: string, tag: string) => {
     if (!tag.trim()) return;
     
     const updatedJobs = jobs.map(job => {
       if (job.id === jobId) {
-        return {
-          ...job,
-          entries: (job.entries || []).map(entry => {
-            if (entry.id === entryId) {
-              const currentTags = entry.locationTags || [];
-              if (!currentTags.includes(tag.trim())) {
-                return { ...entry, locationTags: [...currentTags, tag.trim()] };
-              }
-            }
-            return entry;
-          })
-        };
+        const currentTags = job.locationTags || [];
+        if (!currentTags.includes(tag.trim())) {
+          return { ...job, locationTags: [...currentTags, tag.trim()] };
+        }
       }
       return job;
     });
     
     saveJobs(updatedJobs);
     setNewLocationTag("");
-    setAddingTagToEntry(null);
+    setAddingTagToJob(null);
     
     toast({
       title: "Location tag added",
@@ -216,20 +208,12 @@ const SAP = () => {
     });
   };
 
-  const removeLocationTag = (jobId: string, entryId: string, tagToRemove: string) => {
+  const removeLocationTag = (jobId: string, tagToRemove: string) => {
     const updatedJobs = jobs.map(job => {
       if (job.id === jobId) {
         return {
           ...job,
-          entries: (job.entries || []).map(entry => {
-            if (entry.id === entryId) {
-              return {
-                ...entry,
-                locationTags: (entry.locationTags || []).filter(tag => tag !== tagToRemove)
-              };
-            }
-            return entry;
-          })
+          locationTags: (job.locationTags || []).filter(tag => tag !== tagToRemove)
         };
       }
       return job;
@@ -401,7 +385,7 @@ const SAP = () => {
                           <ChevronRight className="h-4 w-4" />
                         )}
                       </Button>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 space-y-2">
                         <div className="flex items-center gap-3 flex-wrap">
                           <CardTitle className="text-lg">{job.jobName || 'Untitled Job'}</CardTitle>
                           {(job.entries || []).length > 0 && (
@@ -410,6 +394,64 @@ const SAP = () => {
                               <span className="text-xs text-muted-foreground">{(job.entries || []).length} SAP entr{(job.entries || []).length !== 1 ? 'ies' : 'y'}</span>
                             </>
                           )}
+                        </div>
+                        
+                        {/* Location Tags at Job Level */}
+                        <div className="flex flex-wrap items-center gap-2">
+                          {(job.locationTags || []).map((tag) => (
+                            <Badge key={tag} variant="secondary" className="gap-1">
+                              <Tag className="h-3 w-3" />
+                              {tag}
+                              <button
+                                onClick={() => removeLocationTag(job.id, tag)}
+                                className="ml-1 hover:text-destructive"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </Badge>
+                          ))}
+                          <Popover open={addingTagToJob === job.id} onOpenChange={(open) => {
+                            setAddingTagToJob(open ? job.id : null);
+                            if (!open) setNewLocationTag("");
+                          }}>
+                            <PopoverTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-6 px-2 text-xs"
+                                onClick={() => setAddingTagToJob(job.id)}
+                              >
+                                <Plus className="h-3 w-3 mr-1" />
+                                Tag Location
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-64 bg-background" align="start">
+                              <div className="space-y-2">
+                                <label className="text-sm font-medium">Add Location Tag</label>
+                                <div className="flex gap-2">
+                                  <Input
+                                    value={newLocationTag}
+                                    onChange={(e) => setNewLocationTag(e.target.value)}
+                                    placeholder="e.g., Building A, Floor 2"
+                                    className="h-8"
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") {
+                                        addLocationTag(job.id, newLocationTag);
+                                      }
+                                    }}
+                                  />
+                                  <Button 
+                                    size="sm" 
+                                    className="h-8"
+                                    onClick={() => addLocationTag(job.id, newLocationTag)}
+                                  >
+                                    Add
+                                  </Button>
+                                </div>
+                                <p className="text-xs text-muted-foreground">Track all locations where this job has been performed</p>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
                         </div>
                       </div>
                     </div>
@@ -438,7 +480,7 @@ const SAP = () => {
                   <CardContent className="py-2 px-4 border-t">
                     <div className="space-y-2 ml-8">
                       {(job.entries || []).map((entry, index) => (
-                        <div key={entry.id} className="text-sm py-2 px-3 bg-muted/50 rounded space-y-2">
+                        <div key={entry.id} className="text-sm py-2 px-3 bg-muted/50 rounded space-y-1">
                           <div className="flex items-center gap-2">
                             <span className="font-bold text-muted-foreground">{index + 1}.</span>
                             <span className="text-xs font-semibold text-muted-foreground">SAP:</span>
@@ -448,63 +490,6 @@ const SAP = () => {
                             <span>{entry.storeLocation}</span>
                           </div>
                           <div className="ml-4 text-muted-foreground">{entry.description}</div>
-                          
-                          {/* Location Tags */}
-                          <div className="ml-4 flex flex-wrap items-center gap-2">
-                            {(entry.locationTags || []).map((tag) => (
-                              <Badge key={tag} variant="secondary" className="gap-1">
-                                <Tag className="h-3 w-3" />
-                                {tag}
-                                <button
-                                  onClick={() => removeLocationTag(job.id, entry.id, tag)}
-                                  className="ml-1 hover:text-destructive"
-                                >
-                                  <X className="h-3 w-3" />
-                                </button>
-                              </Badge>
-                            ))}
-                            <Popover open={addingTagToEntry === entry.id} onOpenChange={(open) => {
-                              setAddingTagToEntry(open ? entry.id : null);
-                              if (!open) setNewLocationTag("");
-                            }}>
-                              <PopoverTrigger asChild>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="h-6 px-2 text-xs"
-                                  onClick={() => setAddingTagToEntry(entry.id)}
-                                >
-                                  <Plus className="h-3 w-3 mr-1" />
-                                  Tag Location
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-64 bg-background" align="start">
-                                <div className="space-y-2">
-                                  <label className="text-sm font-medium">Add Location Tag</label>
-                                  <div className="flex gap-2">
-                                    <Input
-                                      value={newLocationTag}
-                                      onChange={(e) => setNewLocationTag(e.target.value)}
-                                      placeholder="e.g., Building A"
-                                      className="h-8"
-                                      onKeyDown={(e) => {
-                                        if (e.key === "Enter") {
-                                          addLocationTag(job.id, entry.id, newLocationTag);
-                                        }
-                                      }}
-                                    />
-                                    <Button 
-                                      size="sm" 
-                                      className="h-8"
-                                      onClick={() => addLocationTag(job.id, entry.id, newLocationTag)}
-                                    >
-                                      Add
-                                    </Button>
-                                  </div>
-                                </div>
-                              </PopoverContent>
-                            </Popover>
-                          </div>
                         </div>
                       ))}
                     </div>
