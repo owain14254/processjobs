@@ -53,8 +53,12 @@ export const useStoresStorage = () => {
       }
 
       setStoresData(data);
+      // Immediately save to localStorage
+      localStorage.setItem(STORES_KEY, JSON.stringify(data));
+      console.log("Imported and saved", data.length, "items to localStorage");
       return { success: true, message: `Successfully imported ${data.length} items` };
     } catch (error) {
+      console.error("Import error:", error);
       return { success: false, message: "Failed to import file. Please check the format." };
     }
   };
@@ -74,6 +78,8 @@ export const useStoresStorage = () => {
 
   const clearData = () => {
     setStoresData([]);
+    localStorage.removeItem(STORES_KEY);
+    console.log("Cleared all stores data from localStorage");
   };
 
   return {
