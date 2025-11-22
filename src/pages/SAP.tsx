@@ -68,7 +68,7 @@ const SAP = () => {
   // Filter state
   const [selectedJobTypeFilter, setSelectedJobTypeFilter] = useState<string>("all");
   const [selectedLocationFilter, setSelectedLocationFilter] = useState<string>("all");
-  const [showAllJobTypes, setShowAllJobTypes] = useState(false);
+  const [expandedJobTypes, setExpandedJobTypes] = useState<Set<string>>(new Set());
   
   // Form state
   const [jobName, setJobName] = useState("");
@@ -543,14 +543,14 @@ const SAP = () => {
                     </div>
                     
                     <div className="flex flex-wrap gap-2">
-                      {(showAllJobTypes ? jobTypes : jobTypes.slice(0, 3)).map((type) => (
+                      {jobTypes.map((type) => (
                         <div key={type} className="relative group">
                           <Button
                             type="button"
                             variant={selectedJobTypes.includes(type) ? "secondary" : "outline"}
                             size="sm"
                             onClick={() => toggleJobType(type)}
-                            className="h-8 pr-8"
+                            className="h-8 pr-2"
                           >
                             {type}
                           </Button>
@@ -569,28 +569,6 @@ const SAP = () => {
                           )}
                         </div>
                       ))}
-                      {!showAllJobTypes && jobTypes.length > 3 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setShowAllJobTypes(true)}
-                          className="h-8"
-                        >
-                          +{jobTypes.length - 3} more
-                        </Button>
-                      )}
-                      {showAllJobTypes && jobTypes.length > 3 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setShowAllJobTypes(false)}
-                          className="h-8"
-                        >
-                          Show less
-                        </Button>
-                      )}
                       {!isAddingJobType ? (
                         <Button 
                           type="button"
@@ -636,24 +614,33 @@ const SAP = () => {
                       <div key={entry.id} className="flex items-start gap-2 p-3 bg-muted rounded-md">
                         {editingEntryId === entry.id ? (
                           <div className="flex-1 space-y-2">
-                            <Input
-                              value={editEntrySapNumber}
-                              onChange={(e) => setEditEntrySapNumber(e.target.value)}
-                              placeholder="SAP Number"
-                              className="h-8"
-                            />
-                            <Input
-                              value={editEntryLocation}
-                              onChange={(e) => setEditEntryLocation(e.target.value)}
-                              placeholder="Store Location"
-                              className="h-8"
-                            />
-                            <Textarea
-                              value={editEntryDescription}
-                              onChange={(e) => setEditEntryDescription(e.target.value)}
-                              placeholder="Description"
-                              rows={2}
-                            />
+                            <div className="space-y-1">
+                              <label className="text-xs font-semibold text-muted-foreground">SAP:</label>
+                              <Input
+                                value={editEntrySapNumber}
+                                onChange={(e) => setEditEntrySapNumber(e.target.value)}
+                                placeholder="SAP Number"
+                                className="h-8"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-xs font-semibold text-muted-foreground">Location:</label>
+                              <Input
+                                value={editEntryLocation}
+                                onChange={(e) => setEditEntryLocation(e.target.value)}
+                                placeholder="Store Location"
+                                className="h-8"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-xs font-semibold text-muted-foreground">Description:</label>
+                              <Textarea
+                                value={editEntryDescription}
+                                onChange={(e) => setEditEntryDescription(e.target.value)}
+                                placeholder="Description"
+                                rows={2}
+                              />
+                            </div>
                             <div className="flex gap-2">
                               <Button size="sm" onClick={saveEditEntry} className="h-8">
                                 Save
@@ -838,11 +825,35 @@ const SAP = () => {
                       <div className="flex-1 min-w-0 space-y-2">
                         <div className="flex items-center gap-3 flex-wrap">
                           <CardTitle className="text-lg">{job.jobName || 'Untitled Job'}</CardTitle>
-                          {(job.jobTypes || []).map((type) => (
+                          {(expandedJobTypes.has(job.id) ? job.jobTypes : (job.jobTypes || []).slice(0, 3)).map((type) => (
                             <Badge key={type} variant="outline" className="font-normal">
                               {type}
                             </Badge>
                           ))}
+                          {!expandedJobTypes.has(job.id) && (job.jobTypes || []).length > 3 && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setExpandedJobTypes(prev => new Set(prev).add(job.id))}
+                              className="h-6 px-2 text-xs"
+                            >
+                              +{(job.jobTypes || []).length - 3} more
+                            </Button>
+                          )}
+                          {expandedJobTypes.has(job.id) && (job.jobTypes || []).length > 3 && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const newSet = new Set(expandedJobTypes);
+                                newSet.delete(job.id);
+                                setExpandedJobTypes(newSet);
+                              }}
+                              className="h-6 px-2 text-xs"
+                            >
+                              Show less
+                            </Button>
+                          )}
                           {(job.entries || []).length > 0 && (
                             <>
                               <span className="text-sm text-muted-foreground">•</span>
