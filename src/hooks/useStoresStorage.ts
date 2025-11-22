@@ -56,50 +56,29 @@ export const useStoresStorage = () => {
         return { success: false, message: "File contains no data." };
       }
 
-      // Check if data needs format conversion (backward compatibility)
+      // Validate the data structure
       const firstItem = data[0];
-      console.log("First item structure:", firstItem);
-      
-      // Detect old format and convert if needed
-      let convertedData = data;
-      
-      // If old format has different field names, convert them
-      if (firstItem.sapNumber !== undefined || firstItem.location !== undefined) {
-        console.log("Converting from old format to new format");
-        convertedData = data.map((item: any) => ({
-          material: item.sapNumber || item.material || "",
-          storageBin: item.location || item.storageBin || "",
-          materialDescription: item.description || item.materialDescription || "",
-          materialAdditionalDescription: item.additionalDescription || item.materialAdditionalDescription || "",
-          vendorNumber: item.vendor || item.vendorNumber || ""
-        }));
-      }
+      const requiredFields = ['material', 'storageBin', 'materialDescription', 'materialAdditionalDescription', 'vendorNumber'];
+      const hasAllFields = requiredFields.every(field => field in firstItem);
 
-      // Validate required fields
-      const hasRequiredFields = convertedData.every((item: any) => 
-        typeof item.material === 'string' &&
-        typeof item.storageBin === 'string' &&
-        typeof item.materialDescription === 'string' &&
-        typeof item.materialAdditionalDescription === 'string' &&
-        typeof item.vendorNumber === 'string'
-      );
-
-      if (!hasRequiredFields) {
-        console.error("Invalid data structure. Expected fields: material, storageBin, materialDescription, materialAdditionalDescription, vendorNumber");
+      if (!hasAllFields) {
+        console.error("Missing required fields. Expected:", requiredFields);
+        console.error("Found fields:", Object.keys(firstItem));
         return { 
           success: false, 
-          message: "Invalid data format. Expected fields: material, storageBin, materialDescription, materialAdditionalDescription, vendorNumber" 
+          message: `Invalid data format. Missing fields: ${requiredFields.filter(f => !(f in firstItem)).join(', ')}` 
         };
       }
 
-      setStoresData(convertedData);
+      setStoresData(data);
       // Immediately save to localStorage
-      localStorage.setItem(STORES_KEY, JSON.stringify(convertedData));
-      console.log("Imported and saved", convertedData.length, "items to localStorage");
-      return { success: true, message: `Successfully imported ${convertedData.length} items` };
+      localStorage.setItem(STORES_KEY, JSON.stringify(data));
+      console.log("✓ Successfully imported and saved", data.length, "items to localStorage");
+      return { success: true, message: `Successfully imported ${data.length} items` };
     } catch (error) {
       console.error("Import error:", error);
-      return { success: false, message: "Failed to import file. Please check the format." };
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      return { success: false, message: `Failed to import: ${errorMessage}` };
     }
   };
 
