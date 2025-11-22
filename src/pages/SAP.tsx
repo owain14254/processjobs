@@ -68,10 +68,15 @@ const SAP = () => {
   // Filter state
   const [selectedJobTypeFilter, setSelectedJobTypeFilter] = useState<string>("all");
   const [selectedLocationFilter, setSelectedLocationFilter] = useState<string>("all");
+  const [showAllJobTypes, setShowAllJobTypes] = useState(false);
   
   // Form state
   const [jobName, setJobName] = useState("");
   const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>([]);
+  const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
+  const [editEntrySapNumber, setEditEntrySapNumber] = useState("");
+  const [editEntryLocation, setEditEntryLocation] = useState("");
+  const [editEntryDescription, setEditEntryDescription] = useState("");
   const [entrySapNumber, setEntrySapNumber] = useState("");
   const [entryLocation, setEntryLocation] = useState("");
   const [entryDescription, setEntryDescription] = useState("");
@@ -206,6 +211,58 @@ const SAP = () => {
 
   const removeEntry = (entryId: string) => {
     setEditingEntries(editingEntries.filter(entry => entry.id !== entryId));
+    if (editingEntryId === entryId) {
+      setEditingEntryId(null);
+      setEditEntrySapNumber("");
+      setEditEntryLocation("");
+      setEditEntryDescription("");
+    }
+  };
+
+  const startEditEntry = (entry: SAPEntry) => {
+    setEditingEntryId(entry.id);
+    setEditEntrySapNumber(entry.sapNumber);
+    setEditEntryLocation(entry.storeLocation);
+    setEditEntryDescription(entry.description);
+  };
+
+  const saveEditEntry = () => {
+    if (!editEntrySapNumber.trim() || !editEntryLocation.trim() || !editEntryDescription.trim()) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all entry fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setEditingEntries(editingEntries.map(entry =>
+      entry.id === editingEntryId
+        ? {
+            ...entry,
+            sapNumber: editEntrySapNumber.trim(),
+            storeLocation: editEntryLocation.trim(),
+            description: editEntryDescription.trim()
+          }
+        : entry
+    ));
+
+    setEditingEntryId(null);
+    setEditEntrySapNumber("");
+    setEditEntryLocation("");
+    setEditEntryDescription("");
+
+    toast({
+      title: "Entry updated",
+      description: "SAP entry has been updated"
+    });
+  };
+
+  const cancelEditEntry = () => {
+    setEditingEntryId(null);
+    setEditEntrySapNumber("");
+    setEditEntryLocation("");
+    setEditEntryDescription("");
   };
 
   const resetForm = () => {
@@ -215,6 +272,10 @@ const SAP = () => {
     setEntryLocation("");
     setEntryDescription("");
     setEditingEntries([]);
+    setEditingEntryId(null);
+    setEditEntrySapNumber("");
+    setEditEntryLocation("");
+    setEditEntryDescription("");
   };
 
   const openEditDialog = (job: SAPJob) => {
@@ -482,31 +543,54 @@ const SAP = () => {
                     </div>
                     
                     <div className="flex flex-wrap gap-2">
-                      {jobTypes.map((type) => (
-                        <div key={type} className="flex items-center gap-1">
+                      {(showAllJobTypes ? jobTypes : jobTypes.slice(0, 3)).map((type) => (
+                        <div key={type} className="relative group">
                           <Button
                             type="button"
                             variant={selectedJobTypes.includes(type) ? "secondary" : "outline"}
                             size="sm"
                             onClick={() => toggleJobType(type)}
-                            className="h-8"
+                            className="h-8 pr-8"
                           >
                             {type}
                           </Button>
                           {!DEFAULT_JOB_TYPES.includes(type) && (
-                            <Button
+                            <button
                               type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => removeJobType(type)}
-                              className="h-8 w-8 text-destructive hover:text-destructive"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeJobType(type);
+                              }}
+                              className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                               title="Remove job type"
                             >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
+                              <X className="h-3 w-3" />
+                            </button>
                           )}
                         </div>
                       ))}
+                      {!showAllJobTypes && jobTypes.length > 3 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowAllJobTypes(true)}
+                          className="h-8"
+                        >
+                          +{jobTypes.length - 3} more
+                        </Button>
+                      )}
+                      {showAllJobTypes && jobTypes.length > 3 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowAllJobTypes(false)}
+                          className="h-8"
+                        >
+                          Show less
+                        </Button>
+                      )}
                       {!isAddingJobType ? (
                         <Button 
                           type="button"
@@ -550,25 +634,68 @@ const SAP = () => {
                   <div className="space-y-2 mt-2">
                     {editingEntries.map((entry) => (
                       <div key={entry.id} className="flex items-start gap-2 p-3 bg-muted rounded-md">
-                        <div className="flex-1 space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-semibold text-muted-foreground">SAP:</span>
-                            <span className="text-sm font-medium">{entry.sapNumber}</span>
+                        {editingEntryId === entry.id ? (
+                          <div className="flex-1 space-y-2">
+                            <Input
+                              value={editEntrySapNumber}
+                              onChange={(e) => setEditEntrySapNumber(e.target.value)}
+                              placeholder="SAP Number"
+                              className="h-8"
+                            />
+                            <Input
+                              value={editEntryLocation}
+                              onChange={(e) => setEditEntryLocation(e.target.value)}
+                              placeholder="Store Location"
+                              className="h-8"
+                            />
+                            <Textarea
+                              value={editEntryDescription}
+                              onChange={(e) => setEditEntryDescription(e.target.value)}
+                              placeholder="Description"
+                              rows={2}
+                            />
+                            <div className="flex gap-2">
+                              <Button size="sm" onClick={saveEditEntry} className="h-8">
+                                Save
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={cancelEditEntry} className="h-8">
+                                Cancel
+                              </Button>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-semibold text-muted-foreground">Location:</span>
-                            <span className="text-sm">{entry.storeLocation}</span>
-                          </div>
-                          <div className="text-sm text-muted-foreground">{entry.description}</div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeEntry(entry.id)}
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        ) : (
+                          <>
+                            <div className="flex-1 space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-semibold text-muted-foreground">SAP:</span>
+                                <span className="text-sm font-medium">{entry.sapNumber}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-semibold text-muted-foreground">Location:</span>
+                                <span className="text-sm">{entry.storeLocation}</span>
+                              </div>
+                              <div className="text-sm text-muted-foreground">{entry.description}</div>
+                            </div>
+                            <div className="flex gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => startEditEntry(entry)}
+                                className="h-8 w-8"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeEntry(entry.id)}
+                                className="h-8 w-8 text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </>
+                        )}
                       </div>
                     ))}
                     
