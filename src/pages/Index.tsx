@@ -297,13 +297,15 @@ const Index = () => {
     return () => clearTimeout(initialTimeout);
   }, []);
 
-  // Update current time display
+  // Update current time display - only when clock is visible
   useEffect(() => {
+    if (!adminSettings.clockVisible) return;
+    
     const updateTime = () => setCurrentTime(new Date());
     updateTime();
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [adminSettings.clockVisible]);
   useEffect(() => {
     const savedLastSave = localStorage.getItem("lastSaveTime");
     if (savedLastSave) {

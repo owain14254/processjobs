@@ -397,28 +397,39 @@ const SAP = () => {
     }
   };
 
-  const filteredJobs = useMemo(() => jobs.filter(job => {
-    // Search filter
-    const matchesSearch = 
-      (job.jobName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (job.jobTypes || []).some(type => type.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (job.locationTags || []).some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (job.entries || []).some(entry => 
-        (entry.sapNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (entry.storeLocation || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (entry.description || '').toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredJobs = useMemo(() => {
+    // Early return if no filters applied
+    if (!searchQuery && selectedJobTypeFilter === "all" && selectedLocationFilter === "all") {
+      return jobs;
+    }
+
+    const lowerSearch = searchQuery.toLowerCase();
+    
+    return jobs.filter(job => {
+      // Job type filter (check first as it's cheapest)
+      if (selectedJobTypeFilter !== "all" && !(job.jobTypes || []).includes(selectedJobTypeFilter)) {
+        return false;
+      }
+      
+      // Location filter
+      if (selectedLocationFilter !== "all" && !(job.locationTags || []).includes(selectedLocationFilter)) {
+        return false;
+      }
+      
+      // Search filter (most expensive, check last)
+      if (!searchQuery) return true;
+      
+      if ((job.jobName || '').toLowerCase().includes(lowerSearch)) return true;
+      if ((job.jobTypes || []).some(type => type.toLowerCase().includes(lowerSearch))) return true;
+      if ((job.locationTags || []).some(tag => tag.toLowerCase().includes(lowerSearch))) return true;
+      
+      return (job.entries || []).some(entry => 
+        (entry.sapNumber || '').toLowerCase().includes(lowerSearch) ||
+        (entry.storeLocation || '').toLowerCase().includes(lowerSearch) ||
+        (entry.description || '').toLowerCase().includes(lowerSearch)
       );
-    
-    // Job type filter
-    const matchesJobType = selectedJobTypeFilter === "all" || 
-      (job.jobTypes || []).includes(selectedJobTypeFilter);
-    
-    // Location filter
-    const matchesLocation = selectedLocationFilter === "all" || 
-      (job.locationTags || []).includes(selectedLocationFilter);
-    
-    return matchesSearch && matchesJobType && matchesLocation;
-  }), [jobs, searchQuery, selectedJobTypeFilter, selectedLocationFilter]);
+    });
+  }, [jobs, searchQuery, selectedJobTypeFilter, selectedLocationFilter]);
 
   const addLocationTag = (jobId: string, tag: string) => {
     if (!tag.trim()) return;
