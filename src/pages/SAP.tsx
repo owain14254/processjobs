@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Plus, Trash2, Edit, ChevronDown, ChevronRight, ArrowLeft, Tag, X, Download, Upload } from "lucide-react";
+import { Search, Plus, Trash2, Edit, ChevronDown, ChevronRight, ArrowLeft, Tag, X, Download, Upload, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,7 +22,7 @@ interface SAPEntry {
 interface SAPJob {
   id: string;
   jobName: string;
-  jobType: string;
+  jobTypes: string[];
   entries: SAPEntry[];
   locationTags: string[];
   expanded?: boolean;
@@ -41,6 +41,16 @@ const DEFAULT_JOB_TYPES = [
   "Seals"
 ];
 
+const DEFAULT_LOCATION_TAGS = [
+  "Basement",
+  "Gea Matrix",
+  "Fruit",
+  "Rice",
+  "Buffer Tanks",
+  "P1",
+  "P2"
+];
+
 const SAP = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -55,9 +65,13 @@ const SAP = () => {
   const [newJobType, setNewJobType] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   
+  // Filter state
+  const [selectedJobTypeFilter, setSelectedJobTypeFilter] = useState<string>("all");
+  const [selectedLocationFilter, setSelectedLocationFilter] = useState<string>("all");
+  
   // Form state
   const [jobName, setJobName] = useState("");
-  const [jobType, setJobType] = useState("");
+  const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>([]);
   const [entrySapNumber, setEntrySapNumber] = useState("");
   const [entryLocation, setEntryLocation] = useState("");
   const [entryDescription, setEntryDescription] = useState("");
@@ -94,10 +108,10 @@ const SAP = () => {
   };
 
   const handleAddJob = () => {
-    if (!jobName.trim() || !jobType) {
+    if (!jobName.trim() || selectedJobTypes.length === 0) {
       toast({
         title: "Missing information",
-        description: "Please enter a job name and select a job type",
+        description: "Please enter a job name and select at least one job type",
         variant: "destructive"
       });
       return;
@@ -106,7 +120,7 @@ const SAP = () => {
     const newJob: SAPJob = {
       id: Date.now().toString(),
       jobName: jobName.trim(),
-      jobType: jobType,
+      jobTypes: selectedJobTypes,
       entries: editingEntries,
       locationTags: [],
       expanded: false
@@ -124,10 +138,10 @@ const SAP = () => {
   };
 
   const handleEditJob = () => {
-    if (!editingJob || !jobName.trim() || !jobType) {
+    if (!editingJob || !jobName.trim() || selectedJobTypes.length === 0) {
       toast({
         title: "Missing information",
-        description: "Please enter a job name and select a job type",
+        description: "Please enter a job name and select at least one job type",
         variant: "destructive"
       });
       return;
@@ -135,7 +149,7 @@ const SAP = () => {
 
     const updatedJobs = jobs.map(job => 
       job.id === editingJob.id 
-        ? { ...job, jobName: jobName.trim(), jobType: jobType, entries: editingEntries }
+        ? { ...job, jobName: jobName.trim(), jobTypes: selectedJobTypes, entries: editingEntries }
         : job
     );
 
@@ -196,7 +210,7 @@ const SAP = () => {
 
   const resetForm = () => {
     setJobName("");
-    setJobType("");
+    setSelectedJobTypes([]);
     setEntrySapNumber("");
     setEntryLocation("");
     setEntryDescription("");
@@ -206,7 +220,7 @@ const SAP = () => {
   const openEditDialog = (job: SAPJob) => {
     setEditingJob(job);
     setJobName(job.jobName);
-    setJobType(job.jobType || "");
+    setSelectedJobTypes(job.jobTypes || []);
     setEditingEntries([...job.entries]);
   };
 
@@ -231,6 +245,33 @@ const SAP = () => {
       title: "Job type added",
       description: `"${newJobType.trim()}" has been added`
     });
+  };
+
+  const removeJobType = (typeToRemove: string) => {
+    if (DEFAULT_JOB_TYPES.includes(typeToRemove)) {
+      toast({
+        title: "Cannot remove default type",
+        description: "Default job types cannot be removed",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const updatedTypes = jobTypes.filter(type => type !== typeToRemove);
+    saveJobTypes(updatedTypes);
+    
+    toast({
+      title: "Job type removed",
+      description: `"${typeToRemove}" has been removed`
+    });
+  };
+
+  const toggleJobType = (type: string) => {
+    setSelectedJobTypes(prev => 
+      prev.includes(type) 
+        ? prev.filter(t => t !== type)
+        : [...prev, type]
+    );
   };
 
   const handleExport = () => {
@@ -294,16 +335,28 @@ const SAP = () => {
     }
   };
 
-  const filteredJobs = jobs.filter(job =>
-    (job.jobName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (job.jobType || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (job.locationTags || []).some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (job.entries || []).some(entry => 
-      (entry.sapNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (entry.storeLocation || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (entry.description || '').toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  );
+  const filteredJobs = jobs.filter(job => {
+    // Search filter
+    const matchesSearch = 
+      (job.jobName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (job.jobTypes || []).some(type => type.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (job.locationTags || []).some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (job.entries || []).some(entry => 
+        (entry.sapNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (entry.storeLocation || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (entry.description || '').toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    
+    // Job type filter
+    const matchesJobType = selectedJobTypeFilter === "all" || 
+      (job.jobTypes || []).includes(selectedJobTypeFilter);
+    
+    // Location filter
+    const matchesLocation = selectedLocationFilter === "all" || 
+      (job.locationTags || []).includes(selectedLocationFilter);
+    
+    return matchesSearch && matchesJobType && matchesLocation;
+  });
 
   const addLocationTag = (jobId: string, tag: string) => {
     if (!tag.trim()) return;
@@ -408,49 +461,87 @@ const SAP = () => {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium">Job Type</label>
-                  <div className="flex gap-2">
-                    <Select value={jobType} onValueChange={setJobType}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select job type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {jobTypes.map((type) => (
-                          <SelectItem key={type} value={type}>
+                  <label className="text-sm font-medium">Job Types (Select one or more)</label>
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap gap-2 p-3 border rounded-md min-h-[44px]">
+                      {selectedJobTypes.length === 0 ? (
+                        <span className="text-sm text-muted-foreground">No job types selected</span>
+                      ) : (
+                        selectedJobTypes.map((type) => (
+                          <Badge key={type} variant="default" className="gap-1">
                             {type}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {!isAddingJobType ? (
-                      <Button 
-                        variant="outline" 
-                        size="icon"
-                        onClick={() => setIsAddingJobType(true)}
-                        title="Add new job type"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    ) : (
-                      <div className="flex gap-1">
-                        <Input
-                          value={newJobType}
-                          onChange={(e) => setNewJobType(e.target.value)}
-                          placeholder="New type"
-                          className="h-10 w-32"
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") addJobType();
-                            if (e.key === "Escape") {
-                              setIsAddingJobType(false);
-                              setNewJobType("");
-                            }
-                          }}
-                        />
-                        <Button size="icon" onClick={addJobType}>
-                          <Plus className="h-4 w-4" />
+                            <button
+                              onClick={() => toggleJobType(type)}
+                              className="ml-1 hover:text-destructive"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        ))
+                      )}
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-2">
+                      {jobTypes.map((type) => (
+                        <div key={type} className="flex items-center gap-1">
+                          <Button
+                            type="button"
+                            variant={selectedJobTypes.includes(type) ? "secondary" : "outline"}
+                            size="sm"
+                            onClick={() => toggleJobType(type)}
+                            className="h-8"
+                          >
+                            {type}
+                          </Button>
+                          {!DEFAULT_JOB_TYPES.includes(type) && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeJobType(type)}
+                              className="h-8 w-8 text-destructive hover:text-destructive"
+                              title="Remove job type"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                      {!isAddingJobType ? (
+                        <Button 
+                          type="button"
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setIsAddingJobType(true)}
+                          className="h-8"
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add Type
                         </Button>
-                      </div>
-                    )}
+                      ) : (
+                        <div className="flex gap-1">
+                          <Input
+                            value={newJobType}
+                            onChange={(e) => setNewJobType(e.target.value)}
+                            placeholder="New type"
+                            className="h-8 w-32"
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                addJobType();
+                              }
+                              if (e.key === "Escape") {
+                                setIsAddingJobType(false);
+                                setNewJobType("");
+                              }
+                            }}
+                          />
+                          <Button type="button" size="sm" onClick={addJobType} className="h-8">
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -527,15 +618,66 @@ const SAP = () => {
           </div>
         </div>
 
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by job name, SAP number, location, description, or location tags..."
-            className="pl-10"
-          />
+        {/* Search and Filters */}
+        <div className="space-y-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by job name, SAP number, location, description, or tags..."
+              className="pl-10"
+            />
+          </div>
+          
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Filters:</span>
+            </div>
+            
+            <Select value={selectedJobTypeFilter} onValueChange={setSelectedJobTypeFilter}>
+              <SelectTrigger className="w-[180px] h-9">
+                <SelectValue placeholder="Job Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Job Types</SelectItem>
+                {jobTypes.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {type}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select value={selectedLocationFilter} onValueChange={setSelectedLocationFilter}>
+              <SelectTrigger className="w-[180px] h-9">
+                <SelectValue placeholder="Location" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Locations</SelectItem>
+                {Array.from(new Set(jobs.flatMap(job => job.locationTags || []))).sort().map((tag) => (
+                  <SelectItem key={tag} value={tag}>
+                    {tag}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            {(selectedJobTypeFilter !== "all" || selectedLocationFilter !== "all") && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => {
+                  setSelectedJobTypeFilter("all");
+                  setSelectedLocationFilter("all");
+                }}
+                className="h-9"
+              >
+                Clear Filters
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Jobs List */}
@@ -553,7 +695,7 @@ const SAP = () => {
               <Card key={job.id} className="hover:shadow-md transition-shadow">
                 <CardHeader className="py-3 px-4">
                   <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-2 flex-1">
+                      <div className="flex items-start gap-2 flex-1">
                       <Button
                         variant="ghost"
                         size="icon"
@@ -569,11 +711,11 @@ const SAP = () => {
                       <div className="flex-1 min-w-0 space-y-2">
                         <div className="flex items-center gap-3 flex-wrap">
                           <CardTitle className="text-lg">{job.jobName || 'Untitled Job'}</CardTitle>
-                          {job.jobType && (
-                            <Badge variant="outline" className="font-normal">
-                              {job.jobType}
+                          {(job.jobTypes || []).map((type) => (
+                            <Badge key={type} variant="outline" className="font-normal">
+                              {type}
                             </Badge>
-                          )}
+                          ))}
                           {(job.entries || []).length > 0 && (
                             <>
                               <span className="text-sm text-muted-foreground">•</span>
@@ -611,30 +753,51 @@ const SAP = () => {
                                 Tag Location
                               </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-64 bg-background" align="start">
-                              <div className="space-y-2">
+                            <PopoverContent className="w-80 bg-background" align="start">
+                              <div className="space-y-3">
                                 <label className="text-sm font-medium">Add Location Tag</label>
-                                <div className="flex gap-2">
-                                  <Input
-                                    value={newLocationTag}
-                                    onChange={(e) => setNewLocationTag(e.target.value)}
-                                    placeholder="e.g., Building A, Floor 2"
-                                    className="h-8"
-                                    onKeyDown={(e) => {
-                                      if (e.key === "Enter") {
-                                        addLocationTag(job.id, newLocationTag);
-                                      }
-                                    }}
-                                  />
-                                  <Button 
-                                    size="sm" 
-                                    className="h-8"
-                                    onClick={() => addLocationTag(job.id, newLocationTag)}
-                                  >
-                                    Add
-                                  </Button>
+                                
+                                <div className="space-y-2">
+                                  <p className="text-xs text-muted-foreground">Quick tags:</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {DEFAULT_LOCATION_TAGS.map((tag) => (
+                                      <Button
+                                        key={tag}
+                                        type="button"
+                                        variant="secondary"
+                                        size="sm"
+                                        onClick={() => addLocationTag(job.id, tag)}
+                                        className="h-7 text-xs"
+                                      >
+                                        {tag}
+                                      </Button>
+                                    ))}
+                                  </div>
                                 </div>
-                                <p className="text-xs text-muted-foreground">Track all locations where this job has been performed</p>
+                                
+                                <div className="space-y-2">
+                                  <p className="text-xs text-muted-foreground">Or add custom tag:</p>
+                                  <div className="flex gap-2">
+                                    <Input
+                                      value={newLocationTag}
+                                      onChange={(e) => setNewLocationTag(e.target.value)}
+                                      placeholder="Custom location"
+                                      className="h-8"
+                                      onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                          addLocationTag(job.id, newLocationTag);
+                                        }
+                                      }}
+                                    />
+                                    <Button 
+                                      size="sm" 
+                                      className="h-8"
+                                      onClick={() => addLocationTag(job.id, newLocationTag)}
+                                    >
+                                      Add
+                                    </Button>
+                                  </div>
+                                </div>
                               </div>
                             </PopoverContent>
                           </Popover>
