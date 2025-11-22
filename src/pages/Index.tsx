@@ -335,10 +335,10 @@ const Index = () => {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
-                  <DropdownMenuItem onClick={() => navigate("/sap")}>
-                    <FileText className="h-4 w-4 mr-2" />
-                    SAP
-                  </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/sap")}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Common Jobs
+                </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/metrics")}>
                     <BarChart3 className="h-4 w-4 mr-2" />
                     Metrics

@@ -488,8 +488,8 @@ const SAP = () => {
             </Button>
             <img src={mullerLogo} alt="Müller" className="h-12" />
             <div>
-              <h1 className="text-3xl font-bold">SAP Common Jobs</h1>
-              <p className="text-muted-foreground">Manage frequently used SAP jobs</p>
+              <h1 className="text-3xl font-bold">Common Jobs Stores Locations</h1>
+              <p className="text-muted-foreground">Find stores locations for common jobs</p>
             </div>
           </div>
 
