@@ -177,10 +177,16 @@ const StoresSnapshot = () => {
       if (!pattern.trim()) return true;
       const isWildcard = pattern.includes("*");
       if (isWildcard) {
-        const escaped = pattern.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
+        // Normalize spaces in both value and pattern
+        const normalizedValue = value.replace(/\s+/g, " ").trim().toLowerCase();
+        const normalizedPattern = pattern.replace(/\s+/g, " ").trim().toLowerCase();
+        
+        // Escape special regex characters except *
+        const escaped = normalizedPattern.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
+        // Replace * with regex pattern that matches any characters including spaces
         const regexPattern = escaped.replace(/\*/g, ".*");
         const regex = new RegExp(`^${regexPattern}$`, "i");
-        return regex.test(value.toLowerCase());
+        return regex.test(normalizedValue);
       }
       return value.toLowerCase().includes(pattern.toLowerCase());
     };
@@ -199,10 +205,19 @@ const StoresSnapshot = () => {
       const query = resultSearchQuery.trim();
       const isWildcard = query.includes("*");
       if (isWildcard) {
-        const escaped = query.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
+        // Normalize the query pattern
+        const normalizedQuery = query.replace(/\s+/g, " ").trim().toLowerCase();
+        const escaped = normalizedQuery.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
         const regexPattern = escaped.replace(/\*/g, ".*");
         const regex = new RegExp(regexPattern, "i");
-        results = results.filter(item => regex.test(item.material) || regex.test(item.storageBin) || regex.test(item.materialDescription) || regex.test(item.materialAdditionalDescription) || regex.test(item.vendorNumber));
+        results = results.filter(item => {
+          const normalizedMaterial = item.material.replace(/\s+/g, " ").trim();
+          const normalizedBin = item.storageBin.replace(/\s+/g, " ").trim();
+          const normalizedDesc = item.materialDescription.replace(/\s+/g, " ").trim();
+          const normalizedAddDesc = item.materialAdditionalDescription.replace(/\s+/g, " ").trim();
+          const normalizedVendor = item.vendorNumber.replace(/\s+/g, " ").trim();
+          return regex.test(normalizedMaterial) || regex.test(normalizedBin) || regex.test(normalizedDesc) || regex.test(normalizedAddDesc) || regex.test(normalizedVendor);
+        });
       } else {
         const lowerQuery = query.toLowerCase();
         results = results.filter(item => item.material.toLowerCase().includes(lowerQuery) || item.storageBin.toLowerCase().includes(lowerQuery) || item.materialDescription.toLowerCase().includes(lowerQuery) || item.materialAdditionalDescription.toLowerCase().includes(lowerQuery) || item.vendorNumber.toLowerCase().includes(lowerQuery));
