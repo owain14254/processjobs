@@ -360,28 +360,30 @@ const Metrics = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="w-full space-y-3 py-4 px-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+      <div className="w-full space-y-3 py-2 sm:py-4 px-2 sm:px-4 md:px-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
             <Button
               variant="outline"
               size="icon"
               onClick={() => navigate("/")}
+              className="h-8 w-8 sm:h-10 sm:w-10 shrink-0"
             >
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
-            <div>
-              <h1 className="text-2xl font-bold">Metrics Dashboard</h1>
-              <p className="text-sm text-muted-foreground">Jobs completed by department</p>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold truncate">Metrics Dashboard</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">Jobs completed by department</p>
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  {timespanLabels[timespan]}
+                <Button variant="outline" size="sm" className="h-8 text-xs sm:text-sm">
+                  <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">{timespanLabels[timespan]}</span>
+                  <span className="sm:hidden">{timespan === "7days" ? "7d" : timespan === "30days" ? "30d" : timespan === "90days" ? "90d" : timespan === "6months" ? "6m" : timespan === "1year" ? "1y" : "All"}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 bg-background z-50">
@@ -398,28 +400,29 @@ const Metrics = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
-              <TabsList>
-                <TabsTrigger value="monthly" className="gap-1">
-                  <Calendar className="h-4 w-4" />
-                  Monthly
+            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)} className="w-full sm:w-auto">
+              <TabsList className="grid w-full grid-cols-3 h-8">
+                <TabsTrigger value="monthly" className="gap-1 text-xs px-1 sm:px-2">
+                  <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Monthly</span>
                 </TabsTrigger>
-                <TabsTrigger value="daily" className="gap-1">
-                  <CalendarDays className="h-4 w-4" />
-                  Daily
+                <TabsTrigger value="daily" className="gap-1 text-xs px-1 sm:px-2">
+                  <CalendarDays className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Daily</span>
                 </TabsTrigger>
-                <TabsTrigger value="keywords" className="gap-1">
-                  <Filter className="h-4 w-4" />
-                  Keywords
+                <TabsTrigger value="keywords" className="gap-1 text-xs px-1 sm:px-2">
+                  <Filter className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Keywords</span>
                 </TabsTrigger>
               </TabsList>
             </Tabs>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Departments ({selectedDepartments.size})
+                <Button variant="outline" size="sm" className="h-8 text-xs sm:text-sm">
+                  <Filter className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Departments ({selectedDepartments.size})</span>
+                  <span className="sm:hidden">Dept ({selectedDepartments.size})</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 bg-background z-50">
@@ -450,9 +453,10 @@ const Metrics = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Button variant="outline" size="sm" onClick={handleExportMetrics}>
-              <Download className="h-4 w-4 mr-2" />
-              Export CSV
+            <Button variant="outline" size="sm" onClick={handleExportMetrics} className="h-8 text-xs sm:text-sm">
+              <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Export CSV</span>
+              <span className="sm:hidden">Export</span>
             </Button>
           </div>
         </div>

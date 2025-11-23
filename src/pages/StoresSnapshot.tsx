@@ -44,6 +44,8 @@ const StoresSnapshot = () => {
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
 
   // Result page filter - single search box
   const [resultSearchQuery, setResultSearchQuery] = useState("");
@@ -57,17 +59,36 @@ const StoresSnapshot = () => {
     const adminMode = localStorage.getItem("storesAdminMode") === "true";
     setIsAdminMode(adminMode);
   }, []);
-  const handleImport = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const result = await importData(file);
+    
+    // If there's existing data, show merge/replace dialog
+    if (storesData.length > 0) {
+      setPendingImportFile(file);
+      setShowImportDialog(true);
+    } else {
+      // No existing data, just import directly
+      handleImportConfirm(false, file);
+    }
+    
+    e.target.value = "";
+  }, [storesData.length]);
+
+  const handleImportConfirm = useCallback(async (shouldMerge: boolean, file?: File) => {
+    const fileToImport = file || pendingImportFile;
+    if (!fileToImport) return;
+    
+    const result = await importData(fileToImport, shouldMerge);
     toast({
       title: result.success ? "Success" : "Error",
       description: result.message,
       variant: result.success ? "default" : "destructive"
     });
-    e.target.value = "";
-  }, [importData, toast]);
+    
+    setShowImportDialog(false);
+    setPendingImportFile(null);
+  }, [pendingImportFile, importData, toast]);
   const handleExport = useCallback(() => {
     if (storesData.length === 0) {
       toast({
@@ -407,23 +428,28 @@ const StoresSnapshot = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Password Dialog */}
-      <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+      {/* Import/Overwrite Dialog */}
+      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Enter Admin Password</DialogTitle>
+            <DialogTitle>Import Data</DialogTitle>
+            <p className="text-sm text-muted-foreground mt-2">
+              You have {storesData.length} items in your database. Would you like to:
+            </p>
           </DialogHeader>
-          <form onSubmit={handlePasswordSubmit} className="space-y-4">
-            <Input type="password" placeholder="Password" value={passwordInput} onChange={e => setPasswordInput(e.target.value)} autoFocus />
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setShowPasswordDialog(false)}>
-                Cancel
-              </Button>
-              <Button type="submit">
-                Submit
-              </Button>
-            </div>
-          </form>
+          <div className="flex flex-col gap-2 pt-4">
+            <Button onClick={() => handleImportConfirm(false)} variant="destructive">
+              Replace All Data
+              <span className="text-xs ml-2 opacity-80">(Delete existing)</span>
+            </Button>
+            <Button onClick={() => handleImportConfirm(true)} variant="default">
+              Merge with Existing
+              <span className="text-xs ml-2 opacity-80">(Add or update)</span>
+            </Button>
+            <Button onClick={() => setShowImportDialog(false)} variant="outline">
+              Cancel
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>;
