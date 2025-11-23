@@ -314,19 +314,19 @@ const Index = () => {
     loadAdminSettings();
   }, [loadAdminSettings]);
   
-  return <div className="min-h-screen bg-background p-6">
+  return <div className="min-h-screen bg-background p-2 sm:p-4 md:p-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="w-full mx-auto space-y-2 px-4">
+        <div className="w-full mx-auto space-y-2 px-1 sm:px-2 md:px-4">
           {/* Header */}
-          <div className="grid grid-cols-3 items-center gap-4">
-            <div className="flex items-center gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-4 justify-between sm:justify-start">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button 
                     className="hover:opacity-70 transition-opacity relative"
                     title="Menu"
                   >
-                    <img src={mullerLogo} alt="Müller" className="h-12 cursor-pointer" />
+                    <img src={mullerLogo} alt="Müller" className="h-8 sm:h-10 md:h-12 cursor-pointer" />
                     {isAdminMode && (
                       <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] px-1.5 py-0.5 rounded-full font-semibold">
                         ADMIN
@@ -362,13 +362,27 @@ const Index = () => {
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
-              <div>
-                <h1 className="text-3xl font-bold">Job Log</h1>
-                <p className="text-muted-foreground">{adminSettings.appName}</p>
+              <div className="flex-1 min-w-0">
+                <h1 className="text-lg sm:text-2xl md:text-3xl font-bold truncate">Job Log</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">{adminSettings.appName}</p>
+              </div>
+              <div className="flex sm:hidden items-center gap-1.5">
+                <ThemeToggle />
+                <Button onClick={handleExport} variant="outline" size="icon" title="Export Backup" className="bg-green-600 hover:bg-green-700 text-white border-green-600 h-8 w-8">
+                  <Download className="h-3 w-3" />
+                </Button>
+                <label>
+                  <Button variant="outline" size="icon" asChild title="Import Backup" className="h-8 w-8">
+                    <span>
+                      <Upload className="h-3 w-3" />
+                      <input ref={fileInputRef} type="file" accept=".json" onChange={handleImport} className="hidden" />
+                    </span>
+                  </Button>
+                </label>
               </div>
             </div>
 
-            <div className="flex justify-center" style={{ visibility: adminSettings.clockVisible ? 'visible' : 'hidden' }}>
+            <div className="hidden sm:flex justify-center" style={{ visibility: adminSettings.clockVisible ? 'visible' : 'hidden' }}>
               <div 
                 className="font-bold font-mono tabular-nums"
                 style={{ 
@@ -379,7 +393,7 @@ const Index = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 justify-end">
+            <div className="hidden sm:flex items-center gap-2 justify-end">
               <div className="hidden">
                 <AdminSettingsDialog onSettingsChange={handleSettingsChange} onTestSavePrompt={testBackupReminder} />
               </div>
@@ -398,10 +412,19 @@ const Index = () => {
             </div>
           </div>
 
-          <TabsList className="grid w-full max-w-[800px] grid-cols-3 mx-auto h-8">
-            <TabsTrigger value="active" className="py-0.5">{adminSettings.tabNameActive} ({activeJobs.length})</TabsTrigger>
-            <TabsTrigger value="completed" className="py-0.5">{adminSettings.tabNameCompleted} ({completedJobs.length})</TabsTrigger>
-            <TabsTrigger value="handover" className="py-0.5">{adminSettings.tabNameHandover}</TabsTrigger>
+          <TabsList className="grid w-full max-w-[800px] grid-cols-3 mx-auto h-8 text-xs sm:text-sm">
+            <TabsTrigger value="active" className="py-0.5 px-1 sm:px-3">
+              <span className="hidden sm:inline">{adminSettings.tabNameActive} ({activeJobs.length})</span>
+              <span className="sm:hidden">{adminSettings.tabNameActive.slice(0, 6)} ({activeJobs.length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="completed" className="py-0.5 px-1 sm:px-3">
+              <span className="hidden sm:inline">{adminSettings.tabNameCompleted} ({completedJobs.length})</span>
+              <span className="sm:hidden">{adminSettings.tabNameCompleted.slice(0, 6)} ({completedJobs.length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="handover" className="py-0.5 px-1 sm:px-3">
+              <span className="hidden sm:inline">{adminSettings.tabNameHandover}</span>
+              <span className="sm:hidden">{adminSettings.tabNameHandover.slice(0, 6)}</span>
+            </TabsTrigger>
           </TabsList>
 
           {/* Tab Content */}

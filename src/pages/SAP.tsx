@@ -387,29 +387,29 @@ const SAP = () => {
       title: "Location tag removed"
     });
   };
-  return <div className="min-h-screen bg-background p-6">
-      <div className="w-full mx-auto space-y-6 px-4">
+  return <div className="min-h-screen bg-background p-2 sm:p-4 md:p-6">
+      <div className="w-full mx-auto space-y-4 sm:space-y-6 px-2 sm:px-4">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="hover:bg-accent">
-              <ArrowLeft className="h-5 w-5" />
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="hover:bg-accent h-8 w-8 sm:h-10 sm:w-10 shrink-0">
+              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
-            <img src={mullerLogo} alt="Müller" className="h-12" />
-            <div>
-              <h1 className="text-3xl font-bold">Common Jobs </h1>
-              <p className="text-muted-foreground">Find stores locations for common jobs</p>
+            <img src={mullerLogo} alt="Müller" className="h-8 sm:h-10 md:h-12 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold truncate">Common Jobs</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">Find stores locations for common jobs</p>
             </div>
           </div>
 
-          <div className="flex gap-2">
-            <Button onClick={handleExport} variant="outline" size="icon" title="Export Backup">
-              <Download className="h-4 w-4" />
+          <div className="flex gap-1.5 sm:gap-2 w-full sm:w-auto justify-end">
+            <Button onClick={handleExport} variant="outline" size="icon" title="Export Backup" className="h-8 w-8 sm:h-10 sm:w-10">
+              <Download className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
             <label>
-              <Button variant="outline" size="icon" asChild title="Import Backup">
+              <Button variant="outline" size="icon" asChild title="Import Backup" className="h-8 w-8 sm:h-10 sm:w-10">
                 <span>
-                  <Upload className="h-4 w-4" />
+                  <Upload className="h-3 w-3 sm:h-4 sm:w-4" />
                   <input ref={fileInputRef} type="file" accept=".json" onChange={handleImport} className="hidden" />
                 </span>
               </Button>
@@ -423,9 +423,10 @@ const SAP = () => {
             }
           }}>
               <DialogTrigger asChild>
-                <Button onClick={() => setIsAddDialogOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Job
+                <Button onClick={() => setIsAddDialogOpen(true)} className="h-8 sm:h-10">
+                  <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Add Job</span>
+                  <span className="sm:hidden text-xs">Add</span>
                 </Button>
               </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
