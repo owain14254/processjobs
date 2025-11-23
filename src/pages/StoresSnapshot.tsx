@@ -15,11 +15,11 @@ const StoreRow = memo(({
 }: {
   item: StoreItem;
 }) => <TableRow>
-    <TableCell className="font-medium">{item.material}</TableCell>
-    <TableCell>{item.storageBin}</TableCell>
-    <TableCell>{item.materialDescription}</TableCell>
-    <TableCell>{item.materialAdditionalDescription}</TableCell>
-    <TableCell>{item.vendorNumber}</TableCell>
+    <TableCell className="font-medium text-xs sm:text-sm whitespace-nowrap">{item.material}</TableCell>
+    <TableCell className="text-xs sm:text-sm whitespace-nowrap">{item.storageBin}</TableCell>
+    <TableCell className="text-xs sm:text-sm min-w-[150px] sm:min-w-[200px]">{item.materialDescription}</TableCell>
+    <TableCell className="text-xs sm:text-sm min-w-[150px] sm:min-w-[200px] hidden md:table-cell">{item.materialAdditionalDescription}</TableCell>
+    <TableCell className="text-xs sm:text-sm whitespace-nowrap">{item.vendorNumber}</TableCell>
   </TableRow>);
 StoreRow.displayName = "StoreRow";
 const StoresSnapshot = () => {
@@ -246,57 +246,57 @@ const StoresSnapshot = () => {
   return <div className="h-screen bg-background flex flex-col">
       <div className="w-full px-4 py-6 space-y-6 flex flex-col flex-1 overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button onClick={() => navigate("/")} variant="outline" size="icon">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
+            <Button onClick={() => navigate("/")} variant="outline" size="icon" className="shrink-0">
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <img src={mullerLogo} alt="Müller" className="h-12" />
-            <div>
-              <h1 className="text-3xl font-bold">Stores Snapshot</h1>
-              <p className="text-muted-foreground">Engineering Stores Database</p>
+            <img src={mullerLogo} alt="Müller" className="h-8 sm:h-12 shrink-0" />
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold truncate">Stores Snapshot</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">Engineering Stores Database</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto justify-end">
             <label>
-              <Button variant="outline" size="icon" asChild title="Import Data">
+              <Button variant="outline" size="icon" asChild title="Import Data" className="h-8 w-8 sm:h-10 sm:w-10">
                 <span>
-                  <Upload className="h-4 w-4" />
+                  <Upload className="h-3 w-3 sm:h-4 sm:w-4" />
                   <input type="file" accept=".json" onChange={handleImport} className="hidden" />
                 </span>
               </Button>
             </label>
-            <Button onClick={handleExport} variant="outline" size="icon" title="Export Data" disabled={storesData.length === 0}>
-              <Download className="h-4 w-4" />
+            <Button onClick={handleExport} variant="outline" size="icon" title="Export Data" disabled={storesData.length === 0} className="h-8 w-8 sm:h-10 sm:w-10">
+              <Download className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
             <ThemeToggle />
-            <Button onClick={toggleAdminMode} variant={isAdminMode ? "destructive" : "outline"} size="icon" title={isAdminMode ? "Exit Admin Mode" : "Enter Admin Mode"}>
-              <KeyRound className="h-4 w-4" />
+            <Button onClick={toggleAdminMode} variant={isAdminMode ? "destructive" : "outline"} size="icon" title={isAdminMode ? "Exit Admin Mode" : "Enter Admin Mode"} className="h-8 w-8 sm:h-10 sm:w-10">
+              <KeyRound className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
           </div>
         </div>
 
         {/* Search Section */}
-        {!showResults && <div className="flex flex-col items-center justify-center flex-1 gap-6 px-4">
-            <div className="w-full max-w-2xl mx-auto space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium block text-left">SAP Number</label>
-                <Input placeholder="Search SAP Number..." value={sapNumber} onChange={e => setSapNumber(e.target.value)} onKeyDown={handleSearchKeyDown} />
+        {!showResults && <div className="flex flex-col items-center justify-center flex-1 gap-6 px-2 sm:px-4">
+            <div className="w-full max-w-2xl mx-auto space-y-3 sm:space-y-4">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="text-xs sm:text-sm font-medium block text-left">SAP Number</label>
+                <Input placeholder="Search SAP Number..." value={sapNumber} onChange={e => setSapNumber(e.target.value)} onKeyDown={handleSearchKeyDown} className="h-9 sm:h-10" />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium block text-left">Location</label>
-                <Input placeholder="Search Location..." value={location} onChange={e => setLocation(e.target.value)} onKeyDown={handleSearchKeyDown} />
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="text-xs sm:text-sm font-medium block text-left">Location</label>
+                <Input placeholder="Search Location..." value={location} onChange={e => setLocation(e.target.value)} onKeyDown={handleSearchKeyDown} className="h-9 sm:h-10" />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium block text-left">Description</label>
-                <Input placeholder="Search Description..." value={description} onChange={e => setDescription(e.target.value)} onKeyDown={handleSearchKeyDown} />
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="text-xs sm:text-sm font-medium block text-left">Description</label>
+                <Input placeholder="Search Description..." value={description} onChange={e => setDescription(e.target.value)} onKeyDown={handleSearchKeyDown} className="h-9 sm:h-10" />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium block text-left">Vendor Number</label>
-                <Input placeholder="Search Vendor Number..." value={vendorNumber} onChange={e => setVendorNumber(e.target.value)} onKeyDown={handleSearchKeyDown} />
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="text-xs sm:text-sm font-medium block text-left">Vendor Number</label>
+                <Input placeholder="Search Vendor Number..." value={vendorNumber} onChange={e => setVendorNumber(e.target.value)} onKeyDown={handleSearchKeyDown} className="h-9 sm:h-10" />
               </div>
-              <div className="flex gap-3 pt-4 justify-center">
-                <Button onClick={handleSearch} className="min-w-[140px]" disabled={isSearching || storesData.length === 0}>
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2 sm:pt-4">
+                <Button onClick={handleSearch} className="w-full sm:min-w-[140px]" disabled={isSearching || storesData.length === 0}>
                   {isSearching ? <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       Searching...
@@ -305,7 +305,7 @@ const StoresSnapshot = () => {
                       Search
                     </>}
                 </Button>
-                <Button onClick={handleViewAll} variant="outline" className="min-w-[140px]" disabled={isSearching || storesData.length === 0}>
+                <Button onClick={handleViewAll} variant="outline" className="w-full sm:min-w-[140px]" disabled={isSearching || storesData.length === 0}>
                   View All
                 </Button>
               </div>
@@ -314,28 +314,30 @@ const StoresSnapshot = () => {
 
         {/* Controls - Only show when results are displayed */}
         {showResults && <>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <Button onClick={() => {
             setShowResults(false);
             setResultSearchQuery("");
             setSortColumn(null);
             setSortDirection("asc");
-          }} variant="outline" size="sm">
+          }} variant="outline" size="sm" className="shrink-0">
                 <ArrowLeft className="h-3 w-3 mr-1" />
-                New Search
+                <span className="hidden sm:inline">New Search</span>
+                <span className="sm:hidden">Back</span>
               </Button>
-              <div className="flex-1">
-                <div className="relative max-w-xs">
-                  <Search className="absolute left-2 top-2 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Find on page (use * for wildcard)..." value={resultSearchQuery} onChange={e => setResultSearchQuery(e.target.value)} className="h-8 pl-8" />
+              <div className="flex-1 min-w-0">
+                <div className="relative w-full sm:max-w-xs">
+                  <Search className="absolute left-2 top-2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                  <Input placeholder="Find on page..." value={resultSearchQuery} onChange={e => setResultSearchQuery(e.target.value)} className="h-8 pl-8 text-sm" />
                 </div>
               </div>
-              <span className="text-xs text-muted-foreground whitespace-nowrap">
+              <span className="text-xs text-muted-foreground whitespace-nowrap text-center sm:text-left">
                 {filteredData.length} of {storesData.length}
               </span>
-              {isAdminMode && <Button onClick={() => setShowClearDialog(true)} variant="destructive" size="sm" disabled={storesData.length === 0}>
+              {isAdminMode && <Button onClick={() => setShowClearDialog(true)} variant="destructive" size="sm" disabled={storesData.length === 0} className="shrink-0">
                   <Trash2 className="h-3 w-3 mr-1" />
-                  Clear All
+                  <span className="hidden sm:inline">Clear All</span>
+                  <span className="sm:hidden">Clear</span>
                 </Button>}
             </div>
           </>}
@@ -346,23 +348,23 @@ const StoresSnapshot = () => {
               <Table>
                 <TableHeader className="sticky top-0 bg-background z-10">
                   <TableRow>
-                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none" onClick={() => handleSort("material")}>
+                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-xs sm:text-sm whitespace-nowrap" onClick={() => handleSort("material")}>
                       SAP Number
                       {getSortIcon("material")}
                     </TableHead>
-                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none" onClick={() => handleSort("storageBin")}>
+                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-xs sm:text-sm whitespace-nowrap" onClick={() => handleSort("storageBin")}>
                       Location
                       {getSortIcon("storageBin")}
                     </TableHead>
-                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none" onClick={() => handleSort("materialDescription")}>
+                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-xs sm:text-sm whitespace-nowrap" onClick={() => handleSort("materialDescription")}>
                       Description
                       {getSortIcon("materialDescription")}
                     </TableHead>
-                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none" onClick={() => handleSort("materialAdditionalDescription")}>
+                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-xs sm:text-sm whitespace-nowrap hidden md:table-cell" onClick={() => handleSort("materialAdditionalDescription")}>
                       Additional Description
                       {getSortIcon("materialAdditionalDescription")}
                     </TableHead>
-                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none" onClick={() => handleSort("vendorNumber")}>
+                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-xs sm:text-sm whitespace-nowrap" onClick={() => handleSort("vendorNumber")}>
                       Vendor Number
                       {getSortIcon("vendorNumber")}
                     </TableHead>
@@ -370,7 +372,7 @@ const StoresSnapshot = () => {
                 </TableHeader>
                 <TableBody>
                   {filteredData.length === 0 ? <TableRow>
-                      <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                      <TableCell colSpan={5} className="text-center py-8 sm:py-12 text-xs sm:text-sm text-muted-foreground">
                         No items match your search criteria
                       </TableCell>
                     </TableRow> : filteredData.map((item, index) => <StoreRow key={`${item.material}-${item.storageBin}-${index}`} item={item} />)}
