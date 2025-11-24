@@ -35,6 +35,87 @@ const getStatusColor = (jobComplete: boolean, sapComplete: boolean, colors: { am
   return colors.amber;
 };
 
+const DescriptionCell = ({ job }: { job: Job }) => {
+  const [isOverflowing, setIsOverflowing] = useState(false);
+  const [showDialog, setShowDialog] = useState(false);
+  const cellRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const checkOverflow = () => {
+      if (cellRef.current) {
+        const isOverflow = cellRef.current.scrollWidth > cellRef.current.clientWidth;
+        setIsOverflowing(isOverflow);
+      }
+    };
+    checkOverflow();
+    window.addEventListener("resize", checkOverflow);
+    return () => window.removeEventListener("resize", checkOverflow);
+  }, [job.description]);
+
+  const statusColor = getStatusColor(job.jobComplete, job.sapComplete, { 
+    amber: "#FFA500", 
+    lightGreen: "#90EE90", 
+    darkGreen: "#006400" 
+  });
+  const popupSizeClass = "max-w-2xl";
+
+  const cellPadding = "py-2 px-4";
+  const textSizeClass = "text-sm";
+  const textWeightClass = "font-normal";
+
+  return (
+    <TableRow style={{ backgroundColor: statusColor }}>
+      <TableCell
+        className={cn("whitespace-nowrap text-black overflow-hidden text-ellipsis", cellPadding, textSizeClass, textWeightClass)}
+      >
+        {format(job.date, "dd/MM/yy HH:mm")}
+      </TableCell>
+      <TableCell className={cn("text-black overflow-hidden text-ellipsis", cellPadding, textSizeClass, textWeightClass)}>
+        {job.department}
+      </TableCell>
+      <TableCell className={cn("text-black", cellPadding, textSizeClass, textWeightClass)}>
+        <div className="relative flex items-center gap-2">
+          <div
+            ref={cellRef}
+            className="overflow-hidden whitespace-nowrap text-ellipsis flex-1"
+          >
+            {job.description}
+          </div>
+          {isOverflowing && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 flex-shrink-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowDialog(true);
+              }}
+            >
+              <Expand className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+        <Dialog open={showDialog} onOpenChange={setShowDialog}>
+          <DialogContent className={cn(popupSizeClass)} style={{ backgroundColor: statusColor }}>
+            <DialogHeader>
+              <DialogTitle className="text-black">Full Description</DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-black break-all whitespace-normal overflow-wrap-anywhere">
+              {job.description}
+            </p>
+          </DialogContent>
+        </Dialog>
+      </TableCell>
+      <TableCell className={cn("text-center text-black", cellPadding, textSizeClass, textWeightClass)}>
+        {job.jobComplete ? "✓" : "—"}
+      </TableCell>
+      <TableCell className={cn("text-center text-black", cellPadding, textSizeClass, textWeightClass)}>
+        {job.sapComplete ? "✓" : "—"}
+      </TableCell>
+    </TableRow>
+  );
+};
+
 export const HandoverTab = ({
   activeJobs,
   completedJobs,
@@ -48,10 +129,6 @@ export const HandoverTab = ({
   const [mode, setMode] = useState<HandoverMode>("shift");
   const [departmentFilter, setDepartmentFilter] = useState("All");
   const [showOutstandingOnly, setShowOutstandingOnly] = useState(false);
-
-  const textSizeClass = ["text-xs", "text-sm", "text-base", "text-lg", "text-xl"][textSize];
-  const textWeightClass = textBold ? "font-bold" : "font-normal";
-  const cellPadding = ["py-0.5 px-1", "py-1 px-2", "py-2 px-4", "py-3 px-4", "py-4 px-6"][rowHeight];
 
   const allJobs = useMemo(() => {
     // Convert completed jobs to Job format and combine with active jobs
@@ -180,83 +257,9 @@ export const HandoverTab = ({
                 </TableCell>
               </TableRow>
             ) : (
-              filteredJobs.map((job) => {
-                const DescriptionCell = () => {
-                  const [isOverflowing, setIsOverflowing] = useState(false);
-                  const [showDialog, setShowDialog] = useState(false);
-                  const cellRef = useRef<HTMLDivElement>(null);
-
-                  useEffect(() => {
-                    const checkOverflow = () => {
-                      if (cellRef.current) {
-                        const isOverflow = cellRef.current.scrollWidth > cellRef.current.clientWidth;
-                        setIsOverflowing(isOverflow);
-                      }
-                    };
-                    checkOverflow();
-                    window.addEventListener("resize", checkOverflow);
-                    return () => window.removeEventListener("resize", checkOverflow);
-                  }, [job.description]);
-
-                  const statusColor = getStatusColor(job.jobComplete, job.sapComplete, statusColors);
-                  const popupSizeClass = ["max-w-lg", "max-w-2xl", "max-w-4xl"][1];
-
-                  return (
-                    <>
-                      <div className="relative flex items-center gap-2">
-                        <div
-                          ref={cellRef}
-                          className="overflow-hidden whitespace-nowrap text-ellipsis flex-1"
-                        >
-                          {job.description}
-                        </div>
-                        {isOverflowing && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 flex-shrink-0 text-red-500 hover:text-red-600 hover:bg-red-50"
-                            onClick={() => setShowDialog(true)}
-                          >
-                            <Expand className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                      <Dialog open={showDialog} onOpenChange={setShowDialog}>
-                        <DialogContent className={cn(popupSizeClass)} style={{ backgroundColor: statusColor }}>
-                          <DialogHeader>
-                            <DialogTitle className="text-black">Full Description</DialogTitle>
-                          </DialogHeader>
-                          <p className="text-sm text-black break-all whitespace-normal overflow-wrap-anywhere">
-                            {job.description}
-                          </p>
-                        </DialogContent>
-                      </Dialog>
-                    </>
-                  );
-                };
-
-                return (
-                  <TableRow key={job.id} style={{ backgroundColor: getStatusColor(job.jobComplete, job.sapComplete, statusColors) }}>
-                    <TableCell
-                      className={cn("whitespace-nowrap text-black overflow-hidden text-ellipsis", cellPadding, textSizeClass, textWeightClass)}
-                    >
-                      {format(job.date, "dd/MM/yy HH:mm")}
-                    </TableCell>
-                    <TableCell className={cn("text-black overflow-hidden text-ellipsis", cellPadding, textSizeClass, textWeightClass)}>
-                      {job.department}
-                    </TableCell>
-                    <TableCell className={cn("text-black", cellPadding, textSizeClass, textWeightClass)}>
-                      <DescriptionCell />
-                    </TableCell>
-                    <TableCell className={cn("text-center text-black", cellPadding, textSizeClass, textWeightClass)}>
-                      {job.jobComplete ? "✓" : "—"}
-                    </TableCell>
-                    <TableCell className={cn("text-center text-black", cellPadding, textSizeClass, textWeightClass)}>
-                      {job.sapComplete ? "✓" : "—"}
-                    </TableCell>
-                  </TableRow>
-                );
-              })
+              filteredJobs.map((job) => (
+                <DescriptionCell key={job.id} job={job} />
+              ))
             )}
           </TableBody>
         </Table>

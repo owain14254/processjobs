@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer, Cell } from "recharts";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Filter, Download, Calendar, CalendarDays, X, Plus, Tags } from "lucide-react";
+import { ArrowLeft, Filter, Download, Calendar, CalendarDays, X, Plus, Tags, KeyRound } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 import { useMemo, useState, useCallback, useEffect } from "react";
 import { Input } from "@/components/ui/input";
@@ -32,9 +33,11 @@ const Metrics = () => {
   const [timespan, setTimespan] = useState<Timespan>("90days");
   const [keywords, setKeywords] = useState<string[]>(() => {
     const saved = localStorage.getItem("metricsKeywords");
-    return saved ? JSON.parse(saved) : ["VA", "BT", "IT", "HE", "PU", "AG", "FI", "PI", "TK"];
+    return saved ? JSON.parse(saved) : [];
   });
   const [newKeyword, setNewKeyword] = useState("");
+  const [isAdminMode, setIsAdminMode] = useState(false);
+  const [showShiftView, setShowShiftView] = useState(false);
 
   const timespanLabels: Record<Timespan, string> = {
     "7days": "Last 7 Days",
@@ -49,6 +52,35 @@ const Metrics = () => {
   useEffect(() => {
     localStorage.setItem("metricsKeywords", JSON.stringify(keywords));
   }, [keywords]);
+
+  // Check for admin mode on mount
+  useEffect(() => {
+    const adminPassword = sessionStorage.getItem("adminModeMetrics");
+    setIsAdminMode(adminPassword === "Process3116");
+  }, []);
+
+  // Function to determine shift for a given date
+  const getShiftForDate = useCallback((date: Date) => {
+    // Reference: Shift 1 started days on June 22nd, 2025 at 7am
+    const referenceDate = new Date(2025, 5, 22, 7, 0, 0); // Month is 0-indexed
+    const diffMs = date.getTime() - referenceDate.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const cycleDay = ((diffDays % 16) + 16) % 16; // 16-day cycle (4 days * 4 shifts)
+    
+    // Determine shift and whether it's day or night based on cycle
+    // Shift 1: Days (0-3), Shift 2: Nights (4-7), Shift 4: Days (8-11), Shift 3: Nights (12-15)
+    if (cycleDay < 4) return { shift: 1, type: 'day' };
+    if (cycleDay < 8) return { shift: 2, type: 'night' };
+    if (cycleDay < 12) return { shift: 4, type: 'day' };
+    return { shift: 3, type: 'night' };
+  }, []);
+
+  const shiftColors = useMemo(() => ({
+    1: "hsl(221, 83%, 53%)",  // Blue
+    2: "hsl(142, 71%, 45%)",  // Green
+    3: "hsl(346, 77%, 50%)",  // Red
+    4: "hsl(38, 92%, 50%)",   // Orange
+  }), []);
 
   const filteredJobsByTimespan = useMemo(() => {
     if (timespan === "all") return completedJobs;
@@ -164,6 +196,7 @@ const Metrics = () => {
     if (viewMode !== "daily") return [];
     
     const dataMap = new Map<string, Map<string, number>>();
+    const shiftMap = new Map<string, { shift: number, type: string }>();
     
     filteredJobsByTimespan.forEach((job) => {
       if (!selectedDepartments.has(job.department)) return;
@@ -173,6 +206,7 @@ const Metrics = () => {
       
       if (!dataMap.has(dayKey)) {
         dataMap.set(dayKey, new Map());
+        shiftMap.set(dayKey, getShiftForDate(date));
       }
       
       const dayData = dataMap.get(dayKey)!;
@@ -189,9 +223,14 @@ const Metrics = () => {
       const [year, month, day] = dayKey.split('-');
       const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
       const dayName = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const shiftInfo = shiftMap.get(dayKey)!;
       
       const departments = dataMap.get(dayKey)!;
-      const result: any = { month: dayName };
+      const result: any = { 
+        month: dayName,
+        shift: shiftInfo.shift,
+        shiftType: shiftInfo.type
+      };
       
       departments.forEach((count, dept) => {
         result[dept] = count;
@@ -199,7 +238,7 @@ const Metrics = () => {
       
       return result;
     });
-  }, [filteredJobsByTimespan, selectedDepartments, timespan, viewMode]);
+  }, [filteredJobsByTimespan, selectedDepartments, timespan, viewMode, getShiftForDate]);
 
   // Keyword analysis data - optimized to only run when in keywords view
   const keywordData = useMemo(() => {
@@ -249,7 +288,22 @@ const Metrics = () => {
 
   const { toast } = useToast();
 
-
+  const toggleAdminMode = useCallback(() => {
+    if (isAdminMode) {
+      setIsAdminMode(false);
+      sessionStorage.removeItem("adminModeMetrics");
+      toast({ title: "Admin Mode Disabled" });
+    } else {
+      const password = prompt("Enter admin password:");
+      if (password === "Process3116") {
+        setIsAdminMode(true);
+        sessionStorage.setItem("adminModeMetrics", "Process3116");
+        toast({ title: "Admin Mode Enabled" });
+      } else {
+        toast({ title: "Incorrect password", variant: "destructive" });
+      }
+    }
+  }, [isAdminMode, toast]);
 
   const addKeyword = useCallback(() => {
     if (newKeyword.trim() && !keywords.includes(newKeyword.trim().toUpperCase())) {
@@ -266,8 +320,17 @@ const Metrics = () => {
     // Extract all words from descriptions
     const wordFrequency = new Map<string, number>();
     
-    // Common words to exclude
-    const stopWords = new Set(['THE', 'A', 'AN', 'AND', 'OR', 'BUT', 'IN', 'ON', 'AT', 'TO', 'FOR', 'OF', 'WITH', 'IS', 'WAS', 'BE', 'BEEN', 'HAVE', 'HAS', 'HAD', 'DO', 'DOES', 'DID', 'WILL', 'WOULD', 'COULD', 'SHOULD', 'MAY', 'MIGHT', 'CAN']);
+    // Common words to exclude (expanded list)
+    const stopWords = new Set([
+      'THE', 'A', 'AN', 'AND', 'OR', 'BUT', 'IN', 'ON', 'AT', 'TO', 'FOR', 'OF', 'WITH', 
+      'IS', 'WAS', 'BE', 'BEEN', 'HAVE', 'HAS', 'HAD', 'DO', 'DOES', 'DID', 'WILL', 
+      'WOULD', 'COULD', 'SHOULD', 'MAY', 'MIGHT', 'CAN', 'NO', 'NOT', 'SO', 'AS', 'IF',
+      'THEN', 'THAN', 'THAT', 'THIS', 'THESE', 'THOSE', 'IT', 'ITS', 'BY', 'FROM',
+      'UP', 'DOWN', 'OUT', 'OVER', 'UNDER', 'AGAIN', 'FURTHER', 'THEN', 'ONCE',
+      'HERE', 'THERE', 'WHEN', 'WHERE', 'WHY', 'HOW', 'ALL', 'BOTH', 'EACH', 'FEW',
+      'MORE', 'MOST', 'OTHER', 'SOME', 'SUCH', 'ONLY', 'OWN', 'SAME', 'THAN', 'TOO',
+      'VERY', 'CAN', 'JUST', 'NOW', 'ALSO', 'WELL'
+    ]);
     
     filteredJobsByTimespan.forEach((job) => {
       if (!selectedDepartments.has(job.department)) return;
@@ -288,8 +351,9 @@ const Metrics = () => {
       });
     });
     
-    // Get top 15 most common words
+    // Get top 15 most common words that appear at least 2 times
     const topWords = Array.from(wordFrequency.entries())
+      .filter(([_, count]) => count >= 2)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 15)
       .map(([word]) => word);
@@ -458,8 +522,30 @@ const Metrics = () => {
               <span className="hidden sm:inline">Export CSV</span>
               <span className="sm:hidden">Export</span>
             </Button>
+
+            <Button 
+              variant={isAdminMode ? "default" : "outline"} 
+              size="icon" 
+              onClick={toggleAdminMode}
+              className="h-8 w-8"
+            >
+              <KeyRound className="h-3 w-3 sm:h-4 sm:w-4" />
+            </Button>
           </div>
         </div>
+
+        {isAdminMode && viewMode === "daily" && (
+          <div className="flex items-center gap-2 bg-muted p-2 rounded-lg">
+            <Switch 
+              id="shift-view" 
+              checked={showShiftView} 
+              onCheckedChange={setShowShiftView} 
+            />
+            <Label htmlFor="shift-view" className="text-sm cursor-pointer">
+              Show Shift View (color bars by shift)
+            </Label>
+          </div>
+        )}
 
         <div className="flex gap-6 h-[calc(100vh-220px)] min-h-[600px]">
           <Card className="flex-1 border-0 rounded-none shadow-none min-w-0 flex flex-col">
@@ -485,7 +571,8 @@ const Metrics = () => {
                         <DropdownMenuSeparator />
                         {keywords.length === 0 ? (
                           <div className="px-2 py-3 text-sm text-muted-foreground text-center">
-                            No keywords added yet
+                            <p className="mb-2">No keywords added yet</p>
+                            <p className="text-xs">Add keywords manually or use Auto-Find to discover common words in your job descriptions</p>
                           </div>
                         ) : (
                           <div className="p-2 space-y-1">
@@ -605,14 +692,28 @@ const Metrics = () => {
                     <YAxis style={{ fontSize: '12px' }} />
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Legend wrapperStyle={{ fontSize: '12px' }} />
-                    {Array.from(selectedDepartments).map((dept) => (
-                      <Bar
-                        key={dept}
-                        dataKey={dept}
-                        fill={departmentColors[dept]}
-                        stackId="a"
-                      />
-                    ))}
+                    {showShiftView && viewMode === "daily" ? (
+                      Array.from(selectedDepartments).map((dept) => (
+                        <Bar
+                          key={dept}
+                          dataKey={dept}
+                          stackId="a"
+                        >
+                          {chartData.map((entry: any, index: number) => (
+                            <Cell key={`cell-${index}`} fill={shiftColors[entry.shift as keyof typeof shiftColors]} />
+                          ))}
+                        </Bar>
+                      ))
+                    ) : (
+                      Array.from(selectedDepartments).map((dept) => (
+                        <Bar
+                          key={dept}
+                          dataKey={dept}
+                          fill={departmentColors[dept]}
+                          stackId="a"
+                        />
+                      ))
+                    )}
                   </BarChart>
                 </ResponsiveContainer>
               </ChartContainer>
