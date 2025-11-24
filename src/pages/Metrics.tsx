@@ -62,34 +62,42 @@ const Metrics = () => {
   // Function to determine shift for a given date and time
   // Pattern: Each shift works 4 days (7am-7pm), 4 days off, 4 nights (7pm-7am), 4 days off (16-day cycle)
   const getShiftForDateTime = useCallback((date: Date) => {
-    const referenceDate = new Date(2025, 5, 22, 7, 0, 0); // Shift 1 days start
+    // Reference: Shift 1 started days on June 22nd, 2025 at 7am
+    // NOTE: month is 0-indexed (5 = June)
+    const referenceDate = new Date(2025, 5, 22, 7, 0, 0);
+
     const hour = date.getHours();
     const isDayTime = hour >= 7 && hour < 19;
 
-    // Jobs before 7am belong to previous night's shift
-    let adjustedDate = new Date(date);
+    // Jobs before 7am belong to the previous calendar day’s night shift
+    const adjustedDate = new Date(date);
     if (hour < 7) {
       adjustedDate.setDate(adjustedDate.getDate() - 1);
     }
 
     const diffMs = adjustedDate.getTime() - referenceDate.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    const cycleDay = ((diffDays % 16) + 16) % 16;
+    const cycleDay = ((diffDays % 16) + 16) % 16; // 0–15
 
-    let shift: 1 | 2 | 3 | 4 = 1;
-    let shiftType: "day" | "night" = isDayTime ? "day" : "night";
+    let shift: 1 | 2 | 3 | 4;
+    const shiftType: "day" | "night" = isDayTime ? "day" : "night";
 
+    // Correct 4-on / 4-off pattern:
+    // Shift 1: Days 0–3, Nights 8–11
+    // Shift 2: Days 4–7, Nights 12–15
+    // Shift 3: Nights 0–3, Days 8–11
+    // Shift 4: Nights 4–7, Days 12–15
     if (cycleDay >= 0 && cycleDay < 4) {
-      // Days 0-3: Shift 1 on days, Shift 3 on nights
+      // Cycle days 0–3
       shift = isDayTime ? 1 : 3;
     } else if (cycleDay >= 4 && cycleDay < 8) {
-      // Days 4-7: Shift 2 on days, Shift 4 on nights
+      // Cycle days 4–7
       shift = isDayTime ? 2 : 4;
     } else if (cycleDay >= 8 && cycleDay < 12) {
-      // Days 8-11: Shift 3 on days, Shift 1 on nights
+      // Cycle days 8–11
       shift = isDayTime ? 3 : 1;
     } else {
-      // Days 12-15: Shift 4 on days, Shift 2 on nights
+      // Cycle days 12–15
       shift = isDayTime ? 4 : 2;
     }
 
@@ -98,10 +106,10 @@ const Metrics = () => {
 
   const shiftColors = useMemo(
     () => ({
-      1: "hsl(221, 83%, 53%)", // Blue - Shift 1 (Days)
-      2: "hsl(142, 71%, 45%)", // Green - Shift 2 (Nights)
-      3: "hsl(346, 77%, 50%)", // Red - Shift 3 (Nights)
-      4: "hsl(38, 92%, 50%)", // Orange - Shift 4 (Days)
+      1: "hsl(221, 83%, 53%)", // Blue - Shift 1
+      2: "hsl(142, 71%, 45%)", // Green - Shift 2
+      3: "hsl(346, 77%, 50%)", // Red - Shift 3
+      4: "hsl(38, 92%, 50%)", // Orange - Shift 4
     }),
     [],
   );
@@ -317,10 +325,10 @@ const Metrics = () => {
   const shiftStats = useMemo(() => {
     if (viewMode !== "daily") return null;
 
-    const shiftDayJobCounts = { 1: 0, 2: 0, 3: 0, 4: 0 };
-    const shiftDayWorkDays = { 1: 0, 2: 0, 3: 0, 4: 0 };
-    const shiftNightJobCounts = { 1: 0, 2: 0, 3: 0, 4: 0 };
-    const shiftNightWorkDays = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    const shiftDayJobCounts: Record<1 | 2 | 3 | 4, number> = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    const shiftDayWorkDays: Record<1 | 2 | 3 | 4, number> = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    const shiftNightJobCounts: Record<1 | 2 | 3 | 4, number> = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    const shiftNightWorkDays: Record<1 | 2 | 3 | 4, number> = { 1: 0, 2: 0, 3: 0, 4: 0 };
 
     dailyData.forEach((day: any) => {
       const dayShift = day.dayShift as 1 | 2 | 3 | 4;
@@ -539,9 +547,7 @@ const Metrics = () => {
         .toUpperCase()
         .split(/\s+/)
         .filter((word) => {
-          // Remove non-alphanumeric characters
           const cleaned = word.replace(/[^A-Z0-9]/g, "");
-          // Keep words 2-10 characters that aren't stop words
           return cleaned.length >= 2 && cleaned.length <= 10 && !stopWords.has(cleaned);
         })
         .map((word) => word.replace(/[^A-Z0-9]/g, ""));
@@ -579,7 +585,10 @@ const Metrics = () => {
   const handleExportMetrics = useCallback(() => {
     const csvData = [
       ["Period", ...Array.from(selectedDepartments)],
-      ...chartData.map((row) => [row.month, ...Array.from(selectedDepartments).map((dept) => row[dept] || 0)]),
+      ...chartData.map((row: any) => [
+        row.month || row.keyword || "",
+        ...Array.from(selectedDepartments).map((dept) => row[dept] || 0),
+      ]),
     ];
 
     const csv = csvData.map((row) => row.join(",")).join("\n");
@@ -608,10 +617,16 @@ const Metrics = () => {
   const totalJobs = filteredJobsByTimespan.filter((job) => selectedDepartments.has(job.department)).length;
 
   const departmentStats = useMemo(() => {
+    if (totalJobs === 0) return [];
+
     const stats = Array.from(selectedDepartments)
       .map((dept) => {
         const count = filteredJobsByTimespan.filter((job) => job.department === dept).length;
-        return { department: dept, count, percentage: ((count / totalJobs) * 100).toFixed(1) };
+        return {
+          department: dept,
+          count,
+          percentage: ((count / totalJobs) * 100).toFixed(1),
+        };
       })
       .sort((a, b) => b.count - a.count);
     return stats;
@@ -1016,7 +1031,7 @@ const Metrics = () => {
                             {chartData.map((entry: any, index: number) => (
                               <Cell
                                 key={`cell-day-${index}`}
-                                fill={shiftColors[entry.dayShift as keyof typeof shiftColors]}
+                                fill={shiftColors[entry.dayShift as keyof typeof shiftColors] as string}
                               />
                             ))}
                           </Bar>
@@ -1024,7 +1039,7 @@ const Metrics = () => {
                             {chartData.map((entry: any, index: number) => (
                               <Cell
                                 key={`cell-night-${index}`}
-                                fill={shiftColors[entry.nightShift as keyof typeof shiftColors]}
+                                fill={shiftColors[entry.nightShift as keyof typeof shiftColors] as string}
                               />
                             ))}
                           </Bar>
