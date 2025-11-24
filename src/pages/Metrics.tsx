@@ -3,13 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer, Cell } from "recharts";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Filter, Download, Calendar, CalendarDays, X, Plus, Tags, KeyRound } from "lucide-react";
+import { ArrowLeft, Filter, Download, Calendar, CalendarDays, X, Plus, Tags, KeyRound, LogOut } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { useMemo, useState, useCallback, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,27 +59,44 @@ const Metrics = () => {
     setIsAdminMode(adminPassword === "Process3116");
   }, []);
 
-  // Function to determine shift for a given date
+  // Function to determine shift for a given date and time
   const getShiftForDate = useCallback((date: Date) => {
     // Reference: Shift 1 started days on June 22nd, 2025 at 7am
     const referenceDate = new Date(2025, 5, 22, 7, 0, 0); // Month is 0-indexed
-    const diffMs = date.getTime() - referenceDate.getTime();
+    
+    // Get hour to determine if it's day (7am-7pm) or night shift (7pm-7am)
+    const hour = date.getHours();
+    const isDayShift = hour >= 7 && hour < 19;
+    
+    // Calculate days since reference, considering the time of day
+    // If it's before 7am, we're still in the previous day's night shift
+    let adjustedDate = new Date(date);
+    if (hour < 7) {
+      adjustedDate.setDate(adjustedDate.getDate() - 1);
+    }
+    
+    const diffMs = adjustedDate.getTime() - referenceDate.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     const cycleDay = ((diffDays % 16) + 16) % 16; // 16-day cycle (4 days * 4 shifts)
     
-    // Determine shift and whether it's day or night based on cycle
+    // Determine which shift based on cycle day and whether it's day or night
     // Shift 1: Days (0-3), Shift 2: Nights (4-7), Shift 4: Days (8-11), Shift 3: Nights (12-15)
-    if (cycleDay < 4) return { shift: 1, type: 'day' };
-    if (cycleDay < 8) return { shift: 2, type: 'night' };
-    if (cycleDay < 12) return { shift: 4, type: 'day' };
-    return { shift: 3, type: 'night' };
+    if (cycleDay < 4) {
+      return { shift: isDayShift ? 1 : 2, type: isDayShift ? 'day' : 'night' };
+    } else if (cycleDay < 8) {
+      return { shift: isDayShift ? 2 : 4, type: isDayShift ? 'night' : 'day' };
+    } else if (cycleDay < 12) {
+      return { shift: isDayShift ? 4 : 3, type: isDayShift ? 'day' : 'night' };
+    } else {
+      return { shift: isDayShift ? 3 : 1, type: isDayShift ? 'night' : 'day' };
+    }
   }, []);
 
   const shiftColors = useMemo(() => ({
-    1: "hsl(221, 83%, 53%)",  // Blue
-    2: "hsl(142, 71%, 45%)",  // Green
-    3: "hsl(346, 77%, 50%)",  // Red
-    4: "hsl(38, 92%, 50%)",   // Orange
+    1: "hsl(221, 83%, 53%)",  // Blue - Shift 1 (Days)
+    2: "hsl(142, 71%, 45%)",  // Green - Shift 2 (Nights)
+    3: "hsl(346, 77%, 50%)",  // Red - Shift 3 (Nights)
+    4: "hsl(38, 92%, 50%)",   // Orange - Shift 4 (Days)
   }), []);
 
   const filteredJobsByTimespan = useMemo(() => {
@@ -240,6 +257,33 @@ const Metrics = () => {
     });
   }, [filteredJobsByTimespan, selectedDepartments, timespan, viewMode, getShiftForDate]);
 
+  // Calculate shift statistics
+  const shiftStats = useMemo(() => {
+    if (viewMode !== "daily") return null;
+
+    const shiftJobCounts = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    const shiftDayCounts = { 1: 0, 2: 0, 3: 0, 4: 0 };
+
+    dailyData.forEach((day: any) => {
+      const shift = day.shift as 1 | 2 | 3 | 4;
+      shiftDayCounts[shift]++;
+      
+      // Count jobs for this shift
+      let dayJobCount = 0;
+      Array.from(selectedDepartments).forEach((dept) => {
+        dayJobCount += day[dept] || 0;
+      });
+      shiftJobCounts[shift] += dayJobCount;
+    });
+
+    return {
+      1: { count: shiftJobCounts[1], avg: shiftDayCounts[1] > 0 ? (shiftJobCounts[1] / shiftDayCounts[1]).toFixed(1) : '0' },
+      2: { count: shiftJobCounts[2], avg: shiftDayCounts[2] > 0 ? (shiftJobCounts[2] / shiftDayCounts[2]).toFixed(1) : '0' },
+      3: { count: shiftJobCounts[3], avg: shiftDayCounts[3] > 0 ? (shiftJobCounts[3] / shiftDayCounts[3]).toFixed(1) : '0' },
+      4: { count: shiftJobCounts[4], avg: shiftDayCounts[4] > 0 ? (shiftJobCounts[4] / shiftDayCounts[4]).toFixed(1) : '0' },
+    };
+  }, [dailyData, selectedDepartments, viewMode]);
+
   // Keyword analysis data - optimized to only run when in keywords view
   const keywordData = useMemo(() => {
     if (viewMode !== "keywords") return [];
@@ -294,16 +338,9 @@ const Metrics = () => {
       sessionStorage.removeItem("adminModeMetrics");
       toast({ title: "Admin Mode Disabled" });
     } else {
-      const password = prompt("Enter admin password:");
-      if (password === "Process3116") {
-        setIsAdminMode(true);
-        sessionStorage.setItem("adminModeMetrics", "Process3116");
-        toast({ title: "Admin Mode Enabled" });
-      } else {
-        toast({ title: "Incorrect password", variant: "destructive" });
-      }
+      navigate("/admin-login");
     }
-  }, [isAdminMode, toast]);
+  }, [isAdminMode, toast, navigate]);
 
   const addKeyword = useCallback(() => {
     if (newKeyword.trim() && !keywords.includes(newKeyword.trim().toUpperCase())) {
@@ -528,22 +565,73 @@ const Metrics = () => {
               size="icon" 
               onClick={toggleAdminMode}
               className="h-8 w-8"
+              title={isAdminMode ? "Logout Admin" : "Admin Login"}
             >
-              <KeyRound className="h-3 w-3 sm:h-4 sm:w-4" />
+              {isAdminMode ? (
+                <LogOut className="h-3 w-3 sm:h-4 sm:w-4" />
+              ) : (
+                <KeyRound className="h-3 w-3 sm:h-4 sm:w-4" />
+              )}
             </Button>
           </div>
         </div>
 
         {isAdminMode && viewMode === "daily" && (
-          <div className="flex items-center gap-2 bg-muted p-2 rounded-lg">
-            <Switch 
-              id="shift-view" 
-              checked={showShiftView} 
-              onCheckedChange={setShowShiftView} 
-            />
-            <Label htmlFor="shift-view" className="text-sm cursor-pointer">
-              Show Shift View (color bars by shift)
-            </Label>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 bg-muted p-2 rounded-lg">
+              <Switch 
+                id="shift-view" 
+                checked={showShiftView} 
+                onCheckedChange={setShowShiftView} 
+              />
+              <Label htmlFor="shift-view" className="text-sm cursor-pointer">
+                Show Shift View (color bars by shift)
+              </Label>
+            </div>
+            
+            {showShiftView && (
+              <div className="bg-muted p-3 rounded-lg space-y-2">
+                <h3 className="text-sm font-semibold">Shift Color Key</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: shiftColors[1] }} />
+                    <span className="text-xs">Shift 1 (Days)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: shiftColors[2] }} />
+                    <span className="text-xs">Shift 2 (Nights)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: shiftColors[4] }} />
+                    <span className="text-xs">Shift 4 (Days)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: shiftColors[3] }} />
+                    <span className="text-xs">Shift 3 (Nights)</span>
+                  </div>
+                </div>
+                
+                {shiftStats && (
+                  <div className="mt-3 pt-3 border-t">
+                    <h4 className="text-xs font-semibold mb-2">Average Jobs Per Day by Shift</h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <div className="text-xs">
+                        <span className="font-medium">Shift 1:</span> {shiftStats[1].avg} avg
+                      </div>
+                      <div className="text-xs">
+                        <span className="font-medium">Shift 2:</span> {shiftStats[2].avg} avg
+                      </div>
+                      <div className="text-xs">
+                        <span className="font-medium">Shift 4:</span> {shiftStats[4].avg} avg
+                      </div>
+                      <div className="text-xs">
+                        <span className="font-medium">Shift 3:</span> {shiftStats[3].avg} avg
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
