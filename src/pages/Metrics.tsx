@@ -60,16 +60,17 @@ const Metrics = () => {
   }, []);
 
   // Function to determine shift for a given date and time
-  const getShiftForDate = useCallback((date: Date) => {
+  // Pattern: Each shift works 4 days (7am-7pm), 4 days off, 4 nights (7pm-7am), 4 days off (16-day cycle)
+  const getShiftForDateTime = useCallback((date: Date) => {
     // Reference: Shift 1 started days on June 22nd, 2025 at 7am
     const referenceDate = new Date(2025, 5, 22, 7, 0, 0); // Month is 0-indexed
     
     // Get hour to determine if it's day (7am-7pm) or night shift (7pm-7am)
     const hour = date.getHours();
-    const isDayShift = hour >= 7 && hour < 19;
+    const isDayTime = hour >= 7 && hour < 19;
     
-    // Calculate days since reference, considering the time of day
-    // If it's before 7am, we're still in the previous day's night shift
+    // Calculate which day we're on in the 16-day cycle
+    // Adjust for jobs before 7am (they belong to previous day's night shift)
     let adjustedDate = new Date(date);
     if (hour < 7) {
       adjustedDate.setDate(adjustedDate.getDate() - 1);
@@ -77,19 +78,36 @@ const Metrics = () => {
     
     const diffMs = adjustedDate.getTime() - referenceDate.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    const cycleDay = ((diffDays % 16) + 16) % 16; // 16-day cycle (4 days * 4 shifts)
+    const cycleDay = ((diffDays % 16) + 16) % 16;
     
-    // Determine which shift based on cycle day and whether it's day or night
-    // Shift 1: Days (0-3), Shift 2: Nights (4-7), Shift 4: Days (8-11), Shift 3: Nights (12-15)
-    if (cycleDay < 4) {
-      return { shift: isDayShift ? 1 : 2, type: isDayShift ? 'day' : 'night' };
-    } else if (cycleDay < 8) {
-      return { shift: isDayShift ? 2 : 4, type: isDayShift ? 'night' : 'day' };
-    } else if (cycleDay < 12) {
-      return { shift: isDayShift ? 4 : 3, type: isDayShift ? 'day' : 'night' };
+    // Determine which shift is working based on cycle position
+    // Shift 1: Days 0-3, Nights 8-11
+    // Shift 2: Nights 0-3, Days 4-7  
+    // Shift 3: Nights 8-11, Days 12-15
+    // Shift 4: Days 4-7, Nights 12-15
+    
+    let shift = 1;
+    let shiftType: 'day' | 'night' = 'day';
+    
+    if (cycleDay >= 0 && cycleDay < 4) {
+      // Days 0-3: Shift 1 on days, Shift 2 on nights
+      shift = isDayTime ? 1 : 2;
+      shiftType = isDayTime ? 'day' : 'night';
+    } else if (cycleDay >= 4 && cycleDay < 8) {
+      // Days 4-7: Shift 2 on days, Shift 4 on nights
+      shift = isDayTime ? 2 : 4;
+      shiftType = isDayTime ? 'day' : 'night';
+    } else if (cycleDay >= 8 && cycleDay < 12) {
+      // Days 8-11: Shift 4 on days, Shift 3 on nights
+      shift = isDayTime ? 4 : 3;
+      shiftType = isDayTime ? 'day' : 'night';
     } else {
-      return { shift: isDayShift ? 3 : 1, type: isDayShift ? 'night' : 'day' };
+      // Days 12-15: Shift 3 on days, Shift 1 on nights
+      shift = isDayTime ? 3 : 1;
+      shiftType = isDayTime ? 'day' : 'night';
     }
+    
+    return { shift, type: shiftType };
   }, []);
 
   const shiftColors = useMemo(() => ({
@@ -212,22 +230,47 @@ const Metrics = () => {
   const dailyData = useMemo(() => {
     if (viewMode !== "daily") return [];
     
-    const dataMap = new Map<string, Map<string, number>>();
-    const shiftMap = new Map<string, { shift: number, type: string }>();
+    // Store jobs for each day, split by day/night periods
+    const dataMap = new Map<string, { 
+      dayShift: { shift: number, jobs: Map<string, number> },
+      nightShift: { shift: number, jobs: Map<string, number> }
+    }>();
     
     filteredJobsByTimespan.forEach((job) => {
       if (!selectedDepartments.has(job.department)) return;
       
       const date = new Date(job.completedAt);
-      const dayKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      const hour = date.getHours();
       
+      // Determine which calendar day this belongs to
+      let calendarDate = new Date(date);
+      if (hour < 7) {
+        // Before 7am belongs to previous day's night shift
+        calendarDate.setDate(calendarDate.getDate() - 1);
+      }
+      
+      const dayKey = `${calendarDate.getFullYear()}-${String(calendarDate.getMonth() + 1).padStart(2, '0')}-${String(calendarDate.getDate()).padStart(2, '0')}`;
+      
+      // Initialize day data if needed
       if (!dataMap.has(dayKey)) {
-        dataMap.set(dayKey, new Map());
-        shiftMap.set(dayKey, getShiftForDate(date));
+        // Get which shifts are working on this day (7am-7pm) and night (7pm-7am next day)
+        const dayShiftDate = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate(), 12, 0, 0);
+        const nightShiftDate = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate(), 23, 0, 0);
+        
+        const dayShiftInfo = getShiftForDateTime(dayShiftDate);
+        const nightShiftInfo = getShiftForDateTime(nightShiftDate);
+        
+        dataMap.set(dayKey, {
+          dayShift: { shift: dayShiftInfo.shift, jobs: new Map() },
+          nightShift: { shift: nightShiftInfo.shift, jobs: new Map() }
+        });
       }
       
       const dayData = dataMap.get(dayKey)!;
-      dayData.set(job.department, (dayData.get(job.department) || 0) + 1);
+      const isDayTime = hour >= 7 && hour < 19;
+      const targetShift = isDayTime ? dayData.dayShift : dayData.nightShift;
+      
+      targetShift.jobs.set(job.department, (targetShift.jobs.get(job.department) || 0) + 1);
     });
 
     const sortedDays = Array.from(dataMap.keys()).sort();
@@ -240,47 +283,77 @@ const Metrics = () => {
       const [year, month, day] = dayKey.split('-');
       const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
       const dayName = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      const shiftInfo = shiftMap.get(dayKey)!;
       
-      const departments = dataMap.get(dayKey)!;
+      const dayData = dataMap.get(dayKey)!;
+      
       const result: any = { 
         month: dayName,
-        shift: shiftInfo.shift,
-        shiftType: shiftInfo.type
+        dayShift: dayData.dayShift.shift,
+        nightShift: dayData.nightShift.shift,
       };
       
-      departments.forEach((count, dept) => {
-        result[dept] = count;
+      // Add department counts for day shift
+      Array.from(selectedDepartments).forEach((dept) => {
+        result[`${dept}_day`] = dayData.dayShift.jobs.get(dept) || 0;
+        result[`${dept}_night`] = dayData.nightShift.jobs.get(dept) || 0;
+        result[dept] = (dayData.dayShift.jobs.get(dept) || 0) + (dayData.nightShift.jobs.get(dept) || 0);
       });
       
       return result;
     });
-  }, [filteredJobsByTimespan, selectedDepartments, timespan, viewMode, getShiftForDate]);
+  }, [filteredJobsByTimespan, selectedDepartments, timespan, viewMode, getShiftForDateTime]);
 
-  // Calculate shift statistics
+  // Calculate shift statistics - separate for day and night work
   const shiftStats = useMemo(() => {
     if (viewMode !== "daily") return null;
 
-    const shiftJobCounts = { 1: 0, 2: 0, 3: 0, 4: 0 };
-    const shiftDayCounts = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    const shiftDayJobCounts = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    const shiftDayWorkDays = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    const shiftNightJobCounts = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    const shiftNightWorkDays = { 1: 0, 2: 0, 3: 0, 4: 0 };
 
     dailyData.forEach((day: any) => {
-      const shift = day.shift as 1 | 2 | 3 | 4;
-      shiftDayCounts[shift]++;
+      const dayShift = day.dayShift as 1 | 2 | 3 | 4;
+      const nightShift = day.nightShift as 1 | 2 | 3 | 4;
       
-      // Count jobs for this shift
+      // Count day shift jobs
       let dayJobCount = 0;
       Array.from(selectedDepartments).forEach((dept) => {
-        dayJobCount += day[dept] || 0;
+        dayJobCount += day[`${dept}_day`] || 0;
       });
-      shiftJobCounts[shift] += dayJobCount;
+      if (dayJobCount > 0) {
+        shiftDayJobCounts[dayShift] += dayJobCount;
+        shiftDayWorkDays[dayShift]++;
+      }
+      
+      // Count night shift jobs
+      let nightJobCount = 0;
+      Array.from(selectedDepartments).forEach((dept) => {
+        nightJobCount += day[`${dept}_night`] || 0;
+      });
+      if (nightJobCount > 0) {
+        shiftNightJobCounts[nightShift] += nightJobCount;
+        shiftNightWorkDays[nightShift]++;
+      }
     });
 
     return {
-      1: { count: shiftJobCounts[1], avg: shiftDayCounts[1] > 0 ? (shiftJobCounts[1] / shiftDayCounts[1]).toFixed(1) : '0' },
-      2: { count: shiftJobCounts[2], avg: shiftDayCounts[2] > 0 ? (shiftJobCounts[2] / shiftDayCounts[2]).toFixed(1) : '0' },
-      3: { count: shiftJobCounts[3], avg: shiftDayCounts[3] > 0 ? (shiftJobCounts[3] / shiftDayCounts[3]).toFixed(1) : '0' },
-      4: { count: shiftJobCounts[4], avg: shiftDayCounts[4] > 0 ? (shiftJobCounts[4] / shiftDayCounts[4]).toFixed(1) : '0' },
+      1: { 
+        dayAvg: shiftDayWorkDays[1] > 0 ? (shiftDayJobCounts[1] / shiftDayWorkDays[1]).toFixed(1) : '0',
+        nightAvg: shiftNightWorkDays[1] > 0 ? (shiftNightJobCounts[1] / shiftNightWorkDays[1]).toFixed(1) : '0'
+      },
+      2: { 
+        dayAvg: shiftDayWorkDays[2] > 0 ? (shiftDayJobCounts[2] / shiftDayWorkDays[2]).toFixed(1) : '0',
+        nightAvg: shiftNightWorkDays[2] > 0 ? (shiftNightJobCounts[2] / shiftNightWorkDays[2]).toFixed(1) : '0'
+      },
+      3: { 
+        dayAvg: shiftDayWorkDays[3] > 0 ? (shiftDayJobCounts[3] / shiftDayWorkDays[3]).toFixed(1) : '0',
+        nightAvg: shiftNightWorkDays[3] > 0 ? (shiftNightJobCounts[3] / shiftNightWorkDays[3]).toFixed(1) : '0'
+      },
+      4: { 
+        dayAvg: shiftDayWorkDays[4] > 0 ? (shiftDayJobCounts[4] / shiftDayWorkDays[4]).toFixed(1) : '0',
+        nightAvg: shiftNightWorkDays[4] > 0 ? (shiftNightJobCounts[4] / shiftNightWorkDays[4]).toFixed(1) : '0'
+      },
     };
   }, [dailyData, selectedDepartments, viewMode]);
 
@@ -614,18 +687,24 @@ const Metrics = () => {
                 {shiftStats && (
                   <div className="mt-3 pt-3 border-t">
                     <h4 className="text-xs font-semibold mb-2">Average Jobs Per Day by Shift</h4>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      <div className="text-xs">
-                        <span className="font-medium">Shift 1:</span> {shiftStats[1].avg} avg
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <div className="text-xs font-medium mb-1">Day Shifts (7am-7pm)</div>
+                        <div className="text-xs pl-2">
+                          <div>Shift 1: {shiftStats[1].dayAvg} avg</div>
+                          <div>Shift 2: {shiftStats[2].dayAvg} avg</div>
+                          <div>Shift 3: {shiftStats[3].dayAvg} avg</div>
+                          <div>Shift 4: {shiftStats[4].dayAvg} avg</div>
+                        </div>
                       </div>
-                      <div className="text-xs">
-                        <span className="font-medium">Shift 2:</span> {shiftStats[2].avg} avg
-                      </div>
-                      <div className="text-xs">
-                        <span className="font-medium">Shift 4:</span> {shiftStats[4].avg} avg
-                      </div>
-                      <div className="text-xs">
-                        <span className="font-medium">Shift 3:</span> {shiftStats[3].avg} avg
+                      <div className="space-y-1">
+                        <div className="text-xs font-medium mb-1">Night Shifts (7pm-7am)</div>
+                        <div className="text-xs pl-2">
+                          <div>Shift 1: {shiftStats[1].nightAvg} avg</div>
+                          <div>Shift 2: {shiftStats[2].nightAvg} avg</div>
+                          <div>Shift 3: {shiftStats[3].nightAvg} avg</div>
+                          <div>Shift 4: {shiftStats[4].nightAvg} avg</div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -781,17 +860,34 @@ const Metrics = () => {
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Legend wrapperStyle={{ fontSize: '12px' }} />
                     {showShiftView && viewMode === "daily" ? (
-                      Array.from(selectedDepartments).map((dept) => (
-                        <Bar
-                          key={dept}
-                          dataKey={dept}
-                          stackId="a"
-                        >
-                          {chartData.map((entry: any, index: number) => (
-                            <Cell key={`cell-${index}`} fill={shiftColors[entry.shift as keyof typeof shiftColors]} />
-                          ))}
-                        </Bar>
-                      ))
+                      <>
+                        {/* Day shift bars */}
+                        {Array.from(selectedDepartments).map((dept) => (
+                          <Bar
+                            key={`${dept}_day`}
+                            dataKey={`${dept}_day`}
+                            stackId="day"
+                            name={`${dept} (Day)`}
+                          >
+                            {chartData.map((entry: any, index: number) => (
+                              <Cell key={`cell-day-${index}`} fill={shiftColors[entry.dayShift as keyof typeof shiftColors]} />
+                            ))}
+                          </Bar>
+                        ))}
+                        {/* Night shift bars */}
+                        {Array.from(selectedDepartments).map((dept) => (
+                          <Bar
+                            key={`${dept}_night`}
+                            dataKey={`${dept}_night`}
+                            stackId="night"
+                            name={`${dept} (Night)`}
+                          >
+                            {chartData.map((entry: any, index: number) => (
+                              <Cell key={`cell-night-${index}`} fill={shiftColors[entry.nightShift as keyof typeof shiftColors]} />
+                            ))}
+                          </Bar>
+                        ))}
+                      </>
                     ) : (
                       Array.from(selectedDepartments).map((dept) => (
                         <Bar
