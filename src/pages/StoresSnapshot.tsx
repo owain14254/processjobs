@@ -321,19 +321,19 @@ const StoresSnapshot = () => {
               {showAdvancedSearch && <div className="space-y-3 sm:space-y-4 pt-2">
                   <div className="space-y-1.5 sm:space-y-2">
                     <label className="text-xs sm:text-sm font-medium block text-left">SAP Number</label>
-                    <Input placeholder="Search SAP Number... (use * for wildcards)" value={sapNumber} onChange={e => setSapNumber(e.target.value)} onKeyDown={handleSearchKeyDown} className="h-9 sm:h-10" />
+                    <Input value={sapNumber} onChange={e => setSapNumber(e.target.value)} onKeyDown={handleSearchKeyDown} className="h-9 sm:h-10" placeholder="Search SAP Number... " />
                   </div>
                   <div className="space-y-1.5 sm:space-y-2">
                     <label className="text-xs sm:text-sm font-medium block text-left">Location</label>
-                    <Input placeholder="Search Location... (use * for wildcards)" value={location} onChange={e => setLocation(e.target.value)} onKeyDown={handleSearchKeyDown} className="h-9 sm:h-10" />
+                    <Input value={location} onChange={e => setLocation(e.target.value)} onKeyDown={handleSearchKeyDown} className="h-9 sm:h-10" placeholder="Search Location... " />
                   </div>
                   <div className="space-y-1.5 sm:space-y-2">
                     <label className="text-xs sm:text-sm font-medium block text-left">Description</label>
-                    <Input placeholder="Search Description... (use * for wildcards)" value={description} onChange={e => setDescription(e.target.value)} onKeyDown={handleSearchKeyDown} className="h-9 sm:h-10" />
+                    <Input value={description} onChange={e => setDescription(e.target.value)} onKeyDown={handleSearchKeyDown} className="h-9 sm:h-10" placeholder="Search Description... " />
                   </div>
                   <div className="space-y-1.5 sm:space-y-2">
                     <label className="text-xs sm:text-sm font-medium block text-left">Vendor Number</label>
-                    <Input placeholder="Search Vendor Number... (use * for wildcards)" value={vendorNumber} onChange={e => setVendorNumber(e.target.value)} onKeyDown={handleSearchKeyDown} className="h-9 sm:h-10" />
+                    <Input value={vendorNumber} onChange={e => setVendorNumber(e.target.value)} onKeyDown={handleSearchKeyDown} className="h-9 sm:h-10" placeholder="Search Vendor Number... " />
                   </div>
                 </div>}
 
