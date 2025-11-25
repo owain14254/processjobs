@@ -313,7 +313,7 @@ const StoresSnapshot = () => {
             <div className="w-full max-w-2xl mx-auto space-y-3 sm:space-y-4">
               {/* Simple Search - Hidden when advanced search is active */}
               {!showAdvancedSearch && <div className="space-y-1.5 sm:space-y-2">
-                <label className="text-xs font-medium block sm:text-lg text-left">Search All Fields</label>
+                <label className="text-xs font-medium block sm:text-lg text-center">Search All Fields</label>
                 <Input value={simpleSearch} onChange={e => setSimpleSearch(e.target.value)} onKeyDown={handleSearchKeyDown} className="h-9 sm:h-10" placeholder="Search across all fields... (use * for wildcards)" />
               </div>}
 
