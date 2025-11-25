@@ -3,7 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer, Cell } from "recharts";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Filter, Download, Calendar, CalendarDays, X, Plus, Tags } from "lucide-react";
+import { ArrowLeft, Filter, Download, Calendar, CalendarDays, X, Plus, Tags, KeyRound, LogOut } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { useMemo, useState, useCallback, useEffect } from "react";
 import { Input } from "@/components/ui/input";
@@ -20,8 +22,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 type Timespan = "7days" | "30days" | "90days" | "6months" | "1year" | "all";
 type ViewMode = "monthly" | "daily" | "keywords";
+
 const Metrics = () => {
   const navigate = useNavigate();
   const { completedJobs } = useJobStorage();
@@ -32,6 +36,9 @@ const Metrics = () => {
     return saved ? JSON.parse(saved) : [];
   });
   const [newKeyword, setNewKeyword] = useState("");
+  const [isAdminMode, setIsAdminMode] = useState(false);
+  const [showShiftView, setShowShiftView] = useState(false);
+
   const timespanLabels: Record<Timespan, string> = {
     "7days": "Last 7 Days",
     "30days": "Last 30 Days",
@@ -46,13 +53,73 @@ const Metrics = () => {
     localStorage.setItem("metricsKeywords", JSON.stringify(keywords));
   }, [keywords]);
 
+  // Check for admin mode on mount
+  useEffect(() => {
+    const adminPassword = sessionStorage.getItem("adminModeMetrics");
+    setIsAdminMode(adminPassword === "Process3116");
+  }, []);
+
   // Function to determine shift for a given date and time
   // Pattern: Each shift works 4 days (7am-7pm), 4 days off, 4 nights (7pm-7am), 4 days off (16-day cycle)
+  const getShiftForDateTime = useCallback((date: Date) => {
+    // Reference: Shift 1 started days on June 22nd, 2025 at 7am
+    // NOTE: month is 0-indexed (5 = June)
+    const referenceDate = new Date(2025, 5, 22, 7, 0, 0);
+
+    const hour = date.getHours();
+    const isDayTime = hour >= 7 && hour < 19;
+
+    // Jobs before 7am belong to the previous calendar day’s night shift
+    const adjustedDate = new Date(date);
+    if (hour < 7) {
+      adjustedDate.setDate(adjustedDate.getDate() - 1);
+    }
+
+    const diffMs = adjustedDate.getTime() - referenceDate.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const cycleDay = ((diffDays % 16) + 16) % 16; // 0–15
+
+    let shift: 1 | 2 | 3 | 4;
+    const shiftType: "day" | "night" = isDayTime ? "day" : "night";
+
+    // Correct 4-on / 4-off pattern:
+    // Shift 1: Days 0–3, Nights 8–11
+    // Shift 2: Days 4–7, Nights 12–15
+    // Shift 3: Nights 0–3, Days 8–11
+    // Shift 4: Nights 4–7, Days 12–15
+    if (cycleDay >= 0 && cycleDay < 4) {
+      // Cycle days 0–3
+      shift = isDayTime ? 1 : 3;
+    } else if (cycleDay >= 4 && cycleDay < 8) {
+      // Cycle days 4–7
+      shift = isDayTime ? 2 : 4;
+    } else if (cycleDay >= 8 && cycleDay < 12) {
+      // Cycle days 8–11
+      shift = isDayTime ? 3 : 1;
+    } else {
+      // Cycle days 12–15
+      shift = isDayTime ? 4 : 2;
+    }
+
+    return { shift, type: shiftType };
+  }, []);
+
+  const shiftColors = useMemo(
+    () => ({
+      1: "hsl(221, 83%, 53%)", // Blue - Shift 1
+      2: "hsl(142, 71%, 45%)", // Green - Shift 2
+      3: "hsl(346, 77%, 50%)", // Red - Shift 3
+      4: "hsl(38, 92%, 50%)", // Orange - Shift 4
+    }),
+    [],
+  );
 
   const filteredJobsByTimespan = useMemo(() => {
     if (timespan === "all") return completedJobs;
+
     const now = new Date();
     const cutoffDate = new Date();
+
     switch (timespan) {
       case "7days":
         cutoffDate.setDate(now.getDate() - 7);
@@ -70,43 +137,42 @@ const Metrics = () => {
         cutoffDate.setFullYear(now.getFullYear() - 1);
         break;
     }
+
     return completedJobs.filter((job) => new Date(job.completedAt) >= cutoffDate);
   }, [completedJobs, timespan]);
+
   const allDepartments = useMemo(() => {
     const depts = new Set<string>();
     filteredJobsByTimespan.forEach((job) => depts.add(job.department));
     return Array.from(depts).sort();
   }, [filteredJobsByTimespan]);
+
   const [selectedDepartments, setSelectedDepartments] = useState<Set<string>>(new Set(allDepartments));
 
   // Update selected departments when all departments change
   useEffect(() => {
     setSelectedDepartments(new Set(allDepartments));
   }, [allDepartments]);
+
   const departmentColors: Record<string, string> = useMemo(() => {
     const colors = [
-      "hsl(221, 83%, 53%)",
-      // Blue
-      "hsl(142, 71%, 45%)",
-      // Green
-      "hsl(262, 83%, 58%)",
-      // Purple
-      "hsl(346, 77%, 50%)",
-      // Red
-      "hsl(38, 92%, 50%)",
-      // Orange
-      "hsl(173, 58%, 39%)",
-      // Teal
-      "hsl(280, 65%, 60%)",
-      // Pink
+      "hsl(221, 83%, 53%)", // Blue
+      "hsl(142, 71%, 45%)", // Green
+      "hsl(262, 83%, 58%)", // Purple
+      "hsl(346, 77%, 50%)", // Red
+      "hsl(38, 92%, 50%)", // Orange
+      "hsl(173, 58%, 39%)", // Teal
+      "hsl(280, 65%, 60%)", // Pink
       "hsl(198, 93%, 60%)", // Cyan
     ];
+
     const colorMap: Record<string, string> = {};
     allDepartments.forEach((dept, idx) => {
       colorMap[dept] = colors[idx % colors.length];
     });
     return colorMap;
   }, [allDepartments]);
+
   const toggleDepartment = useCallback((dept: string) => {
     setSelectedDepartments((prev) => {
       const newSet = new Set(prev);
@@ -118,37 +184,44 @@ const Metrics = () => {
       return newSet;
     });
   }, []);
+
   const monthlyData = useMemo(() => {
     if (viewMode !== "monthly") return [];
+
     const dataMap = new Map<string, Map<string, number>>();
+
     filteredJobsByTimespan.forEach((job) => {
       if (!selectedDepartments.has(job.department)) return;
+
       const date = new Date(job.completedAt);
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+
       if (!dataMap.has(monthKey)) {
         dataMap.set(monthKey, new Map());
       }
+
       const monthData = dataMap.get(monthKey)!;
       monthData.set(job.department, (monthData.get(job.department) || 0) + 1);
     });
+
     const sortedMonths = Array.from(dataMap.keys()).sort();
+
     return sortedMonths.map((monthKey) => {
       const [year, month] = monthKey.split("-");
       const date = new Date(parseInt(year), parseInt(month) - 1);
-      const monthName = date.toLocaleDateString("en-US", {
-        month: "short",
-        year: "numeric",
-      });
+      const monthName = date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+
       const departments = dataMap.get(monthKey)!;
-      const result: any = {
-        month: monthName,
-      };
+      const result: any = { month: monthName };
+
       departments.forEach((count, dept) => {
         result[dept] = count;
       });
+
       return result;
     });
   }, [filteredJobsByTimespan, selectedDepartments, viewMode]);
+
   const dailyData = useMemo(() => {
     if (viewMode !== "daily") return [];
 
@@ -156,18 +229,14 @@ const Metrics = () => {
     const dataMap = new Map<
       string,
       {
-        dayShift: {
-          shift: number;
-          jobs: Map<string, number>;
-        };
-        nightShift: {
-          shift: number;
-          jobs: Map<string, number>;
-        };
+        dayShift: { shift: number; jobs: Map<string, number> };
+        nightShift: { shift: number; jobs: Map<string, number> };
       }
     >();
+
     filteredJobsByTimespan.forEach((job) => {
       if (!selectedDepartments.has(job.department)) return;
+
       const date = new Date(job.completedAt);
       const hour = date.getHours();
 
@@ -177,6 +246,7 @@ const Metrics = () => {
         // Before 7am belongs to previous day's night shift
         calendarDate.setDate(calendarDate.getDate() - 1);
       }
+
       const dayKey = `${calendarDate.getFullYear()}-${String(calendarDate.getMonth() + 1).padStart(2, "0")}-${String(calendarDate.getDate()).padStart(2, "0")}`;
 
       // Initialize day data if needed
@@ -198,37 +268,36 @@ const Metrics = () => {
           0,
           0,
         );
+
         const dayShiftInfo = getShiftForDateTime(dayShiftDate);
         const nightShiftInfo = getShiftForDateTime(nightShiftDate);
+
         dataMap.set(dayKey, {
-          dayShift: {
-            shift: dayShiftInfo.shift,
-            jobs: new Map(),
-          },
-          nightShift: {
-            shift: nightShiftInfo.shift,
-            jobs: new Map(),
-          },
+          dayShift: { shift: dayShiftInfo.shift, jobs: new Map() },
+          nightShift: { shift: nightShiftInfo.shift, jobs: new Map() },
         });
       }
+
       const dayData = dataMap.get(dayKey)!;
       const isDayTime = hour >= 7 && hour < 19;
       const targetShift = isDayTime ? dayData.dayShift : dayData.nightShift;
+
       targetShift.jobs.set(job.department, (targetShift.jobs.get(job.department) || 0) + 1);
     });
+
     const sortedDays = Array.from(dataMap.keys()).sort();
 
     // Show appropriate number of days based on timespan
     const daysToShow = timespan === "7days" ? 7 : timespan === "30days" ? 30 : sortedDays.length;
     const limitedDays = sortedDays.slice(-daysToShow);
+
     return limitedDays.map((dayKey) => {
       const [year, month, day] = dayKey.split("-");
       const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-      const dayName = date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      });
+      const dayName = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+
       const dayData = dataMap.get(dayKey)!;
+
       const result: any = {
         month: dayName,
         dayShift: dayData.dayShift.shift,
@@ -247,6 +316,7 @@ const Metrics = () => {
         result[`${dept}_night`] = nightCount;
         result[dept] = dayCount + nightCount;
       });
+
       return result;
     });
   }, [filteredJobsByTimespan, selectedDepartments, timespan, viewMode, getShiftForDateTime]);
@@ -254,30 +324,12 @@ const Metrics = () => {
   // Calculate shift statistics - separate for day and night work for all 4 shifts
   const shiftStats = useMemo(() => {
     if (viewMode !== "daily") return null;
-    const shiftDayJobCounts: Record<1 | 2 | 3 | 4, number> = {
-      1: 0,
-      2: 0,
-      3: 0,
-      4: 0,
-    };
-    const shiftDayWorkDays: Record<1 | 2 | 3 | 4, number> = {
-      1: 0,
-      2: 0,
-      3: 0,
-      4: 0,
-    };
-    const shiftNightJobCounts: Record<1 | 2 | 3 | 4, number> = {
-      1: 0,
-      2: 0,
-      3: 0,
-      4: 0,
-    };
-    const shiftNightWorkDays: Record<1 | 2 | 3 | 4, number> = {
-      1: 0,
-      2: 0,
-      3: 0,
-      4: 0,
-    };
+
+    const shiftDayJobCounts: Record<1 | 2 | 3 | 4, number> = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    const shiftDayWorkDays: Record<1 | 2 | 3 | 4, number> = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    const shiftNightJobCounts: Record<1 | 2 | 3 | 4, number> = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    const shiftNightWorkDays: Record<1 | 2 | 3 | 4, number> = { 1: 0, 2: 0, 3: 0, 4: 0 };
+
     dailyData.forEach((day: any) => {
       const dayShift = day.dayShift as 1 | 2 | 3 | 4;
       const nightShift = day.nightShift as 1 | 2 | 3 | 4;
@@ -298,6 +350,7 @@ const Metrics = () => {
       shiftNightJobCounts[nightShift] += nightJobCount;
       shiftNightWorkDays[nightShift]++;
     });
+
     return {
       1: {
         dayAvg: shiftDayWorkDays[1] > 0 ? (shiftDayJobCounts[1] / shiftDayWorkDays[1]).toFixed(1) : "0",
@@ -329,10 +382,13 @@ const Metrics = () => {
   // Keyword analysis data - optimized to only run when in keywords view
   const keywordData = useMemo(() => {
     if (viewMode !== "keywords") return [];
+
     const keywordMap = new Map<string, number>();
     const upperKeywords = keywords.map((k) => k.toUpperCase());
+
     filteredJobsByTimespan.forEach((job) => {
       if (!selectedDepartments.has(job.department)) return;
+
       const description = job.description.toUpperCase();
 
       // Find keywords in description
@@ -342,54 +398,59 @@ const Metrics = () => {
         }
       });
     });
+
     return Array.from(keywordMap.entries())
-      .map(([keyword, count]) => ({
-        keyword,
-        count,
-      }))
+      .map(([keyword, count]) => ({ keyword, count }))
       .sort((a, b) => b.count - a.count);
   }, [filteredJobsByTimespan, selectedDepartments, keywords, viewMode]);
+
   const keywordColors = useMemo(() => {
     const colors = [
-      "hsl(221, 83%, 53%)",
-      // Blue
-      "hsl(142, 71%, 45%)",
-      // Green
-      "hsl(262, 83%, 58%)",
-      // Purple
-      "hsl(346, 77%, 50%)",
-      // Red
-      "hsl(38, 92%, 50%)",
-      // Orange
-      "hsl(173, 58%, 39%)",
-      // Teal
-      "hsl(280, 65%, 60%)",
-      // Pink
-      "hsl(198, 93%, 60%)",
-      // Cyan
-      "hsl(48, 96%, 53%)",
-      // Yellow
+      "hsl(221, 83%, 53%)", // Blue
+      "hsl(142, 71%, 45%)", // Green
+      "hsl(262, 83%, 58%)", // Purple
+      "hsl(346, 77%, 50%)", // Red
+      "hsl(38, 92%, 50%)", // Orange
+      "hsl(173, 58%, 39%)", // Teal
+      "hsl(280, 65%, 60%)", // Pink
+      "hsl(198, 93%, 60%)", // Cyan
+      "hsl(48, 96%, 53%)", // Yellow
       "hsl(340, 82%, 52%)", // Rose
     ];
+
     const colorMap: Record<string, string> = {};
     keywords.forEach((keyword, idx) => {
       colorMap[keyword] = colors[idx % colors.length];
     });
     return colorMap;
   }, [keywords]);
+
   const { toast } = useToast();
+
+  const toggleAdminMode = useCallback(() => {
+    if (isAdminMode) {
+      setIsAdminMode(false);
+      sessionStorage.removeItem("adminModeMetrics");
+      toast({ title: "Admin Mode Disabled" });
+    } else {
+      navigate("/admin-login");
+    }
+  }, [isAdminMode, toast, navigate]);
+
   const addKeyword = useCallback(() => {
     if (newKeyword.trim() && !keywords.includes(newKeyword.trim().toUpperCase())) {
       setKeywords([...keywords, newKeyword.trim().toUpperCase()]);
       setNewKeyword("");
     }
   }, [newKeyword, keywords]);
+
   const removeKeyword = useCallback(
     (keyword: string) => {
       setKeywords(keywords.filter((k) => k !== keyword));
     },
     [keywords],
   );
+
   const autoFindKeywords = useCallback(() => {
     // Extract all words from descriptions
     const wordFrequency = new Map<string, number>();
@@ -477,6 +538,7 @@ const Metrics = () => {
       "ALSO",
       "WELL",
     ]);
+
     filteredJobsByTimespan.forEach((job) => {
       if (!selectedDepartments.has(job.department)) return;
 
@@ -489,6 +551,7 @@ const Metrics = () => {
           return cleaned.length >= 2 && cleaned.length <= 10 && !stopWords.has(cleaned);
         })
         .map((word) => word.replace(/[^A-Z0-9]/g, ""));
+
       words.forEach((word) => {
         wordFrequency.set(word, (wordFrequency.get(word) || 0) + 1);
       });
@@ -516,7 +579,9 @@ const Metrics = () => {
       });
     }
   }, [filteredJobsByTimespan, selectedDepartments, keywords, toast]);
+
   const chartData = viewMode === "keywords" ? keywordData : viewMode === "monthly" ? monthlyData : dailyData;
+
   const handleExportMetrics = useCallback(() => {
     const csvData = [
       ["Period", ...Array.from(selectedDepartments)],
@@ -525,21 +590,22 @@ const Metrics = () => {
         ...Array.from(selectedDepartments).map((dept) => row[dept] || 0),
       ]),
     ];
+
     const csv = csvData.map((row) => row.join(",")).join("\n");
-    const blob = new Blob([csv], {
-      type: "text/csv",
-    });
+    const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
     a.download = `metrics-${viewMode}-${timespan}-${new Date().toISOString().split("T")[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+
     toast({
       title: "Metrics exported",
       description: "CSV file downloaded successfully",
     });
   }, [chartData, selectedDepartments, viewMode, timespan, toast]);
+
   const toggleSelectAll = useCallback(() => {
     if (selectedDepartments.size === allDepartments.length) {
       setSelectedDepartments(new Set());
@@ -547,9 +613,12 @@ const Metrics = () => {
       setSelectedDepartments(new Set(allDepartments));
     }
   }, [selectedDepartments.size, allDepartments]);
+
   const totalJobs = filteredJobsByTimespan.filter((job) => selectedDepartments.has(job.department)).length;
+
   const departmentStats = useMemo(() => {
     if (totalJobs === 0) return [];
+
     const stats = Array.from(selectedDepartments)
       .map((dept) => {
         const count = filteredJobsByTimespan.filter((job) => job.department === dept).length;
@@ -562,9 +631,11 @@ const Metrics = () => {
       .sort((a, b) => b.count - a.count);
     return stats;
   }, [filteredJobsByTimespan, selectedDepartments, totalJobs]);
+
   const topDepartment = departmentStats[0];
   const timeBasedData = viewMode === "monthly" ? monthlyData : dailyData;
   const avgJobsPerPeriod = timeBasedData.length > 0 ? (totalJobs / timeBasedData.length).toFixed(1) : "0";
+
   return (
     <div className="min-h-screen bg-background">
       <div className="w-full space-y-3 py-2 sm:py-4 px-2 sm:px-4 md:px-6">
@@ -661,12 +732,7 @@ const Metrics = () => {
                     onCheckedChange={() => toggleDepartment(dept)}
                   >
                     <div className="flex items-center gap-2">
-                      <div
-                        className="w-3 h-3 rounded"
-                        style={{
-                          backgroundColor: departmentColors[dept],
-                        }}
-                      />
+                      <div className="w-3 h-3 rounded" style={{ backgroundColor: departmentColors[dept] }} />
                       {dept}
                     </div>
                   </DropdownMenuCheckboxItem>
@@ -679,10 +745,124 @@ const Metrics = () => {
               <span className="hidden sm:inline">Export CSV</span>
               <span className="sm:hidden">Export</span>
             </Button>
+
+            <Button
+              variant={isAdminMode ? "default" : "outline"}
+              size="icon"
+              onClick={toggleAdminMode}
+              className="h-8 w-8"
+              title={isAdminMode ? "Logout Admin" : "Admin Login"}
+            >
+              {isAdminMode ? (
+                <LogOut className="h-3 w-3 sm:h-4 sm:w-4" />
+              ) : (
+                <KeyRound className="h-3 w-3 sm:h-4 sm:w-4" />
+              )}
+            </Button>
           </div>
         </div>
 
-        {viewMode === "daily" && <div className="space-y-2"></div>}
+        {isAdminMode && viewMode === "daily" && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 bg-muted p-2 rounded-lg">
+              <Switch id="shift-view" checked={showShiftView} onCheckedChange={setShowShiftView} />
+              <Label htmlFor="shift-view" className="text-sm cursor-pointer">
+                Show Shift View (color bars by shift)
+              </Label>
+            </div>
+
+            {showShiftView && (
+              <div className="bg-muted p-3 rounded-lg space-y-2">
+                <h3 className="text-sm font-semibold">Shift Color Key</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: shiftColors[1] }} />
+                    <span className="text-xs">Shift 1</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: shiftColors[2] }} />
+                    <span className="text-xs">Shift 2</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: shiftColors[3] }} />
+                    <span className="text-xs">Shift 3</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: shiftColors[4] }} />
+                    <span className="text-xs">Shift 4</span>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Each bar shows two shifts: bottom = day shift (7am-7pm), top = night shift (7pm-7am)
+                </p>
+
+                {shiftStats && (
+                  <div className="mt-3 pt-3 border-t">
+                    <h4 className="text-xs font-semibold mb-3">Average Jobs Per Shift (across timespan)</h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded" style={{ backgroundColor: shiftColors[1] }} />
+                          <span className="font-medium">Shift 1:</span>
+                        </div>
+                        <div className="flex gap-4">
+                          <span>
+                            Days: {shiftStats[1].dayAvg} avg ({shiftStats[1].dayTotal} total)
+                          </span>
+                          <span>
+                            Nights: {shiftStats[1].nightAvg} avg ({shiftStats[1].nightTotal} total)
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded" style={{ backgroundColor: shiftColors[2] }} />
+                          <span className="font-medium">Shift 2:</span>
+                        </div>
+                        <div className="flex gap-4">
+                          <span>
+                            Days: {shiftStats[2].dayAvg} avg ({shiftStats[2].dayTotal} total)
+                          </span>
+                          <span>
+                            Nights: {shiftStats[2].nightAvg} avg ({shiftStats[2].nightTotal} total)
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded" style={{ backgroundColor: shiftColors[3] }} />
+                          <span className="font-medium">Shift 3:</span>
+                        </div>
+                        <div className="flex gap-4">
+                          <span>
+                            Days: {shiftStats[3].dayAvg} avg ({shiftStats[3].dayTotal} total)
+                          </span>
+                          <span>
+                            Nights: {shiftStats[3].nightAvg} avg ({shiftStats[3].nightTotal} total)
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded" style={{ backgroundColor: shiftColors[4] }} />
+                          <span className="font-medium">Shift 4:</span>
+                        </div>
+                        <div className="flex gap-4">
+                          <span>
+                            Days: {shiftStats[4].dayAvg} avg ({shiftStats[4].dayTotal} total)
+                          </span>
+                          <span>
+                            Nights: {shiftStats[4].nightAvg} avg ({shiftStats[4].nightTotal} total)
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="flex gap-6 h-[calc(100vh-220px)] min-h-[600px]">
           <Card className="flex-1 border-0 rounded-none shadow-none min-w-0 flex flex-col">
@@ -785,22 +965,10 @@ const Metrics = () => {
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis
                             type="number"
-                            style={{
-                              fontSize: "12px",
-                            }}
-                            label={{
-                              value: "Number of Jobs",
-                              position: "bottom",
-                            }}
+                            style={{ fontSize: "12px" }}
+                            label={{ value: "Number of Jobs", position: "bottom" }}
                           />
-                          <YAxis
-                            dataKey="keyword"
-                            type="category"
-                            style={{
-                              fontSize: "12px",
-                            }}
-                            width={60}
-                          />
+                          <YAxis dataKey="keyword" type="category" style={{ fontSize: "12px" }} width={60} />
                           <ChartTooltip
                             content={({ active, payload }) => {
                               if (active && payload && payload.length) {
@@ -848,25 +1016,15 @@ const Metrics = () => {
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis
                         dataKey="month"
-                        style={{
-                          fontSize: "11px",
-                        }}
+                        style={{ fontSize: "11px" }}
                         angle={viewMode === "daily" ? -45 : 0}
                         textAnchor={viewMode === "daily" ? "end" : "middle"}
                         height={viewMode === "daily" ? 80 : 30}
                       />
-                      <YAxis
-                        style={{
-                          fontSize: "12px",
-                        }}
-                      />
+                      <YAxis style={{ fontSize: "12px" }} />
                       <ChartTooltip content={<ChartTooltipContent />} />
-                      <Legend
-                        wrapperStyle={{
-                          fontSize: "12px",
-                        }}
-                      />
-                      {viewMode === "daily" ? (
+                      <Legend wrapperStyle={{ fontSize: "12px" }} />
+                      {showShiftView && viewMode === "daily" ? (
                         <>
                           {/* Create a single bar with day shift on bottom, night shift on top */}
                           <Bar dataKey="dayTotal" stackId="shift" name="Day Shift (7am-7pm)">
@@ -920,9 +1078,7 @@ const Metrics = () => {
                     <div className="flex items-center gap-2 mt-1">
                       <div
                         className="w-3 h-3 rounded"
-                        style={{
-                          backgroundColor: departmentColors[topDepartment.department],
-                        }}
+                        style={{ backgroundColor: departmentColors[topDepartment.department] }}
                       />
                       <p className="text-sm font-semibold">{topDepartment.department}</p>
                     </div>
@@ -945,9 +1101,7 @@ const Metrics = () => {
                       <div className="flex items-center gap-2">
                         <div
                           className="w-2.5 h-2.5 rounded"
-                          style={{
-                            backgroundColor: departmentColors[stat.department],
-                          }}
+                          style={{ backgroundColor: departmentColors[stat.department] }}
                         />
                         <span className="text-xs font-medium">{stat.department}</span>
                       </div>
@@ -973,4 +1127,5 @@ const Metrics = () => {
     </div>
   );
 };
+
 export default Metrics;
