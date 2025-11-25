@@ -311,21 +311,14 @@ const StoresSnapshot = () => {
         {/* Search Section */}
         {!showResults && <div className="flex flex-col items-center justify-center flex-1 gap-6 px-2 sm:px-4">
             <div className="w-full max-w-2xl mx-auto space-y-3 sm:space-y-4">
-              {/* Simple Search */}
-              <div className="space-y-1.5 sm:space-y-2">
+              {/* Simple Search - Hidden when advanced search is active */}
+              {!showAdvancedSearch && <div className="space-y-1.5 sm:space-y-2">
                 <label className="text-xs font-medium block text-center sm:text-lg">Search All Fields</label>
-                <Input value={simpleSearch} onChange={e => setSimpleSearch(e.target.value)} onKeyDown={handleSearchKeyDown} className="h-9 sm:h-10" placeholder="Search across all fields... " />
-                <p className="text-xs text-muted-foreground">
-            </p>
-              </div>
-
-              {/* Advanced Search Toggle */}
-              <Button onClick={() => setShowAdvancedSearch(!showAdvancedSearch)} variant="ghost" size="sm" className="w-full">
-                {showAdvancedSearch ? "Hide" : "Show"} Advanced Search
-              </Button>
+                <Input value={simpleSearch} onChange={e => setSimpleSearch(e.target.value)} onKeyDown={handleSearchKeyDown} className="h-9 sm:h-10" placeholder="Search across all fields... (use * for wildcards)" />
+              </div>}
 
               {/* Advanced Search Fields */}
-              {showAdvancedSearch && <div className="space-y-3 sm:space-y-4 pt-2 border-t">
+              {showAdvancedSearch && <div className="space-y-3 sm:space-y-4 pt-2">
                   <div className="space-y-1.5 sm:space-y-2">
                     <label className="text-xs sm:text-sm font-medium block text-left">SAP Number</label>
                     <Input placeholder="Search SAP Number... (use * for wildcards)" value={sapNumber} onChange={e => setSapNumber(e.target.value)} onKeyDown={handleSearchKeyDown} className="h-9 sm:h-10" />
@@ -358,6 +351,11 @@ const StoresSnapshot = () => {
                   View All
                 </Button>
               </div>
+
+              {/* Advanced Search Toggle - Below search buttons and faded */}
+              <Button onClick={() => setShowAdvancedSearch(!showAdvancedSearch)} variant="ghost" size="sm" className="w-full opacity-50 hover:opacity-100 transition-opacity">
+                {showAdvancedSearch ? "Hide" : "Show"} Advanced Search
+              </Button>
             </div>
           </div>}
 
