@@ -34,10 +34,16 @@ const StoresSnapshot = () => {
     exportData,
     clearData
   } = useStoresStorage();
+  // Simple unified search
+  const [simpleSearch, setSimpleSearch] = useState("");
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  
+  // Advanced search fields
   const [sapNumber, setSapNumber] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
   const [vendorNumber, setVendorNumber] = useState("");
+  
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [showClearDialog, setShowClearDialog] = useState(false);
@@ -159,6 +165,7 @@ const StoresSnapshot = () => {
     }
   }, [handleSearch, isSearching, storesData.length]);
   const handleViewAll = useCallback(() => {
+    setSimpleSearch("");
     setSapNumber("");
     setLocation("");
     setDescription("");
@@ -212,14 +219,28 @@ const StoresSnapshot = () => {
       return value.toLowerCase().includes(pattern.toLowerCase());
     };
 
-    // First apply initial search filters
-    let results = storesData.filter(item => {
-      const matchesSap = matchesWildcard(item.material, sapNumber);
-      const matchesLoc = matchesWildcard(item.storageBin, location);
-      const matchesDesc = matchesWildcard(`${item.materialDescription} ${item.materialAdditionalDescription}`, description);
-      const matchesVendor = matchesWildcard(item.vendorNumber, vendorNumber);
-      return matchesSap && matchesLoc && matchesDesc && matchesVendor;
-    });
+    // First apply simple unified search OR advanced search filters
+    let results = storesData;
+    
+    if (simpleSearch.trim()) {
+      // Simple search: search across all fields with wildcard support
+      results = results.filter(item => {
+        return matchesWildcard(item.material, simpleSearch) ||
+               matchesWildcard(item.storageBin, simpleSearch) ||
+               matchesWildcard(item.materialDescription, simpleSearch) ||
+               matchesWildcard(item.materialAdditionalDescription, simpleSearch) ||
+               matchesWildcard(item.vendorNumber, simpleSearch);
+      });
+    } else {
+      // Advanced search: filter by individual fields
+      results = results.filter(item => {
+        const matchesSap = matchesWildcard(item.material, sapNumber);
+        const matchesLoc = matchesWildcard(item.storageBin, location);
+        const matchesDesc = matchesWildcard(`${item.materialDescription} ${item.materialAdditionalDescription}`, description);
+        const matchesVendor = matchesWildcard(item.vendorNumber, vendorNumber);
+        return matchesSap && matchesLoc && matchesDesc && matchesVendor;
+      });
+    }
 
     // Then apply result page search query (searches across all fields with wildcard support)
     if (resultSearchQuery.trim()) {
@@ -258,7 +279,7 @@ const StoresSnapshot = () => {
       });
     }
     return results;
-  }, [storesData, sapNumber, location, description, vendorNumber, showResults, resultSearchQuery, sortColumn, sortDirection]);
+  }, [storesData, simpleSearch, sapNumber, location, description, vendorNumber, showResults, resultSearchQuery, sortColumn, sortDirection]);
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">
         <div className="text-lg">Loading...</div>
@@ -300,22 +321,75 @@ const StoresSnapshot = () => {
         {/* Search Section */}
         {!showResults && <div className="flex flex-col items-center justify-center flex-1 gap-6 px-2 sm:px-4">
             <div className="w-full max-w-2xl mx-auto space-y-3 sm:space-y-4">
+              {/* Simple Search */}
               <div className="space-y-1.5 sm:space-y-2">
-                <label className="text-xs sm:text-sm font-medium block text-left">SAP Number</label>
-                <Input placeholder="Search SAP Number..." value={sapNumber} onChange={e => setSapNumber(e.target.value)} onKeyDown={handleSearchKeyDown} className="h-9 sm:h-10" />
+                <label className="text-xs sm:text-sm font-medium block text-left">Search All Fields</label>
+                <Input 
+                  placeholder="Search across all fields... (use * for wildcards)" 
+                  value={simpleSearch} 
+                  onChange={e => setSimpleSearch(e.target.value)} 
+                  onKeyDown={handleSearchKeyDown} 
+                  className="h-9 sm:h-10" 
+                />
+                <p className="text-xs text-muted-foreground">Tip: Use * as wildcard (e.g., *valve* or pump*)</p>
               </div>
-              <div className="space-y-1.5 sm:space-y-2">
-                <label className="text-xs sm:text-sm font-medium block text-left">Location</label>
-                <Input placeholder="Search Location..." value={location} onChange={e => setLocation(e.target.value)} onKeyDown={handleSearchKeyDown} className="h-9 sm:h-10" />
-              </div>
-              <div className="space-y-1.5 sm:space-y-2">
-                <label className="text-xs sm:text-sm font-medium block text-left">Description</label>
-                <Input placeholder="Search Description..." value={description} onChange={e => setDescription(e.target.value)} onKeyDown={handleSearchKeyDown} className="h-9 sm:h-10" />
-              </div>
-              <div className="space-y-1.5 sm:space-y-2">
-                <label className="text-xs sm:text-sm font-medium block text-left">Vendor Number</label>
-                <Input placeholder="Search Vendor Number..." value={vendorNumber} onChange={e => setVendorNumber(e.target.value)} onKeyDown={handleSearchKeyDown} className="h-9 sm:h-10" />
-              </div>
+
+              {/* Advanced Search Toggle */}
+              <Button 
+                onClick={() => setShowAdvancedSearch(!showAdvancedSearch)} 
+                variant="ghost" 
+                size="sm"
+                className="w-full"
+              >
+                {showAdvancedSearch ? "Hide" : "Show"} Advanced Search
+              </Button>
+
+              {/* Advanced Search Fields */}
+              {showAdvancedSearch && (
+                <div className="space-y-3 sm:space-y-4 pt-2 border-t">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <label className="text-xs sm:text-sm font-medium block text-left">SAP Number</label>
+                    <Input 
+                      placeholder="Search SAP Number... (use * for wildcards)" 
+                      value={sapNumber} 
+                      onChange={e => setSapNumber(e.target.value)} 
+                      onKeyDown={handleSearchKeyDown} 
+                      className="h-9 sm:h-10" 
+                    />
+                  </div>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <label className="text-xs sm:text-sm font-medium block text-left">Location</label>
+                    <Input 
+                      placeholder="Search Location... (use * for wildcards)" 
+                      value={location} 
+                      onChange={e => setLocation(e.target.value)} 
+                      onKeyDown={handleSearchKeyDown} 
+                      className="h-9 sm:h-10" 
+                    />
+                  </div>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <label className="text-xs sm:text-sm font-medium block text-left">Description</label>
+                    <Input 
+                      placeholder="Search Description... (use * for wildcards)" 
+                      value={description} 
+                      onChange={e => setDescription(e.target.value)} 
+                      onKeyDown={handleSearchKeyDown} 
+                      className="h-9 sm:h-10" 
+                    />
+                  </div>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <label className="text-xs sm:text-sm font-medium block text-left">Vendor Number</label>
+                    <Input 
+                      placeholder="Search Vendor Number... (use * for wildcards)" 
+                      value={vendorNumber} 
+                      onChange={e => setVendorNumber(e.target.value)} 
+                      onKeyDown={handleSearchKeyDown} 
+                      className="h-9 sm:h-10" 
+                    />
+                  </div>
+                </div>
+              )}
+
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2 sm:pt-4">
                 <Button onClick={handleSearch} className="w-full sm:min-w-[140px]" disabled={isSearching || storesData.length === 0}>
                   {isSearching ? <>
