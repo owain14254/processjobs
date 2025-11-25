@@ -3,9 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer, Cell } from "recharts";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Filter, Download, Calendar, CalendarDays, X, Plus, Tags, KeyRound, LogOut } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+import { ArrowLeft, Filter, Download, Calendar, CalendarDays, X, Plus, Tags } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useMemo, useState, useCallback, useEffect } from "react";
 import { Input } from "@/components/ui/input";
@@ -36,8 +34,6 @@ const Metrics = () => {
     return saved ? JSON.parse(saved) : [];
   });
   const [newKeyword, setNewKeyword] = useState("");
-  const [isAdminMode, setIsAdminMode] = useState(false);
-  const [showShiftView, setShowShiftView] = useState(false);
 
   const timespanLabels: Record<Timespan, string> = {
     "7days": "Last 7 Days",
@@ -53,11 +49,6 @@ const Metrics = () => {
     localStorage.setItem("metricsKeywords", JSON.stringify(keywords));
   }, [keywords]);
 
-  // Check for admin mode on mount
-  useEffect(() => {
-    const adminPassword = sessionStorage.getItem("adminModeMetrics");
-    setIsAdminMode(adminPassword === "Process3116");
-  }, []);
 
   // Function to determine shift for a given date and time
   // Pattern: Each shift works 4 days (7am-7pm), 4 days off, 4 nights (7pm-7am), 4 days off (16-day cycle)
@@ -427,15 +418,6 @@ const Metrics = () => {
 
   const { toast } = useToast();
 
-  const toggleAdminMode = useCallback(() => {
-    if (isAdminMode) {
-      setIsAdminMode(false);
-      sessionStorage.removeItem("adminModeMetrics");
-      toast({ title: "Admin Mode Disabled" });
-    } else {
-      navigate("/admin-login");
-    }
-  }, [isAdminMode, toast, navigate]);
 
   const addKeyword = useCallback(() => {
     if (newKeyword.trim() && !keywords.includes(newKeyword.trim().toUpperCase())) {
@@ -745,122 +727,99 @@ const Metrics = () => {
               <span className="hidden sm:inline">Export CSV</span>
               <span className="sm:hidden">Export</span>
             </Button>
-
-            <Button
-              variant={isAdminMode ? "default" : "outline"}
-              size="icon"
-              onClick={toggleAdminMode}
-              className="h-8 w-8"
-              title={isAdminMode ? "Logout Admin" : "Admin Login"}
-            >
-              {isAdminMode ? (
-                <LogOut className="h-3 w-3 sm:h-4 sm:w-4" />
-              ) : (
-                <KeyRound className="h-3 w-3 sm:h-4 sm:w-4" />
-              )}
-            </Button>
           </div>
         </div>
 
-        {isAdminMode && viewMode === "daily" && (
+        {viewMode === "daily" && (
           <div className="space-y-2">
-            <div className="flex items-center gap-2 bg-muted p-2 rounded-lg">
-              <Switch id="shift-view" checked={showShiftView} onCheckedChange={setShowShiftView} />
-              <Label htmlFor="shift-view" className="text-sm cursor-pointer">
-                Show Shift View (color bars by shift)
-              </Label>
-            </div>
-
-            {showShiftView && (
-              <div className="bg-muted p-3 rounded-lg space-y-2">
-                <h3 className="text-sm font-semibold">Shift Color Key</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded" style={{ backgroundColor: shiftColors[1] }} />
-                    <span className="text-xs">Shift 1</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded" style={{ backgroundColor: shiftColors[2] }} />
-                    <span className="text-xs">Shift 2</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded" style={{ backgroundColor: shiftColors[3] }} />
-                    <span className="text-xs">Shift 3</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded" style={{ backgroundColor: shiftColors[4] }} />
-                    <span className="text-xs">Shift 4</span>
-                  </div>
+            <div className="bg-muted p-3 rounded-lg space-y-2">
+              <h3 className="text-sm font-semibold">Shift Color Key</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded" style={{ backgroundColor: shiftColors[1] }} />
+                  <span className="text-xs">Shift 1</span>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Each bar shows two shifts: bottom = day shift (7am-7pm), top = night shift (7pm-7am)
-                </p>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded" style={{ backgroundColor: shiftColors[2] }} />
+                  <span className="text-xs">Shift 2</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded" style={{ backgroundColor: shiftColors[3] }} />
+                  <span className="text-xs">Shift 3</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded" style={{ backgroundColor: shiftColors[4] }} />
+                  <span className="text-xs">Shift 4</span>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Each bar shows two shifts: bottom = day shift (7am-7pm), top = night shift (7pm-7am)
+              </p>
 
-                {shiftStats && (
-                  <div className="mt-3 pt-3 border-t">
-                    <h4 className="text-xs font-semibold mb-3">Average Jobs Per Shift (across timespan)</h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded" style={{ backgroundColor: shiftColors[1] }} />
-                          <span className="font-medium">Shift 1:</span>
-                        </div>
-                        <div className="flex gap-4">
-                          <span>
-                            Days: {shiftStats[1].dayAvg} avg ({shiftStats[1].dayTotal} total)
-                          </span>
-                          <span>
-                            Nights: {shiftStats[1].nightAvg} avg ({shiftStats[1].nightTotal} total)
-                          </span>
-                        </div>
+              {shiftStats && (
+                <div className="mt-3 pt-3 border-t">
+                  <h4 className="text-xs font-semibold mb-3">Average Jobs Per Shift (across timespan)</h4>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded" style={{ backgroundColor: shiftColors[1] }} />
+                        <span className="font-medium">Shift 1:</span>
                       </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded" style={{ backgroundColor: shiftColors[2] }} />
-                          <span className="font-medium">Shift 2:</span>
-                        </div>
-                        <div className="flex gap-4">
-                          <span>
-                            Days: {shiftStats[2].dayAvg} avg ({shiftStats[2].dayTotal} total)
-                          </span>
-                          <span>
-                            Nights: {shiftStats[2].nightAvg} avg ({shiftStats[2].nightTotal} total)
-                          </span>
-                        </div>
+                      <div className="flex gap-4">
+                        <span>
+                          Days: {shiftStats[1].dayAvg} avg ({shiftStats[1].dayTotal} total)
+                        </span>
+                        <span>
+                          Nights: {shiftStats[1].nightAvg} avg ({shiftStats[1].nightTotal} total)
+                        </span>
                       </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded" style={{ backgroundColor: shiftColors[3] }} />
-                          <span className="font-medium">Shift 3:</span>
-                        </div>
-                        <div className="flex gap-4">
-                          <span>
-                            Days: {shiftStats[3].dayAvg} avg ({shiftStats[3].dayTotal} total)
-                          </span>
-                          <span>
-                            Nights: {shiftStats[3].nightAvg} avg ({shiftStats[3].nightTotal} total)
-                          </span>
-                        </div>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded" style={{ backgroundColor: shiftColors[2] }} />
+                        <span className="font-medium">Shift 2:</span>
                       </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded" style={{ backgroundColor: shiftColors[4] }} />
-                          <span className="font-medium">Shift 4:</span>
-                        </div>
-                        <div className="flex gap-4">
-                          <span>
-                            Days: {shiftStats[4].dayAvg} avg ({shiftStats[4].dayTotal} total)
-                          </span>
-                          <span>
-                            Nights: {shiftStats[4].nightAvg} avg ({shiftStats[4].nightTotal} total)
-                          </span>
-                        </div>
+                      <div className="flex gap-4">
+                        <span>
+                          Days: {shiftStats[2].dayAvg} avg ({shiftStats[2].dayTotal} total)
+                        </span>
+                        <span>
+                          Nights: {shiftStats[2].nightAvg} avg ({shiftStats[2].nightTotal} total)
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded" style={{ backgroundColor: shiftColors[3] }} />
+                        <span className="font-medium">Shift 3:</span>
+                      </div>
+                      <div className="flex gap-4">
+                        <span>
+                          Days: {shiftStats[3].dayAvg} avg ({shiftStats[3].dayTotal} total)
+                        </span>
+                        <span>
+                          Nights: {shiftStats[3].nightAvg} avg ({shiftStats[3].nightTotal} total)
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded" style={{ backgroundColor: shiftColors[4] }} />
+                        <span className="font-medium">Shift 4:</span>
+                      </div>
+                      <div className="flex gap-4">
+                        <span>
+                          Days: {shiftStats[4].dayAvg} avg ({shiftStats[4].dayTotal} total)
+                        </span>
+                        <span>
+                          Nights: {shiftStats[4].nightAvg} avg ({shiftStats[4].nightTotal} total)
+                        </span>
                       </div>
                     </div>
                   </div>
-                )}
-              </div>
-            )}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -1024,7 +983,7 @@ const Metrics = () => {
                       <YAxis style={{ fontSize: "12px" }} />
                       <ChartTooltip content={<ChartTooltipContent />} />
                       <Legend wrapperStyle={{ fontSize: "12px" }} />
-                      {showShiftView && viewMode === "daily" ? (
+                      {viewMode === "daily" ? (
                         <>
                           {/* Create a single bar with day shift on bottom, night shift on top */}
                           <Bar dataKey="dayTotal" stackId="shift" name="Day Shift (7am-7pm)">
