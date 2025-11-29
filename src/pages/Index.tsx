@@ -59,7 +59,8 @@ const Index = () => {
     statusColorLightGreen: "#8bea8b",
     statusColorDarkGreen: "#00b300",
     clockVisible: true,
-    clockSize: 2
+    clockSize: 2,
+    showPMTab: false
   });
   const {
     activeJobs,
@@ -224,7 +225,8 @@ const Index = () => {
           statusColorLightGreen: parsed.statusColorLightGreen || "#8bea8b",
           statusColorDarkGreen: parsed.statusColorDarkGreen || "#00b300",
           clockVisible: parsed.clockVisible ?? true,
-          clockSize: parsed.clockSize ?? 2
+          clockSize: parsed.clockSize ?? 2,
+          showPMTab: parsed.showPMTab ?? false
         });
       } catch (e) {
         console.error("Failed to parse admin settings", e);
@@ -347,10 +349,12 @@ const Index = () => {
                     <Database className="h-4 w-4 mr-2" />
                     Stores Snapshot
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/pms")}>
-                    <ClipboardList className="h-4 w-4 mr-2" />
-                    PM's
-                  </DropdownMenuItem>
+                  {adminSettings.showPMTab && (
+                    <DropdownMenuItem onClick={() => navigate("/pms")}>
+                      <ClipboardList className="h-4 w-4 mr-2" />
+                      PM's
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={toggleAdminMode}>
                     <KeyRound className="h-4 w-4 mr-2" />
                     {isAdminMode ? "Exit Admin Mode" : "Enter Admin Mode"}
