@@ -37,6 +37,7 @@ interface AdminSettingsData {
   departments: string;
   shiftDuration: number;
   setDuration: number;
+  showPMTab: boolean;
 
   // Save & Theme
   backupReminderInterval: number;
@@ -68,6 +69,7 @@ const defaultSettings: AdminSettingsData = {
   departments: "Process, Fruit, Filling, Warehouse, Services, Other",
   shiftDuration: 12,
   setDuration: 96,
+  showPMTab: false,
   backupReminderInterval: 24,
   autoThemeEnabled: true,
   autoThemeLightTime: "07:00",
@@ -364,6 +366,18 @@ export function AdminSettingsDialog({ onSettingsChange, onTestSavePrompt }: Admi
                       className="h-7 text-xs mt-0.5" 
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* Feature Toggles */}
+              <div className="space-y-1">
+                <Label className="text-[11px] font-semibold">Feature Toggles</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-[10px] text-muted-foreground">Show PM's Tab</Label>
+                  <Switch 
+                    checked={settings.showPMTab} 
+                    onCheckedChange={(checked) => updateSetting("showPMTab", checked)}
+                  />
                 </div>
               </div>
 
