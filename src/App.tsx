@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Metrics from "./pages/Metrics";
 import SAP from "./pages/SAP";
 import StoresSnapshot from "./pages/StoresSnapshot";
+import PMs from "./pages/PMs";
 import AdminLogin from "./pages/AdminLogin";
 import NotFound from "./pages/NotFound";
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/metrics" element={<Metrics />} />
           <Route path="/sap" element={<SAP />} />
           <Route path="/stores-snapshot" element={<StoresSnapshot />} />
+          <Route path="/pms" element={<PMs />} />
           <Route path="/admin-login" element={<AdminLogin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
