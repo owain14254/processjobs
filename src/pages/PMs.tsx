@@ -1,9 +1,10 @@
 import { useState, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Upload, Download, Search, Calendar } from "lucide-react";
+import { ArrowLeft, Upload, Download, Search, Calendar, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { usePMStorage, PMJob } from "@/hooks/usePMStorage";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -17,8 +18,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { format, parseISO, isAfter, isBefore, addMonths, addWeeks } from "date-fns";
+import { format, parseISO, isAfter, isBefore, addMonths, addWeeks, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from "date-fns";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import mullerLogo from "@/assets/muller-logo.png";
 
 const PMs = () => {
   const navigate = useNavigate();
@@ -33,6 +36,7 @@ const PMs = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
+  const [selectedPMs, setSelectedPMs] = useState<Set<string>>(new Set());
 
   const parseDate = (dateStr: string): Date | null => {
     if (!dateStr) return null;
@@ -173,11 +177,50 @@ const PMs = () => {
     });
   };
 
+  const handleCheckboxChange = (order: string, checked: boolean) => {
+    const newSelected = new Set(selectedPMs);
+    if (checked) {
+      newSelected.add(order);
+    } else {
+      newSelected.delete(order);
+    }
+    setSelectedPMs(newSelected);
+  };
+
+  const handleSaveCompletions = () => {
+    selectedPMs.forEach((order) => {
+      updatePM(order, { completed: true });
+    });
+    toast({
+      title: "PM jobs updated",
+      description: `${selectedPMs.size} job(s) marked as complete.`,
+    });
+    setSelectedPMs(new Set());
+  };
+
+  const getHeatMapData = () => {
+    const now = new Date();
+    const weekStart = startOfWeek(now, { weekStartsOn: 1 });
+    const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
+    const daysOfWeek = eachDayOfInterval({ start: weekStart, end: weekEnd });
+
+    return daysOfWeek.map((day) => {
+      const count = activePMs.filter((pm) => {
+        const release = parseDate(pm.release);
+        return release && isSameDay(release, day);
+      }).length;
+      return { date: day, count };
+    });
+  };
+
+  const heatMapData = getHeatMapData();
+
   const PMTable = ({ pms, showStatus }: { pms: PMJob[]; showStatus: boolean }) => (
     <div className="overflow-x-auto border rounded-lg">
       <table className="w-full">
         <thead className="bg-muted/50">
           <tr>
+            <th className="px-4 py-2 text-left text-sm font-medium w-12">Complete</th>
             <th className="px-4 py-2 text-left text-sm font-medium">Functional Location</th>
             <th className="px-4 py-2 text-left text-sm font-medium">Order</th>
             <th className="px-4 py-2 text-left text-sm font-medium">Release</th>
@@ -188,7 +231,7 @@ const PMs = () => {
         <tbody>
           {pms.length === 0 ? (
             <tr>
-              <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+              <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
                 No PM jobs found
               </td>
             </tr>
@@ -196,17 +239,23 @@ const PMs = () => {
             pms.map((pm) => (
               <tr
                 key={pm.order}
-                onClick={() => handleRowClick(pm)}
                 className={cn(
-                  "border-t cursor-pointer hover:bg-muted/30 transition-colors",
+                  "border-t hover:bg-muted/30 transition-colors",
                   showStatus && getStatusColor(pm.release, pm.completed || false)
                 )}
               >
-                <td className="px-4 py-3 text-sm">{pm.functlocdescrip}</td>
-                <td className="px-4 py-3 text-sm font-medium">{pm.order}</td>
-                <td className="px-4 py-3 text-sm">{pm.release}</td>
-                <td className="px-4 py-3 text-sm">{pm.description}</td>
-                <td className="px-4 py-3 text-sm">{pm.objectDescription}</td>
+                <td className="px-4 py-3">
+                  <Checkbox
+                    checked={selectedPMs.has(pm.order)}
+                    onCheckedChange={(checked) => handleCheckboxChange(pm.order, checked as boolean)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </td>
+                <td className="px-4 py-3 text-sm cursor-pointer" onClick={() => handleRowClick(pm)}>{pm.functlocdescrip}</td>
+                <td className="px-4 py-3 text-sm font-medium cursor-pointer" onClick={() => handleRowClick(pm)}>{pm.order}</td>
+                <td className="px-4 py-3 text-sm cursor-pointer" onClick={() => handleRowClick(pm)}>{pm.release}</td>
+                <td className="px-4 py-3 text-sm cursor-pointer" onClick={() => handleRowClick(pm)}>{pm.description}</td>
+                <td className="px-4 py-3 text-sm cursor-pointer" onClick={() => handleRowClick(pm)}>{pm.objectDescription}</td>
               </tr>
             ))
           )}
@@ -223,12 +272,35 @@ const PMs = () => {
             <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
+            <img src={mullerLogo} alt="Muller Logo" className="h-8 w-8 object-contain" />
             <div>
               <h1 className="text-2xl md:text-3xl font-bold">PM's</h1>
               <p className="text-sm text-muted-foreground">Preventive Maintenance Jobs</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-1 border rounded-lg p-2">
+              {heatMapData.map((day, idx) => {
+                const intensity = day.count === 0 ? 0 : day.count === 1 ? 1 : day.count === 2 ? 2 : 3;
+                return (
+                  <div
+                    key={idx}
+                    className={cn(
+                      "w-8 h-8 rounded flex flex-col items-center justify-center text-xs",
+                      intensity === 0 && "bg-muted/30",
+                      intensity === 1 && "bg-amber-500/30",
+                      intensity === 2 && "bg-amber-500/60",
+                      intensity === 3 && "bg-red-500/60"
+                    )}
+                    title={`${format(day.date, "EEE dd")}: ${day.count} PM(s)`}
+                  >
+                    <div className="font-medium">{format(day.date, "dd")}</div>
+                    <div className="text-[10px] opacity-70">{format(day.date, "EEE")}</div>
+                  </div>
+                );
+              })}
+            </div>
+            <ThemeToggle />
             <Button onClick={handleExport} variant="outline" size="icon" title="Export PM Jobs">
               <Download className="h-4 w-4" />
             </Button>
@@ -248,6 +320,18 @@ const PMs = () => {
             </label>
           </div>
         </div>
+
+        {selectedPMs.size > 0 && (
+          <div className="flex items-center justify-between bg-primary/10 border border-primary/20 rounded-lg p-3">
+            <p className="text-sm font-medium">
+              {selectedPMs.size} PM job(s) selected
+            </p>
+            <Button onClick={handleSaveCompletions} size="sm">
+              <Save className="h-4 w-4 mr-2" />
+              Mark as Complete
+            </Button>
+          </div>
+        )}
 
         <div className="flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
