@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer, Cell } from "recharts";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Filter, Download, Calendar, CalendarDays, X, Plus, Tags, KeyRound, LogOut } from "lucide-react";
+import { ArrowLeft, Filter, Download, Calendar, CalendarDays, X, Plus, Tags, KeyRound, LogOut, LayoutGrid } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ShiftPatternConfig, { ShiftPattern, defaultShiftPatterns } from "@/components/ShiftPatternConfig";
 
 type Timespan = "7days" | "30days" | "90days" | "6months" | "1year" | "all";
 type ViewMode = "monthly" | "daily" | "keywords";
@@ -38,6 +39,11 @@ const Metrics = () => {
   const [newKeyword, setNewKeyword] = useState("");
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [showShiftView, setShowShiftView] = useState(false);
+  const [showDepartmentTiles, setShowDepartmentTiles] = useState(false);
+  const [shiftPatterns, setShiftPatterns] = useState<ShiftPattern[]>(() => {
+    const saved = localStorage.getItem("shiftPatterns");
+    return saved ? JSON.parse(saved) : defaultShiftPatterns;
+  });
 
   const timespanLabels: Record<Timespan, string> = {
     "7days": "Last 7 Days",
@@ -53,66 +59,79 @@ const Metrics = () => {
     localStorage.setItem("metricsKeywords", JSON.stringify(keywords));
   }, [keywords]);
 
+  // Save shift patterns to localStorage
+  useEffect(() => {
+    localStorage.setItem("shiftPatterns", JSON.stringify(shiftPatterns));
+  }, [shiftPatterns]);
+
   // Check for admin mode on mount
   useEffect(() => {
     const adminPassword = sessionStorage.getItem("adminModeMetrics");
     setIsAdminMode(adminPassword === "Process3116");
   }, []);
 
-  // Function to determine shift for a given date and time
-  // Pattern: Each shift works 4 days (7am-7pm), 4 days off, 4 nights (7pm-7am), 4 days off (16-day cycle)
+  // Function to determine shift for a given date and time using custom patterns
   const getShiftForDateTime = useCallback((date: Date) => {
-    // Reference: Shift 1 started days on June 22nd, 2025 at 7am
-    // NOTE: month is 0-indexed (5 = June)
-    const referenceDate = new Date(2025, 5, 22, 7, 0, 0);
-
     const hour = date.getHours();
     const isDayTime = hour >= 7 && hour < 19;
 
-    // Jobs before 7am belong to the previous calendar day’s night shift
+    // Jobs before 7am belong to the previous calendar day's night shift
     const adjustedDate = new Date(date);
     if (hour < 7) {
       adjustedDate.setDate(adjustedDate.getDate() - 1);
     }
 
-    const diffMs = adjustedDate.getTime() - referenceDate.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    const cycleDay = ((diffDays % 16) + 16) % 16; // 0–15
-
-    let shift: 1 | 2 | 3 | 4;
-    const shiftType: "day" | "night" = isDayTime ? "day" : "night";
-
-    // Correct 4-on / 4-off pattern:
-    // Shift 1: Days 0–3, Nights 8–11
-    // Shift 2: Days 4–7, Nights 12–15
-    // Shift 3: Nights 0–3, Days 8–11
-    // Shift 4: Nights 4–7, Days 12–15
-    if (cycleDay >= 0 && cycleDay < 4) {
-      // Cycle days 0–3
-      shift = isDayTime ? 1 : 3;
-    } else if (cycleDay >= 4 && cycleDay < 8) {
-      // Cycle days 4–7
-      shift = isDayTime ? 2 : 4;
-    } else if (cycleDay >= 8 && cycleDay < 12) {
-      // Cycle days 8–11
-      shift = isDayTime ? 3 : 1;
-    } else {
-      // Cycle days 12–15
-      shift = isDayTime ? 4 : 2;
+    // Find which shift is working based on patterns
+    for (const pattern of shiftPatterns) {
+      const refDate = new Date(pattern.referenceDate);
+      refDate.setHours(7, 0, 0, 0);
+      
+      const diffMs = adjustedDate.getTime() - refDate.getTime();
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      const cycleDay = ((diffDays % pattern.cycleLength) + pattern.cycleLength) % pattern.cycleLength;
+      
+      // Check if this shift is working days or nights on this cycle day (4-day blocks)
+      const dayEnd = (pattern.dayStartCycleDay + 4) % pattern.cycleLength;
+      const nightEnd = (pattern.nightStartCycleDay + 4) % pattern.cycleLength;
+      
+      const isWorkingDay = pattern.dayStartCycleDay <= dayEnd
+        ? (cycleDay >= pattern.dayStartCycleDay && cycleDay < dayEnd)
+        : (cycleDay >= pattern.dayStartCycleDay || cycleDay < dayEnd);
+        
+      const isWorkingNight = pattern.nightStartCycleDay <= nightEnd
+        ? (cycleDay >= pattern.nightStartCycleDay && cycleDay < nightEnd)
+        : (cycleDay >= pattern.nightStartCycleDay || cycleDay < nightEnd);
+      
+      if ((isDayTime && isWorkingDay) || (!isDayTime && isWorkingNight)) {
+        return { 
+          shift: parseInt(pattern.id) as 1 | 2 | 3 | 4, 
+          type: isDayTime ? "day" : "night" as "day" | "night",
+          patternId: pattern.id,
+          patternName: pattern.name,
+          patternColor: pattern.color
+        };
+      }
     }
 
-    return { shift, type: shiftType };
-  }, []);
+    // Fallback
+    const fallbackPattern = shiftPatterns[0] || defaultShiftPatterns[0];
+    return { 
+      shift: 1 as 1 | 2 | 3 | 4, 
+      type: isDayTime ? "day" : "night" as "day" | "night", 
+      patternId: fallbackPattern.id, 
+      patternName: fallbackPattern.name, 
+      patternColor: fallbackPattern.color 
+    };
+  }, [shiftPatterns]);
 
-  const shiftColors = useMemo(
-    () => ({
-      1: "hsl(221, 83%, 53%)", // Blue - Shift 1
-      2: "hsl(142, 71%, 45%)", // Green - Shift 2
-      3: "hsl(346, 77%, 50%)", // Red - Shift 3
-      4: "hsl(38, 92%, 50%)", // Orange - Shift 4
-    }),
-    [],
-  );
+  // Build shift colors from patterns
+  const shiftColors = useMemo(() => {
+    const colors: Record<string, string> = {};
+    shiftPatterns.forEach((p) => {
+      colors[p.id] = p.color;
+    });
+    return colors;
+  }, [shiftPatterns]);
 
   const filteredJobsByTimespan = useMemo(() => {
     if (timespan === "all") return completedJobs;
@@ -764,101 +783,67 @@ const Metrics = () => {
 
         {isAdminMode && viewMode === "daily" && (
           <div className="space-y-2">
-            <div className="flex items-center gap-2 bg-muted p-2 rounded-lg">
-              <Switch id="shift-view" checked={showShiftView} onCheckedChange={setShowShiftView} />
-              <Label htmlFor="shift-view" className="text-sm cursor-pointer">
-                Show Shift View (color bars by shift)
-              </Label>
+            <div className="flex flex-wrap items-center gap-4 bg-muted p-2 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Switch id="shift-view" checked={showShiftView} onCheckedChange={setShowShiftView} />
+                <Label htmlFor="shift-view" className="text-sm cursor-pointer">
+                  Show Shift View
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch id="dept-tiles" checked={showDepartmentTiles} onCheckedChange={setShowDepartmentTiles} />
+                <Label htmlFor="dept-tiles" className="text-sm cursor-pointer">
+                  <LayoutGrid className="h-4 w-4 inline mr-1" />
+                  Department Tiles
+                </Label>
+              </div>
             </div>
 
             {showShiftView && (
-              <div className="bg-muted p-3 rounded-lg space-y-2">
-                <h3 className="text-sm font-semibold">Shift Color Key</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded" style={{ backgroundColor: shiftColors[1] }} />
-                    <span className="text-xs">Shift 1</span>
+              <div className="space-y-3">
+                <div className="bg-muted p-3 rounded-lg space-y-2">
+                  <h3 className="text-sm font-semibold">Shift Color Key</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {shiftPatterns.map((pattern) => (
+                      <div key={pattern.id} className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded" style={{ backgroundColor: pattern.color }} />
+                        <span className="text-xs">{pattern.name}</span>
+                      </div>
+                    ))}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded" style={{ backgroundColor: shiftColors[2] }} />
-                    <span className="text-xs">Shift 2</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded" style={{ backgroundColor: shiftColors[3] }} />
-                    <span className="text-xs">Shift 3</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded" style={{ backgroundColor: shiftColors[4] }} />
-                    <span className="text-xs">Shift 4</span>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Each bar shows two shifts: bottom = day shift (7am-7pm), top = night shift (7pm-7am)
-                </p>
+                  <p className="text-xs text-muted-foreground">
+                    Each bar shows two shifts: bottom = day shift (7am-7pm), top = night shift (7pm-7am)
+                  </p>
 
-                {shiftStats && (
-                  <div className="mt-3 pt-3 border-t">
-                    <h4 className="text-xs font-semibold mb-3">Average Jobs Per Shift (across timespan)</h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded" style={{ backgroundColor: shiftColors[1] }} />
-                          <span className="font-medium">Shift 1:</span>
-                        </div>
-                        <div className="flex gap-4">
-                          <span>
-                            Days: {shiftStats[1].dayAvg} avg ({shiftStats[1].dayTotal} total)
-                          </span>
-                          <span>
-                            Nights: {shiftStats[1].nightAvg} avg ({shiftStats[1].nightTotal} total)
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded" style={{ backgroundColor: shiftColors[2] }} />
-                          <span className="font-medium">Shift 2:</span>
-                        </div>
-                        <div className="flex gap-4">
-                          <span>
-                            Days: {shiftStats[2].dayAvg} avg ({shiftStats[2].dayTotal} total)
-                          </span>
-                          <span>
-                            Nights: {shiftStats[2].nightAvg} avg ({shiftStats[2].nightTotal} total)
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded" style={{ backgroundColor: shiftColors[3] }} />
-                          <span className="font-medium">Shift 3:</span>
-                        </div>
-                        <div className="flex gap-4">
-                          <span>
-                            Days: {shiftStats[3].dayAvg} avg ({shiftStats[3].dayTotal} total)
-                          </span>
-                          <span>
-                            Nights: {shiftStats[3].nightAvg} avg ({shiftStats[3].nightTotal} total)
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded" style={{ backgroundColor: shiftColors[4] }} />
-                          <span className="font-medium">Shift 4:</span>
-                        </div>
-                        <div className="flex gap-4">
-                          <span>
-                            Days: {shiftStats[4].dayAvg} avg ({shiftStats[4].dayTotal} total)
-                          </span>
-                          <span>
-                            Nights: {shiftStats[4].nightAvg} avg ({shiftStats[4].nightTotal} total)
-                          </span>
-                        </div>
+                  {shiftStats && (
+                    <div className="mt-3 pt-3 border-t">
+                      <h4 className="text-xs font-semibold mb-3">Average Jobs Per Shift (across timespan)</h4>
+                      <div className="space-y-2">
+                        {shiftPatterns.map((pattern) => {
+                          const stats = shiftStats[parseInt(pattern.id) as 1 | 2 | 3 | 4];
+                          if (!stats) return null;
+                          return (
+                            <div key={pattern.id} className="flex items-center justify-between text-xs">
+                              <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded" style={{ backgroundColor: pattern.color }} />
+                                <span className="font-medium">{pattern.name}:</span>
+                              </div>
+                              <div className="flex gap-4">
+                                <span>Days: {stats.dayAvg} avg ({stats.dayTotal} total)</span>
+                                <span>Nights: {stats.nightAvg} avg ({stats.nightTotal} total)</span>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
+                
+                <ShiftPatternConfig 
+                  patterns={shiftPatterns} 
+                  onPatternsChange={setShiftPatterns} 
+                />
               </div>
             )}
           </div>
@@ -997,6 +982,53 @@ const Metrics = () => {
                 <div className="flex items-center justify-center h-full text-muted-foreground">
                   No completed jobs to display for selected timespan
                 </div>
+              ) : showDepartmentTiles ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 h-full overflow-y-auto">
+                  {Array.from(selectedDepartments).map((dept) => {
+                    const deptData = chartData.map((d: any) => ({
+                      month: d.month,
+                      [dept]: d[dept] || 0,
+                    }));
+                    return (
+                      <Card key={dept} className="h-64">
+                        <CardHeader className="pb-1 pt-3 px-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded" style={{ backgroundColor: departmentColors[dept] }} />
+                            <CardTitle className="text-sm">{dept}</CardTitle>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="h-48 px-2 pb-2">
+                          <ChartContainer
+                            config={{
+                              [dept]: {
+                                label: dept,
+                                color: departmentColors[dept],
+                              },
+                            }}
+                            className="h-full w-full"
+                          >
+                            <ResponsiveContainer width="100%" height="100%">
+                              <BarChart data={deptData}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis 
+                                  dataKey="month" 
+                                  style={{ fontSize: "9px" }} 
+                                  tick={{ fontSize: 8 }}
+                                  angle={-45}
+                                  textAnchor="end"
+                                  height={50}
+                                />
+                                <YAxis style={{ fontSize: "9px" }} width={30} />
+                                <ChartTooltip content={<ChartTooltipContent />} />
+                                <Bar dataKey={dept} fill={departmentColors[dept]} />
+                              </BarChart>
+                            </ResponsiveContainer>
+                          </ChartContainer>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
               ) : (
                 <ChartContainer
                   config={allDepartments.reduce(
@@ -1026,7 +1058,6 @@ const Metrics = () => {
                       <Legend wrapperStyle={{ fontSize: "12px" }} />
                       {showShiftView && viewMode === "daily" ? (
                         <>
-                          {/* Create a single bar with day shift on bottom, night shift on top */}
                           <Bar dataKey="dayTotal" stackId="shift" name="Day Shift (7am-7pm)">
                             {chartData.map((entry: any, index: number) => (
                               <Cell
