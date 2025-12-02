@@ -781,6 +781,16 @@ const Metrics = () => {
           </div>
         </div>
 
+        {viewMode === "daily" && (
+          <div className="flex items-center gap-2 mb-2">
+            <Switch id="dept-tiles" checked={showDepartmentTiles} onCheckedChange={setShowDepartmentTiles} />
+            <Label htmlFor="dept-tiles" className="text-sm cursor-pointer">
+              <LayoutGrid className="h-4 w-4 inline mr-1" />
+              Department Tiles
+            </Label>
+          </div>
+        )}
+
         {isAdminMode && viewMode === "daily" && (
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-4 bg-muted p-2 rounded-lg">
@@ -788,13 +798,6 @@ const Metrics = () => {
                 <Switch id="shift-view" checked={showShiftView} onCheckedChange={setShowShiftView} />
                 <Label htmlFor="shift-view" className="text-sm cursor-pointer">
                   Show Shift View
-                </Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Switch id="dept-tiles" checked={showDepartmentTiles} onCheckedChange={setShowDepartmentTiles} />
-                <Label htmlFor="dept-tiles" className="text-sm cursor-pointer">
-                  <LayoutGrid className="h-4 w-4 inline mr-1" />
-                  Department Tiles
                 </Label>
               </div>
             </div>
