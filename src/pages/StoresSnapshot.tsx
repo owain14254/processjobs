@@ -17,9 +17,15 @@ const StoreRow = memo(({
 }) => <TableRow>
     <TableCell className="font-medium text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4">{item.material}</TableCell>
     <TableCell className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4">{item.storageBin}</TableCell>
-    <TableCell className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 max-w-[80px] sm:max-w-[150px] md:max-w-none truncate">{item.materialDescription}</TableCell>
-    <TableCell className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 max-w-[80px] sm:max-w-[150px] md:max-w-none truncate">{item.materialAdditionalDescription}</TableCell>
-    <TableCell className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4">{item.vendorNumber}</TableCell>
+    <TableCell className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4">
+      <div className="flex flex-col">
+        <span className="truncate">{item.materialDescription}</span>
+        {item.materialAdditionalDescription && (
+          <span className="truncate text-muted-foreground text-[9px] sm:text-[10px] md:text-xs">{item.materialAdditionalDescription}</span>
+        )}
+      </div>
+    </TableCell>
+    <TableCell className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 hidden sm:table-cell">{item.vendorNumber}</TableCell>
   </TableRow>);
 StoreRow.displayName = "StoreRow";
 const StoresSnapshot = () => {
@@ -438,26 +444,18 @@ const StoresSnapshot = () => {
                       {getSortIcon("storageBin")}
                     </TableHead>
                     <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 whitespace-nowrap" onClick={() => handleSort("materialDescription")}>
-                      <span className="hidden sm:inline">Description</span>
-                      <span className="sm:hidden">Desc</span>
+                      Description
                       {getSortIcon("materialDescription")}
                     </TableHead>
-                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 whitespace-nowrap" onClick={() => handleSort("materialAdditionalDescription")}>
-                      <span className="hidden md:inline">Additional Description</span>
-                      <span className="hidden sm:inline md:hidden">Add. Desc</span>
-                      <span className="sm:hidden">Add</span>
-                      {getSortIcon("materialAdditionalDescription")}
-                    </TableHead>
-                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 whitespace-nowrap" onClick={() => handleSort("vendorNumber")}>
-                      <span className="hidden sm:inline">Vendor</span>
-                      <span className="sm:hidden">Vnd</span>
+                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 whitespace-nowrap hidden sm:table-cell" onClick={() => handleSort("vendorNumber")}>
+                      Vendor
                       {getSortIcon("vendorNumber")}
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredData.length === 0 ? <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 sm:py-12 text-xs sm:text-sm text-muted-foreground">
+                      <TableCell colSpan={4} className="text-center py-8 sm:py-12 text-xs sm:text-sm text-muted-foreground">
                         No items match your search criteria
                       </TableCell>
                     </TableRow> : filteredData.map((item, index) => <StoreRow key={`${item.material}-${item.storageBin}-${index}`} item={item} />)}
