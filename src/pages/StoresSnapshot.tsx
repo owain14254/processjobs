@@ -15,11 +15,11 @@ const StoreRow = memo(({
 }: {
   item: StoreItem;
 }) => <TableRow>
-    <TableCell className="font-medium text-xs sm:text-sm whitespace-nowrap">{item.material}</TableCell>
-    <TableCell className="text-xs sm:text-sm whitespace-nowrap">{item.storageBin}</TableCell>
-    <TableCell className="text-xs sm:text-sm min-w-[150px] sm:min-w-[200px]">{item.materialDescription}</TableCell>
-    <TableCell className="text-xs sm:text-sm min-w-[150px] sm:min-w-[200px] hidden md:table-cell">{item.materialAdditionalDescription}</TableCell>
-    <TableCell className="text-xs sm:text-sm whitespace-nowrap">{item.vendorNumber}</TableCell>
+    <TableCell className="font-medium text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4">{item.material}</TableCell>
+    <TableCell className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4">{item.storageBin}</TableCell>
+    <TableCell className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 max-w-[80px] sm:max-w-[150px] md:max-w-none truncate">{item.materialDescription}</TableCell>
+    <TableCell className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 max-w-[80px] sm:max-w-[150px] md:max-w-none truncate">{item.materialAdditionalDescription}</TableCell>
+    <TableCell className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4">{item.vendorNumber}</TableCell>
   </TableRow>);
 StoreRow.displayName = "StoreRow";
 const StoresSnapshot = () => {
@@ -191,74 +191,106 @@ const StoresSnapshot = () => {
     return sortDirection === "asc" ? <ArrowUp className="h-3 w-3 ml-1 inline" /> : <ArrowDown className="h-3 w-3 ml-1 inline" />;
   };
 
-  // Performance-optimized filtering with wildcard support
-  const filteredData = useMemo(() => {
-    if (!showResults) return [];
-
-    // Helper function to match with wildcard
-    const matchesWildcard = (value: string, pattern: string) => {
-      if (!pattern.trim()) return true;
-      const isWildcard = pattern.includes("*");
-      if (isWildcard) {
-        // Normalize spaces in both value and pattern
-        const normalizedValue = value.replace(/\s+/g, " ").trim().toLowerCase();
-        const normalizedPattern = pattern.replace(/\s+/g, " ").trim().toLowerCase();
-
-        // Escape special regex characters except *
-        const escaped = normalizedPattern.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
-        // Replace * with regex pattern that matches any characters including spaces (substring match)
+  // Core pattern matching function per spec
+  const matchesPattern = useCallback((value: string, pattern: string): boolean => {
+    if (!pattern.trim()) return true;
+    
+    // Normalize: Replace multiple spaces with single space
+    const normalizedValue = value.replace(/\s+/g, " ").trim();
+    const normalizedPattern = pattern.replace(/\s+/g, " ").trim();
+    
+    // Check if pattern contains regex special chars or wildcard
+    const hasSpecialChars = /[+?^${}()|[\]\\]/.test(normalizedPattern);
+    const hasWildcard = normalizedPattern.includes("*");
+    const isRegexMode = hasSpecialChars || hasWildcard;
+    
+    try {
+      if (isRegexMode) {
+        // Regex/wildcard mode: escape special chars except *, replace * with .*
+        const escaped = normalizedPattern.replace(/[+?^${}()|[\]\\]/g, "\\$&");
         const regexPattern = escaped.replace(/\*/g, ".*");
         const regex = new RegExp(regexPattern, "i");
         return regex.test(normalizedValue);
+      } else {
+        // Plain text mode: split by spaces, all words must appear (any order)
+        const words = normalizedPattern.split(" ").filter(w => w.length > 0);
+        const escapedWords = words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+        // Build positive lookahead regex: (?=.*word1)(?=.*word2)...
+        const lookaheadPattern = escapedWords.map(w => `(?=.*${w})`).join("");
+        const regex = new RegExp(lookaheadPattern, "i");
+        return regex.test(normalizedValue);
       }
-      return value.toLowerCase().includes(pattern.toLowerCase());
-    };
+    } catch {
+      // Fallback to case-insensitive substring match
+      return normalizedValue.toLowerCase().includes(normalizedPattern.toLowerCase());
+    }
+  }, []);
 
-    // First apply simple unified search OR advanced search filters
+  // Performance-optimized filtering
+  const filteredData = useMemo(() => {
+    if (!showResults) return [];
+
     let results = storesData;
+    
     if (simpleSearch.trim()) {
-      // Simple search: search across all fields with wildcard support
-      results = results.filter(item => {
-        return matchesWildcard(item.material, simpleSearch) || matchesWildcard(item.storageBin, simpleSearch) || matchesWildcard(item.materialDescription, simpleSearch) || matchesWildcard(item.materialAdditionalDescription, simpleSearch) || matchesWildcard(item.vendorNumber, simpleSearch);
-      });
+      const pattern = simpleSearch.trim();
+      const hasSpecialChars = /[+?^${}()|[\]\\]/.test(pattern);
+      const hasWildcard = pattern.includes("*");
+      const isRegexMode = hasSpecialChars || hasWildcard;
+      
+      if (isRegexMode) {
+        // Regex/wildcard: check each field individually with OR logic
+        results = results.filter(item => 
+          matchesPattern(item.material, pattern) || 
+          matchesPattern(item.storageBin, pattern) || 
+          matchesPattern(item.materialDescription, pattern) || 
+          matchesPattern(item.materialAdditionalDescription, pattern) || 
+          matchesPattern(item.vendorNumber, pattern)
+        );
+      } else {
+        // Plain text: combine all fields, all words must appear somewhere
+        results = results.filter(item => {
+          const combined = `${item.material} ${item.storageBin} ${item.materialDescription} ${item.materialAdditionalDescription} ${item.vendorNumber}`;
+          return matchesPattern(combined, pattern);
+        });
+      }
     } else {
-      // Advanced search: filter by individual fields
+      // Advanced search: AND logic across individual field filters
       results = results.filter(item => {
-        const matchesSap = matchesWildcard(item.material, sapNumber);
-        const matchesLoc = matchesWildcard(item.storageBin, location);
-        const matchesDesc = matchesWildcard(`${item.materialDescription} ${item.materialAdditionalDescription}`, description);
-        const matchesVendor = matchesWildcard(item.vendorNumber, vendorNumber);
+        const matchesSap = matchesPattern(item.material, sapNumber);
+        const matchesLoc = matchesPattern(item.storageBin, location);
+        const matchesDesc = matchesPattern(`${item.materialDescription} ${item.materialAdditionalDescription}`, description);
+        const matchesVendor = matchesPattern(item.vendorNumber, vendorNumber);
         return matchesSap && matchesLoc && matchesDesc && matchesVendor;
       });
     }
 
-    // Then apply result page search query (searches across all fields with wildcard support)
+    // Apply result page search query (same logic as simple search)
     if (resultSearchQuery.trim()) {
-      const query = resultSearchQuery.trim();
-      const isWildcard = query.includes("*");
-      if (isWildcard) {
-        // Normalize the query pattern
-        const normalizedQuery = query.replace(/\s+/g, " ").trim().toLowerCase();
-        const escaped = normalizedQuery.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
-        const regexPattern = escaped.replace(/\*/g, ".*");
-        const regex = new RegExp(regexPattern, "i");
-        results = results.filter(item => {
-          const normalizedMaterial = item.material.replace(/\s+/g, " ").trim();
-          const normalizedBin = item.storageBin.replace(/\s+/g, " ").trim();
-          const normalizedDesc = item.materialDescription.replace(/\s+/g, " ").trim();
-          const normalizedAddDesc = item.materialAdditionalDescription.replace(/\s+/g, " ").trim();
-          const normalizedVendor = item.vendorNumber.replace(/\s+/g, " ").trim();
-          return regex.test(normalizedMaterial) || regex.test(normalizedBin) || regex.test(normalizedDesc) || regex.test(normalizedAddDesc) || regex.test(normalizedVendor);
-        });
+      const pattern = resultSearchQuery.trim();
+      const hasSpecialChars = /[+?^${}()|[\]\\]/.test(pattern);
+      const hasWildcard = pattern.includes("*");
+      const isRegexMode = hasSpecialChars || hasWildcard;
+      
+      if (isRegexMode) {
+        results = results.filter(item => 
+          matchesPattern(item.material, pattern) || 
+          matchesPattern(item.storageBin, pattern) || 
+          matchesPattern(item.materialDescription, pattern) || 
+          matchesPattern(item.materialAdditionalDescription, pattern) || 
+          matchesPattern(item.vendorNumber, pattern)
+        );
       } else {
-        const lowerQuery = query.toLowerCase();
-        results = results.filter(item => item.material.toLowerCase().includes(lowerQuery) || item.storageBin.toLowerCase().includes(lowerQuery) || item.materialDescription.toLowerCase().includes(lowerQuery) || item.materialAdditionalDescription.toLowerCase().includes(lowerQuery) || item.vendorNumber.toLowerCase().includes(lowerQuery));
+        results = results.filter(item => {
+          const combined = `${item.material} ${item.storageBin} ${item.materialDescription} ${item.materialAdditionalDescription} ${item.vendorNumber}`;
+          return matchesPattern(combined, pattern);
+        });
       }
     }
 
     // Apply sorting
     if (sortColumn) {
-      results.sort((a, b) => {
+      results = [...results].sort((a, b) => {
         const aVal = a[sortColumn].toLowerCase();
         const bVal = b[sortColumn].toLowerCase();
         if (sortDirection === "asc") {
@@ -269,7 +301,7 @@ const StoresSnapshot = () => {
       });
     }
     return results;
-  }, [storesData, simpleSearch, sapNumber, location, description, vendorNumber, showResults, resultSearchQuery, sortColumn, sortDirection]);
+  }, [storesData, simpleSearch, sapNumber, location, description, vendorNumber, showResults, resultSearchQuery, sortColumn, sortDirection, matchesPattern]);
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">
         <div className="text-lg">Loading...</div>
@@ -395,24 +427,30 @@ const StoresSnapshot = () => {
               <Table>
                 <TableHeader className="sticky top-0 bg-background z-10">
                   <TableRow>
-                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-xs sm:text-sm whitespace-nowrap" onClick={() => handleSort("material")}>
-                      SAP Number
+                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 whitespace-nowrap" onClick={() => handleSort("material")}>
+                      <span className="hidden sm:inline">SAP Number</span>
+                      <span className="sm:hidden">SAP</span>
                       {getSortIcon("material")}
                     </TableHead>
-                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-xs sm:text-sm whitespace-nowrap" onClick={() => handleSort("storageBin")}>
-                      Location
+                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 whitespace-nowrap" onClick={() => handleSort("storageBin")}>
+                      <span className="hidden sm:inline">Location</span>
+                      <span className="sm:hidden">Loc</span>
                       {getSortIcon("storageBin")}
                     </TableHead>
-                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-xs sm:text-sm whitespace-nowrap" onClick={() => handleSort("materialDescription")}>
-                      Description
+                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 whitespace-nowrap" onClick={() => handleSort("materialDescription")}>
+                      <span className="hidden sm:inline">Description</span>
+                      <span className="sm:hidden">Desc</span>
                       {getSortIcon("materialDescription")}
                     </TableHead>
-                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-xs sm:text-sm whitespace-nowrap hidden md:table-cell" onClick={() => handleSort("materialAdditionalDescription")}>
-                      Additional Description
+                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 whitespace-nowrap" onClick={() => handleSort("materialAdditionalDescription")}>
+                      <span className="hidden md:inline">Additional Description</span>
+                      <span className="hidden sm:inline md:hidden">Add. Desc</span>
+                      <span className="sm:hidden">Add</span>
                       {getSortIcon("materialAdditionalDescription")}
                     </TableHead>
-                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-xs sm:text-sm whitespace-nowrap" onClick={() => handleSort("vendorNumber")}>
-                      Vendor Number
+                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 whitespace-nowrap" onClick={() => handleSort("vendorNumber")}>
+                      <span className="hidden sm:inline">Vendor</span>
+                      <span className="sm:hidden">Vnd</span>
                       {getSortIcon("vendorNumber")}
                     </TableHead>
                   </TableRow>
