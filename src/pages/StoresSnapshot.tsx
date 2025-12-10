@@ -15,17 +15,17 @@ const StoreRow = memo(({
 }: {
   item: StoreItem;
 }) => <TableRow>
-    <TableCell className="font-medium text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4">{item.material}</TableCell>
-    <TableCell className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4">{item.storageBin}</TableCell>
+    <TableCell className="font-medium text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 break-all">{item.material}</TableCell>
+    <TableCell className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 break-all">{item.storageBin}</TableCell>
     <TableCell className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4">
       <div className="flex flex-col">
-        <span className="truncate">{item.materialDescription}</span>
+        <span className="break-words">{item.materialDescription}</span>
         {item.materialAdditionalDescription && (
-          <span className="truncate text-muted-foreground text-[9px] sm:text-[10px] md:text-xs">{item.materialAdditionalDescription}</span>
+          <span className="break-words text-muted-foreground text-[9px] sm:text-[10px] md:text-xs">{item.materialAdditionalDescription}</span>
         )}
       </div>
     </TableCell>
-    <TableCell className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 hidden sm:table-cell">{item.vendorNumber}</TableCell>
+    <TableCell className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 hidden sm:table-cell break-all">{item.vendorNumber}</TableCell>
   </TableRow>);
 StoreRow.displayName = "StoreRow";
 const StoresSnapshot = () => {
@@ -429,8 +429,8 @@ const StoresSnapshot = () => {
 
         {/* Table - Only show when results are displayed */}
         {showResults && <div className="border rounded-lg overflow-hidden flex-1 flex flex-col min-h-0">
-            <div className="overflow-x-auto overflow-y-auto flex-1">
-              <Table>
+            <div className="overflow-y-auto flex-1">
+              <Table className="table-fixed w-full">
                 <TableHeader className="sticky top-0 bg-background z-10">
                   <TableRow>
                     <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 whitespace-nowrap" onClick={() => handleSort("material")}>
