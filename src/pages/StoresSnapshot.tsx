@@ -14,18 +14,25 @@ const StoreRow = memo(({
   item
 }: {
   item: StoreItem;
-}) => <TableRow>
-    <TableCell className="font-medium text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 break-all">{item.material}</TableCell>
-    <TableCell className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 break-all">{item.storageBin}</TableCell>
-    <TableCell className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4">
-      <div className="flex flex-col">
+}) => <TableRow className="h-auto">
+    {/* Mobile: SAP + Location stacked | Desktop: separate columns */}
+    <TableCell className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 py-1 sm:py-2 w-[70px] sm:w-auto">
+      <div className="flex flex-col sm:hidden">
+        <span className="font-medium">{item.material}</span>
+        <span className="text-muted-foreground text-[9px]">{item.storageBin}</span>
+      </div>
+      <span className="hidden sm:inline font-medium">{item.material}</span>
+    </TableCell>
+    <TableCell className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 py-1 sm:py-2 hidden sm:table-cell">{item.storageBin}</TableCell>
+    <TableCell className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 py-1 sm:py-2">
+      <div className="flex flex-col leading-tight">
         <span className="break-words">{item.materialDescription}</span>
         {item.materialAdditionalDescription && (
           <span className="break-words text-muted-foreground text-[9px] sm:text-[10px] md:text-xs">{item.materialAdditionalDescription}</span>
         )}
       </div>
     </TableCell>
-    <TableCell className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 hidden sm:table-cell break-all">{item.vendorNumber}</TableCell>
+    <TableCell className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 py-1 sm:py-2 hidden sm:table-cell">{item.vendorNumber}</TableCell>
   </TableRow>);
 StoreRow.displayName = "StoreRow";
 const StoresSnapshot = () => {
@@ -433,21 +440,20 @@ const StoresSnapshot = () => {
               <Table className="table-fixed w-full">
                 <TableHeader className="sticky top-0 bg-background z-10">
                   <TableRow>
-                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 whitespace-nowrap" onClick={() => handleSort("material")}>
+                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 py-1 sm:py-2 w-[70px] sm:w-auto" onClick={() => handleSort("material")}>
                       <span className="hidden sm:inline">SAP Number</span>
-                      <span className="sm:hidden">SAP</span>
+                      <span className="sm:hidden">SAP/Loc</span>
                       {getSortIcon("material")}
                     </TableHead>
-                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 whitespace-nowrap" onClick={() => handleSort("storageBin")}>
-                      <span className="hidden sm:inline">Location</span>
-                      <span className="sm:hidden">Loc</span>
+                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 py-1 sm:py-2 hidden sm:table-cell" onClick={() => handleSort("storageBin")}>
+                      Location
                       {getSortIcon("storageBin")}
                     </TableHead>
-                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 whitespace-nowrap" onClick={() => handleSort("materialDescription")}>
+                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 py-1 sm:py-2" onClick={() => handleSort("materialDescription")}>
                       Description
                       {getSortIcon("materialDescription")}
                     </TableHead>
-                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 whitespace-nowrap hidden sm:table-cell" onClick={() => handleSort("vendorNumber")}>
+                    <TableHead className="cursor-pointer hover:bg-muted/50 select-none text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 md:px-4 py-1 sm:py-2 hidden sm:table-cell" onClick={() => handleSort("vendorNumber")}>
                       Vendor
                       {getSortIcon("vendorNumber")}
                     </TableHead>
