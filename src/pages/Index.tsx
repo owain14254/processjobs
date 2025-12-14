@@ -16,6 +16,7 @@ import { Archive, Download, Upload, BarChart3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import mullerLogo from "@/assets/muller-logo.png";
 import { formatDistanceToNow } from "date-fns";
+import { SaveStatusIndicator } from "@/components/SaveStatusIndicator";
 import { Settings } from "lucide-react";
 import {
   DropdownMenu,
@@ -78,7 +79,10 @@ const Index = () => {
     textSize,
     setTextSize,
     textBold,
-    setTextBold
+    setTextBold,
+    saveStatus,
+    isLoading,
+    loadError,
   } = useJobStorage();
   const {
     toast
@@ -371,7 +375,10 @@ const Index = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
               <div className="flex-1 min-w-0">
-                <h1 className="text-lg sm:text-2xl md:text-3xl font-bold truncate">Job Log</h1>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-lg sm:text-2xl md:text-3xl font-bold truncate">Job Log</h1>
+                  <SaveStatusIndicator status={saveStatus} />
+                </div>
                 <p className="text-xs sm:text-sm text-muted-foreground truncate">{adminSettings.appName}</p>
               </div>
               <div className="flex sm:hidden items-center gap-1.5">
@@ -440,7 +447,15 @@ const Index = () => {
           <TabsContent value="active" className="space-y-3">
             <AddJobForm onAdd={addJob} departments={adminSettings.departments} />
 
-            {activeJobs.length === 0 ? <div className="text-center py-12 text-muted-foreground">No active jobs. Add a job to get started.</div> : <div className="space-y-0.5">
+            {isLoading ? (
+              <div className="text-center py-12 text-muted-foreground">Loading jobs...</div>
+            ) : loadError ? (
+              <div className="text-center py-12 text-destructive">
+                Failed to load jobs: {loadError}
+              </div>
+            ) : activeJobs.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">No active jobs. Add a job to get started.</div>
+            ) : <div className="space-y-0.5">
                 <div className="grid grid-cols-[180px_140px_1fr_100px_100px_50px] gap-2 px-1.5 py-1 text-xs font-medium text-muted-foreground">
                   <div>Date</div>
                   <div>Department</div>

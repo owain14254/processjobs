@@ -74,12 +74,14 @@ const CompletedJobsLogComponent = ({
   
   const filteredJobs = useMemo(() => {
     return jobs.filter((job) => {
+      const jobDate = new Date(job.date);
+      
       // Wildcard search support: * matches any characters
       let matchesSearch = true;
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
         const description = job.description.toLowerCase();
-        const dateStr = format(job.date, "dd/MM/yyyy").toLowerCase();
+        const dateStr = format(jobDate, "dd/MM/yyyy").toLowerCase();
 
         if (searchLower.includes("*")) {
           // Convert wildcard pattern to regex
@@ -94,13 +96,12 @@ const CompletedJobsLogComponent = ({
       }
 
       const matchesDepartment = departmentFilter === "All" || job.department === departmentFilter;
-      const matchesStartDate = !startDate || job.date >= startDate;
-      const matchesEndDate = !endDate || job.date <= endDate;
+      const matchesStartDate = !startDate || jobDate >= startDate;
+      const matchesEndDate = !endDate || jobDate <= endDate;
 
       // Shift filter logic
       let matchesShift = true;
       if (shiftFilter) {
-        const jobDate = new Date(job.date);
         const completedAtDate = new Date(job.completedAt);
         const completedHour = getHours(completedAtDate);
 
@@ -116,12 +117,13 @@ const CompletedJobsLogComponent = ({
           ((shiftFilter.shift === "days" && isDayShift) || (shiftFilter.shift === "nights" && isNightShift));
       }
       return matchesSearch && matchesDepartment && matchesStartDate && matchesEndDate && matchesShift;
-    }).sort((a, b) => b.date.getTime() - a.date.getTime());
+    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [jobs, searchTerm, departmentFilter, startDate, endDate, shiftFilter]);
+  
   const handleEdit = useCallback((job: CompletedJob) => {
     setEditingJob(job);
     setEditDescription(job.description);
-    setEditDate(job.date);
+    setEditDate(new Date(job.date));
     setEditDepartment(job.department);
   }, []);
   
@@ -129,7 +131,7 @@ const CompletedJobsLogComponent = ({
     if (editingJob && onUpdate) {
       onUpdate(editingJob.id, {
         description: editDescription,
-        date: editDate,
+        date: editDate?.toISOString(),
         department: editDepartment,
       });
       setEditingJob(null);
@@ -235,10 +237,10 @@ const CompletedJobsLogComponent = ({
               ) : (
                 filteredJobs.map((job) => (
                   <TableRow key={job.id} className="h-7">
-                    <TableCell className={cn("whitespace-nowrap py-1", textSizeClass, textWeightClass)}>{format(job.date, "dd/MM/yyyy")}</TableCell>
+                    <TableCell className={cn("whitespace-nowrap py-1", textSizeClass, textWeightClass)}>{format(new Date(job.date), "dd/MM/yyyy")}</TableCell>
                     <TableCell className={cn("whitespace-nowrap py-1", textSizeClass, textWeightClass)}>{job.department}</TableCell>
                     <TableCell className={cn("py-1 break-words overflow-hidden", textSizeClass, textWeightClass)}>{job.description}</TableCell>
-                    <TableCell className={cn("whitespace-nowrap py-1", textSizeClass, textWeightClass)}>{format(job.completedAt, "dd/MM/yyyy")}</TableCell>
+                    <TableCell className={cn("whitespace-nowrap py-1", textSizeClass, textWeightClass)}>{format(new Date(job.completedAt), "dd/MM/yyyy")}</TableCell>
                     {isAdminMode && (
                       <TableCell className="py-1">
                         <div className="flex gap-1">

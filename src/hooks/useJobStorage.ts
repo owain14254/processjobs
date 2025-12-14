@@ -1,33 +1,24 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { loadJobs, saveJobs, Job, CompletedJob, JobsState } from "@/api/jobs";
+import { useJobsAutosave, SaveStatus } from "./useJobsAutosave";
 
-export interface Job {
-  id: string;
-  date: Date;
-  department: string;
-  description: string;
-  jobComplete: boolean;
-  sapComplete: boolean;
-  jobNumber?: string;
-}
-
-export interface CompletedJob extends Job {
-  completedAt: Date;
-}
-
-const ACTIVE_JOBS_KEY = "activeJobs";
-const COMPLETED_JOBS_KEY = "completedJobs";
+export type { Job, CompletedJob } from "@/api/jobs";
 
 export const useJobStorage = () => {
   const [activeJobs, setActiveJobs] = useState<Job[]>([]);
   const [completedJobs, setCompletedJobs] = useState<CompletedJob[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
   const [rowHeight, setRowHeight] = useState<number>(() => {
     const saved = localStorage.getItem("rowHeight");
-    return saved ? parseInt(saved) : 2; // 0=extra compact, 1=compact, 2=normal, 3=comfortable, 4=extra comfortable
+    return saved ? parseInt(saved) : 2;
   });
 
   const [textSize, setTextSize] = useState<number>(() => {
     const saved = localStorage.getItem("textSize");
-    return saved ? parseInt(saved) : 2; // 0=extra small, 1=small, 2=normal, 3=large, 4=extra large
+    return saved ? parseInt(saved) : 2;
   });
 
   const [textBold, setTextBold] = useState<boolean>(() => {
@@ -35,37 +26,37 @@ export const useJobStorage = () => {
     return saved === "true";
   });
 
-  // Load from localStorage on mount
+  // Memoize state for autosave
+  const jobsState = useMemo<JobsState>(() => ({
+    activeJobs,
+    completedJobs,
+  }), [activeJobs, completedJobs]);
+
+  // Autosave hook
+  const { saveStatus } = useJobsAutosave(jobsState, isInitialized);
+
+  // Load from DB on mount
   useEffect(() => {
-    const loadedActiveJobs = localStorage.getItem(ACTIVE_JOBS_KEY);
-    const loadedCompletedJobs = localStorage.getItem(COMPLETED_JOBS_KEY);
+    const fetchJobs = async () => {
+      try {
+        setIsLoading(true);
+        setLoadError(null);
+        const data = await loadJobs();
+        setActiveJobs(data.activeJobs);
+        setCompletedJobs(data.completedJobs);
+        setIsInitialized(true);
+      } catch (error) {
+        console.error("Failed to load jobs:", error);
+        setLoadError(error instanceof Error ? error.message : "Failed to load jobs");
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    if (loadedActiveJobs) {
-      const parsed = JSON.parse(loadedActiveJobs);
-      setActiveJobs(parsed.map((job: any) => ({ ...job, date: new Date(job.date) })));
-    }
-
-    if (loadedCompletedJobs) {
-      const parsed = JSON.parse(loadedCompletedJobs);
-      setCompletedJobs(
-        parsed.map((job: any) => ({
-          ...job,
-          date: new Date(job.date),
-          completedAt: new Date(job.completedAt),
-        }))
-      );
-    }
+    fetchJobs();
   }, []);
 
-  // Auto-save to localStorage whenever data changes
-  useEffect(() => {
-    localStorage.setItem(ACTIVE_JOBS_KEY, JSON.stringify(activeJobs));
-  }, [activeJobs]);
-
-  useEffect(() => {
-    localStorage.setItem(COMPLETED_JOBS_KEY, JSON.stringify(completedJobs));
-  }, [completedJobs]);
-
+  // Persist UI settings to localStorage
   useEffect(() => {
     localStorage.setItem("rowHeight", rowHeight.toString());
   }, [rowHeight]);
@@ -78,41 +69,42 @@ export const useJobStorage = () => {
     localStorage.setItem("textBold", textBold.toString());
   }, [textBold]);
 
-  const addJob = (job: Omit<Job, "id">) => {
-    const newJob = {
+  const addJob = useCallback((job: Omit<Job, "id">) => {
+    const newJob: Job = {
       ...job,
       id: crypto.randomUUID(),
     };
     setActiveJobs((prev) => [...prev, newJob]);
-  };
+  }, []);
 
-  const updateJob = (id: string, updates: Partial<Job>) => {
+  const updateJob = useCallback((id: string, updates: Partial<Job>) => {
     setActiveJobs((prev) =>
       prev.map((job) => (job.id === id ? { ...job, ...updates } : job))
     );
-  };
+  }, []);
 
-  const deleteJob = (id: string) => {
+  const deleteJob = useCallback((id: string) => {
     setActiveJobs((prev) => prev.filter((job) => job.id !== id));
-  };
+  }, []);
 
-  const archiveCompletedJobs = () => {
-    const jobsToArchive = activeJobs.filter(
-      (job) => job.jobComplete && job.sapComplete
-    );
+  const archiveCompletedJobs = useCallback(() => {
+    setActiveJobs((prev) => {
+      const jobsToArchive = prev.filter(
+        (job) => job.jobComplete && job.sapComplete
+      );
 
-    const completedJobsWithTimestamp = jobsToArchive.map((job) => ({
-      ...job,
-      completedAt: new Date(),
-    }));
+      const completedJobsWithTimestamp: CompletedJob[] = jobsToArchive.map((job) => ({
+        ...job,
+        completedAt: new Date().toISOString(),
+      }));
 
-    setCompletedJobs((prev) => [...prev, ...completedJobsWithTimestamp]);
-    setActiveJobs((prev) =>
-      prev.filter((job) => !(job.jobComplete && job.sapComplete))
-    );
-  };
+      setCompletedJobs((prevCompleted) => [...prevCompleted, ...completedJobsWithTimestamp]);
 
-  const exportData = () => {
+      return prev.filter((job) => !(job.jobComplete && job.sapComplete));
+    });
+  }, []);
+
+  const exportData = useCallback(() => {
     const data = {
       activeJobs,
       completedJobs,
@@ -129,18 +121,18 @@ export const useJobStorage = () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  };
+  }, [activeJobs, completedJobs]);
 
-  const importData = (file: File, merge: boolean = false) => {
+  const importData = useCallback((file: File, merge: boolean = false) => {
     return new Promise<void>((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         try {
           const data = JSON.parse(e.target?.result as string);
           if (data.activeJobs) {
-            const importedActiveJobs = data.activeJobs.map((job: any) => ({
+            const importedActiveJobs: Job[] = data.activeJobs.map((job: any) => ({
               ...job,
-              date: new Date(job.date),
+              date: typeof job.date === 'string' ? job.date : new Date(job.date).toISOString(),
             }));
             
             if (merge) {
@@ -150,10 +142,10 @@ export const useJobStorage = () => {
             }
           }
           if (data.completedJobs) {
-            const importedCompletedJobs = data.completedJobs.map((job: any) => ({
+            const importedCompletedJobs: CompletedJob[] = data.completedJobs.map((job: any) => ({
               ...job,
-              date: new Date(job.date),
-              completedAt: new Date(job.completedAt),
+              date: typeof job.date === 'string' ? job.date : new Date(job.date).toISOString(),
+              completedAt: typeof job.completedAt === 'string' ? job.completedAt : new Date(job.completedAt).toISOString(),
             }));
             
             if (merge) {
@@ -170,17 +162,34 @@ export const useJobStorage = () => {
       reader.onerror = reject;
       reader.readAsText(file);
     });
-  };
+  }, []);
 
-  const deleteCompletedJob = (id: string) => {
+  const deleteCompletedJob = useCallback((id: string) => {
     setCompletedJobs((prev) => prev.filter((job) => job.id !== id));
-  };
+  }, []);
 
-  const updateCompletedJob = (id: string, updates: Partial<CompletedJob>) => {
+  const updateCompletedJob = useCallback((id: string, updates: Partial<CompletedJob>) => {
     setCompletedJobs((prev) =>
       prev.map((job) => (job.id === id ? { ...job, ...updates } : job))
     );
-  };
+  }, []);
+
+  const restoreJob = useCallback((id: string) => {
+    setCompletedJobs((prev) => {
+      const jobToRestore = prev.find((job) => job.id === id);
+      if (!jobToRestore) return prev;
+
+      const { completedAt, ...activeJobData } = jobToRestore;
+      const restoredJob: Job = {
+        ...activeJobData,
+        jobComplete: false,
+        sapComplete: false,
+      };
+
+      setActiveJobs((prevActive) => [...prevActive, restoredJob]);
+      return prev.filter((job) => job.id !== id);
+    });
+  }, []);
 
   return {
     activeJobs,
@@ -199,5 +208,10 @@ export const useJobStorage = () => {
     importData,
     deleteCompletedJob,
     updateCompletedJob,
+    restoreJob,
+    saveStatus,
+    isLoading,
+    loadError,
+    isInitialized,
   };
 };
