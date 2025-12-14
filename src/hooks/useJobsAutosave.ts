@@ -13,6 +13,7 @@ export function useJobsAutosave(state: JobsState, isInitialized: boolean) {
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const savedTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedStateRef = useRef<string>('');
+  const isFirstSaveRef = useRef(true);
 
   const performSave = useCallback(async (currentState: JobsState) => {
     const stateString = JSON.stringify(currentState);
@@ -29,11 +30,16 @@ export function useJobsAutosave(state: JobsState, isInitialized: boolean) {
 
     isSavingRef.current = true;
     isDirtyRef.current = false;
-    setSaveStatus('saving');
+    
+    // Don't show "Saving..." on the very first save (initial sync)
+    if (!isFirstSaveRef.current) {
+      setSaveStatus('saving');
+    }
 
     try {
       await saveJobs(currentState);
       lastSavedStateRef.current = stateString;
+      isFirstSaveRef.current = false;
       setSaveStatus('saved');
       
       // Clear any existing saved timer
@@ -47,7 +53,13 @@ export function useJobsAutosave(state: JobsState, isInitialized: boolean) {
       }, SAVED_DISPLAY_MS);
     } catch (error) {
       console.error('Autosave failed:', error);
-      setSaveStatus('error');
+      // Only show error if it's not the first save attempt
+      if (!isFirstSaveRef.current) {
+        setSaveStatus('error');
+      } else {
+        isFirstSaveRef.current = false;
+        setSaveStatus('idle');
+      }
     } finally {
       isSavingRef.current = false;
 
