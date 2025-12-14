@@ -96,7 +96,7 @@ const JobRowComponent = ({
   }, [job.description]);
 
   const handleDateChange = useCallback((date: Date | undefined) => {
-    if (date) onUpdate(job.id, { date });
+    if (date) onUpdate(job.id, { date: date.toISOString() });
   }, [job.id, onUpdate]);
 
   const handleDepartmentChange = useCallback((value: string) => {
@@ -153,13 +153,13 @@ const JobRowComponent = ({
             }}
           >
             <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
-            <span className="truncate">{format(job.date, "PP")}</span>
+            <span className="truncate">{format(new Date(job.date), "PP")}</span>
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0">
           <Calendar
             mode="single"
-            selected={job.date}
+            selected={new Date(job.date)}
             onSelect={handleDateChange}
             initialFocus
           />

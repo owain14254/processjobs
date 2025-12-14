@@ -68,7 +68,7 @@ const DescriptionCell = ({ job }: { job: Job }) => {
       <TableCell
         className={cn("whitespace-nowrap text-black overflow-hidden text-ellipsis", cellPadding, textSizeClass, textWeightClass)}
       >
-        {format(job.date, "dd/MM/yy HH:mm")}
+        {format(new Date(job.date), "dd/MM/yy HH:mm")}
       </TableCell>
       <TableCell className={cn("text-black overflow-hidden text-ellipsis", cellPadding, textSizeClass, textWeightClass)}>
         {job.department}
@@ -150,11 +150,11 @@ export const HandoverTab = ({
     if (mode === "shift") {
       // Last X hours based on shiftDuration
       const cutoff = subHours(new Date(), shiftDuration);
-      filtered = filtered.filter((job) => job.date >= cutoff);
+      filtered = filtered.filter((job) => new Date(job.date) >= cutoff);
     } else {
       // Set: last X hours based on setDuration
       const cutoff = subHours(new Date(), setDuration);
-      filtered = filtered.filter((job) => job.date >= cutoff);
+      filtered = filtered.filter((job) => new Date(job.date) >= cutoff);
     }
 
     // Department filtering
@@ -168,7 +168,7 @@ export const HandoverTab = ({
     }
 
     // Sort by date descending (most recent first)
-    return filtered.sort((a, b) => b.date.getTime() - a.date.getTime());
+    return filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [allJobs, mode, departmentFilter, showOutstandingOnly, shiftDuration, setDuration]);
 
   return (

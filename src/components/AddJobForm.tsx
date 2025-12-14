@@ -23,7 +23,7 @@ export const AddJobForm = ({ onAdd, departments = ["Process", "Fruit", "Filling"
     if (!department || !description.trim()) return;
 
     onAdd({
-      date,
+      date: date.toISOString(),
       department,
       description,
       jobComplete: false,
